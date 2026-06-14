@@ -536,20 +536,14 @@ function projectDisplayName(query) {
 }
 
 async function openDupes() {
-  // all records across every project (each carries _project and _key)
-  const all = (await msg({ type: 'getRecords' })) || [];
-  const groups = new Map();
-  for (const r of all) {
-    const id = dupeIdentity(r);
-    if (!groups.has(id)) groups.set(id, []);
-    groups.get(id).push(r);
-  }
-  const dupes = [...groups.values()].filter((g) => g.length > 1);
-  dupes.sort((a, b) => b.length - a.length || String(a[0].name).localeCompare(String(b[0].name)));
+  $('dupeOverlay').classList.remove('hidden');
+  $('dupeBody').innerHTML = '<div class="dupe-empty">Scanning…</div>';
+  $('dupeCount').textContent = '…';
+  // the background computes the groups (small payload, scales to 30k+ leads)
+  const dupes = (await msg({ type: 'getDuplicates' })) || [];
   renderDupes(dupes);
   lastDupeIdx = null; // list rebuilt → reset the shift+click anchor
   updateDupeSelCount();
-  $('dupeOverlay').classList.remove('hidden');
 }
 
 function renderDupes(dupes) {

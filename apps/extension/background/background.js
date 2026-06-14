@@ -480,6 +480,27 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           : Object.values(p).flatMap(collect));
         break;
       }
+      case 'getDuplicates': {
+        // Compute duplicate groups in the BACKGROUND so we don't ship every
+        // record to the dashboard (huge at scale). Identity: cid → placeId → name+coords.
+        const p = await getProjects();
+        const groups = new Map();
+        for (const proj of Object.values(p)) {
+          for (const [k, r] of Object.entries(proj.records || {})) {
+            const id = r.cid ? 'cid:' + r.cid
+              : r.placeId ? 'pid:' + r.placeId
+              : 'nm:' + String(r.name || '').toLowerCase().trim() + '|' + (typeof r.lat === 'number' ? r.lat.toFixed(4) : '') + '|' + (typeof r.lng === 'number' ? r.lng.toFixed(4) : '');
+            let g = groups.get(id);
+            if (!g) { g = []; groups.set(id, g); }
+            g.push({ _project: proj.query, _key: k, name: r.name, category: r.category, rating: r.rating, reviewCount: r.reviewCount, checked: r.checked, address: r.address });
+          }
+        }
+        const dupes = [...groups.values()].filter((g) => g.length > 1)
+          .sort((a, b) => b.length - a.length || String(a[0].name || '').localeCompare(String(b[0].name || '')))
+          .slice(0, 2000);
+        sendResponse(dupes);
+        break;
+      }
       case 'deleteRecord': {
         const p = await getProjects();
         const proj = p[msg.query];
