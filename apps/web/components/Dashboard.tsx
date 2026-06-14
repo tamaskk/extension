@@ -48,6 +48,7 @@ export default function Dashboard() {
 
   const [mounted, setMounted] = useState(false);
   const [activeProject, setActiveProject] = useState<string | null>(null);
+  const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email'>('all');
   const [term, setTerm] = useState('');
   const [debTerm, setDebTerm] = useState('');
@@ -77,14 +78,14 @@ export default function Dashboard() {
   // debounce the search box
   useEffect(() => { const t = setTimeout(() => setDebTerm(term.trim()), 300); return () => clearTimeout(t); }, [term]);
   // any change that affects the result set goes back to page 1
-  useEffect(() => { setPage(1); }, [activeProject, filter, debTerm, sortKey, sortDir, pageSize]);
+  useEffect(() => { setPage(1); }, [activeProject, activeFolder, filter, debTerm, sortKey, sortDir, pageSize]);
 
   // ----- server-side page fetch -----
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
     setLoading(true);
-    api.getLeads({ project: activeProject, filter, search: debTerm, sort: sortKey, dir: sortDir, page, pageSize })
+    api.getLeads({ project: activeProject, folder: activeFolder, filter, search: debTerm, sort: sortKey, dir: sortDir, page, pageSize })
       .then((res) => {
         if (cancelled) return;
         const rows = (res.rows || []).map((r: any) => ({ ...r, _project: r.project, _key: r.dedupKey })) as LeadRow[];
@@ -94,7 +95,7 @@ export default function Dashboard() {
       .catch(() => { if (!cancelled) { setPageRows([]); setTotal(0); } })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [hydrated, activeProject, filter, debTerm, sortKey, sortDir, page, pageSize, reloadKey]);
+  }, [hydrated, activeProject, activeFolder, filter, debTerm, sortKey, sortDir, page, pageSize, reloadKey]);
 
   const summariesArr = useMemo(() => Object.values(summaries), [summaries]);
   const folderList = useMemo(() => Object.values(folders), [folders]);
@@ -124,16 +125,20 @@ export default function Dashboard() {
 
   // ----- widgets (full scope, from summaries) -----
   const stats = useMemo(() => {
-    const scope = activeProject ? (summaries[activeProject] ? [summaries[activeProject]] : []) : summariesArr;
+    const scope = activeFolder ? summariesArr.filter((p) => p.folderId === activeFolder)
+      : activeProject ? (summaries[activeProject] ? [summaries[activeProject]] : [])
+      : summariesArr;
     const total = scope.reduce((s, p) => s + p.total, 0);
     const noweb = scope.reduce((s, p) => s + p.noWebsite, 0);
     const hot = scope.reduce((s, p) => s + p.hot, 0);
     const email = scope.reduce((s, p) => s + p.email, 0);
     const oppSum = scope.reduce((s, p) => s + (p.oppSum || 0), 0);
     return { total, noweb, hot, email, avg: total ? Math.round(oppSum / total) : 0 };
-  }, [activeProject, summaries, summariesArr]);
+  }, [activeProject, activeFolder, summaries, summariesArr]);
 
-  const title = activeProject === null ? 'All leads' : (summaries[activeProject]?.name || activeProject);
+  const title = activeFolder ? `📁 ${folders[activeFolder]?.name || 'Folder'}`
+    : activeProject === null ? 'All leads'
+    : (summaries[activeProject]?.name || activeProject);
   const totalAll = summariesArr.reduce((s, p) => s + p.total, 0);
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
@@ -214,14 +219,14 @@ export default function Dashboard() {
         )}
 
         <nav className="nav">
-          <div className={`navitem all ${activeProject === null ? 'active' : ''}`} onClick={() => setActiveProject(null)}>
+          <div className={`navitem all ${activeProject === null && activeFolder === null ? 'active' : ''}`} onClick={() => { setActiveProject(null); setActiveFolder(null); }}>
             <span className="ni-name">All leads</span><span className="badge">{totalAll}</span>
           </div>
           {tree.blocks.map((block, bi) => (
             <div key={block.folder ? block.folder.id : `ung-${bi}`}>
               {block.folder && (
-                <div className="folder" onClick={() => actions.setFolderCollapsed(block.folder!.id, !block.folder!.collapsed)}>
-                  <span className="caret">{block.folder.collapsed ? '▸' : '▾'}</span>
+                <div className={`folder ${activeFolder === block.folder.id ? 'active' : ''}`} onClick={() => { setActiveFolder(block.folder!.id); setActiveProject(null); }}>
+                  <span className="caret" onClick={(e) => { e.stopPropagation(); actions.setFolderCollapsed(block.folder!.id, !block.folder!.collapsed); }}>{block.folder.collapsed ? '▸' : '▾'}</span>
                   <span className="fname" title={block.folder.name}>📁 {block.folder.name}</span>
                   <span className="ni-right">
                     <span className="badge">{block.projects.reduce((s, p) => s + p.total, 0)}</span>
@@ -232,7 +237,7 @@ export default function Dashboard() {
                 </div>
               )}
               {(!block.folder || !block.folder.collapsed) && block.projects.map((p) => (
-                <div key={p.query} className={`navitem proj ${activeProject === p.query ? 'active' : ''}`} onClick={() => setActiveProject(p.query)}>
+                <div key={p.query} className={`navitem proj ${activeProject === p.query ? 'active' : ''}`} onClick={() => { setActiveProject(p.query); setActiveFolder(null); }}>
                   <input type="checkbox" className="proj-check" checked={selected.has(p.query)} onChange={() => {}} onClick={(e) => { e.stopPropagation(); toggleSelect(p.query, !selected.has(p.query), e.shiftKey); }} />
                   <span className="ni-name" title={p.name}>{p.name}</span>
                   <span className="ni-right">

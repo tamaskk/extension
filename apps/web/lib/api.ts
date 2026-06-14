@@ -10,6 +10,7 @@ async function jsend(url: string, method: string, body: unknown) {
 
 export interface LeadsQuery {
   project?: string | null;
+  folder?: string | null;
   filter?: string;
   search?: string;
   sort?: string;
@@ -27,6 +28,7 @@ export const api = {
   getLeads: (q: LeadsQuery): Promise<{ rows: LeadRow[]; total: number }> => {
     const p = new URLSearchParams();
     if (q.project) p.set('project', q.project);
+    if (q.folder) p.set('folder', q.folder);
     if (q.filter) p.set('filter', q.filter);
     if (q.search) p.set('search', q.search);
     if (q.sort) p.set('sort', q.sort);

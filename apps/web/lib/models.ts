@@ -47,6 +47,11 @@ LeadSchema.index({ project: 1, dedupKey: 1 }, { unique: true });
 LeadSchema.index({ dedupKey: 1 }); // cross-project duplicate lookups
 LeadSchema.index({ websiteStatus: 1 });
 LeadSchema.index({ leadTemperature: 1 });
+// sort indexes (server-side pagination ordering)
+LeadSchema.index({ opportunityScore: 1 });
+LeadSchema.index({ leadScore: 1 });
+LeadSchema.index({ rating: 1 });
+LeadSchema.index({ reviewCount: 1 });
 
 export const Folder = models.Folder || model('Folder', FolderSchema);
 export const Project = models.Project || model('Project', ProjectSchema);
