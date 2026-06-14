@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import { NO_SITE } from '@/lib/types';
+import { useGrid } from '@/lib/store';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global { interface Window { L: any } }
@@ -53,12 +54,25 @@ function popupHtml(p: any) {
     </div>`;
 }
 
-export default function MapModal({ onClose, title, project, folder, filter, search }:
-  { onClose: () => void; title: string; project: string | null; folder: string | null; filter: string; search: string }) {
+type Scope = { type: 'all' | 'folder' | 'project'; id: string };
+
+export default function MapModal({ onClose, project, folder, filter, search }:
+  { onClose: () => void; title?: string; project: string | null; folder: string | null; filter: string; search: string }) {
   const mapEl = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
+  const clusterRef = useRef<any>(null);
+  const [ready, setReady] = useState(false);
   const [status, setStatus] = useState('Loading map…');
+  const [scope, setScope] = useState<Scope>(() => folder ? { type: 'folder', id: folder } : project ? { type: 'project', id: project } : { type: 'all', id: '' });
 
+  const folders = useGrid((s) => s.folders);
+  const summaries = useGrid((s) => s.summaries);
+  const folderList = useMemo(() => Object.values(folders).sort((a, b) => ((a.order ?? 0) - (b.order ?? 0)) || (a.createdAt < b.createdAt ? -1 : 1)), [folders]);
+  const projectList = useMemo(() => Object.values(summaries).sort((a, b) => String(a.name).localeCompare(String(b.name))), [summaries]);
+
+  const scopeValue = scope.type === 'all' ? 'all' : (scope.type === 'folder' ? 'f:' : 'p:') + scope.id;
+
+  // init the map once (after Leaflet loads)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -68,48 +82,74 @@ export default function MapModal({ onClose, title, project, folder, filter, sear
         await loadScript(MC_JS);
         if (cancelled || !mapEl.current) return;
         const L = window.L;
-
-        setStatus('Loading leads…');
-        const geo = await api.getGeo({ project, folder, filter, search });
-        if (cancelled || !mapEl.current) return;
-        const pts = geo.points || [];
-
         const map = L.map(mapEl.current, { worldCopyJump: true }).setView([39.8, -98.5], 4);
-        mapInstance.current = map;
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
-
-        const cluster = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50 });
-        const bounds: [number, number][] = [];
-        for (const p of pts) {
-          if (typeof p.lat !== 'number' || typeof p.lng !== 'number') continue;
-          const noSite = NO_SITE.has(p.websiteStatus as never);
-          const m = L.circleMarker([p.lat, p.lng], { radius: 5, color: noSite ? '#f43f5e' : '#22c55e', weight: 1, fillColor: noSite ? '#f43f5e' : '#22c55e', fillOpacity: 0.7 });
-          m.bindPopup(popupHtml(p), { minWidth: 210 });
-          cluster.addLayer(m);
-          bounds.push([p.lat, p.lng]);
-        }
-        map.addLayer(cluster);
-        if (bounds.length) map.fitBounds(bounds, { padding: [30, 30] });
-        setTimeout(() => map.invalidateSize(), 100);
-
-        setStatus(`${pts.length.toLocaleString()} plotted${geo.capped ? ` (of ${geo.total.toLocaleString()} — first ${pts.length.toLocaleString()})` : ''} · 🔴 no website · 🟢 has site`);
-      } catch {
-        if (!cancelled) setStatus('❌ Could not load the map.');
-      }
+        mapInstance.current = map;
+        setReady(true);
+      } catch { if (!cancelled) setStatus('❌ Could not load the map.'); }
     })();
     return () => { cancelled = true; if (mapInstance.current) { mapInstance.current.remove(); mapInstance.current = null; } };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // (re)load markers whenever the scope changes
+  useEffect(() => {
+    if (!ready || !mapInstance.current) return;
+    let cancelled = false;
+    (async () => {
+      const L = window.L;
+      setStatus('Loading leads…');
+      const q = scope.type === 'folder' ? { folder: scope.id } : scope.type === 'project' ? { project: scope.id } : {};
+      const geo = await api.getGeo({ ...q, filter, search }).catch(() => ({ points: [], total: 0, capped: false }));
+      if (cancelled || !mapInstance.current) return;
+      if (clusterRef.current) { mapInstance.current.removeLayer(clusterRef.current); clusterRef.current = null; }
+      const cluster = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50 });
+      const bounds: [number, number][] = [];
+      for (const p of geo.points) {
+        if (typeof p.lat !== 'number' || typeof p.lng !== 'number') continue;
+        const noSite = NO_SITE.has(p.websiteStatus as never);
+        const m = L.circleMarker([p.lat, p.lng], { radius: 5, color: noSite ? '#f43f5e' : '#22c55e', weight: 1, fillColor: noSite ? '#f43f5e' : '#22c55e', fillOpacity: 0.7 });
+        m.bindPopup(popupHtml(p), { minWidth: 210 });
+        cluster.addLayer(m);
+        bounds.push([p.lat, p.lng]);
+      }
+      mapInstance.current.addLayer(cluster);
+      clusterRef.current = cluster;
+      if (bounds.length) mapInstance.current.fitBounds(bounds, { padding: [30, 30] });
+      else mapInstance.current.setView([39.8, -98.5], 4);
+      setTimeout(() => mapInstance.current && mapInstance.current.invalidateSize(), 80);
+      setStatus(`${geo.points.length.toLocaleString()} plotted${geo.capped ? ` (first ${geo.points.length.toLocaleString()} of ${geo.total.toLocaleString()})` : ''} · 🔴 no website · 🟢 has site`);
+    })();
+    return () => { cancelled = true; };
+  }, [ready, scope, filter, search]);
+
+  const onPick = (v: string) => {
+    if (v === 'all') setScope({ type: 'all', id: '' });
+    else if (v.startsWith('f:')) setScope({ type: 'folder', id: v.slice(2) });
+    else setScope({ type: 'project', id: v.slice(2) });
+  };
 
   return (
     <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal modal-lg">
         <div className="modal-head">
           <div>
-            <div className="modal-title">🗺 Map — {title}</div>
+            <div className="modal-title">🗺 Map</div>
             <div className="modal-sub">{status}</div>
           </div>
-          <button className="btn" onClick={onClose}>✕ Close</button>
+          <div className="modal-actions">
+            <select className="map-select" value={scopeValue} onChange={(e) => onPick(e.target.value)}>
+              <option value="all">All leads</option>
+              {folderList.length > 0 && (
+                <optgroup label="Folders">
+                  {folderList.map((f) => <option key={f.id} value={`f:${f.id}`}>📁 {f.name}</option>)}
+                </optgroup>
+              )}
+              <optgroup label="Projects">
+                {projectList.map((p) => <option key={p.query} value={`p:${p.query}`}>{p.name}</option>)}
+              </optgroup>
+            </select>
+            <button className="btn" onClick={onClose}>✕ Close</button>
+          </div>
         </div>
         <div ref={mapEl} className="map-canvas" />
       </div>
