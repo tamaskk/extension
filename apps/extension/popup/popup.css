@@ -1,0 +1,57 @@
+:root {
+  --bg: #0b0d12; --panel: #141822; --line: #232838;
+  --text: #e6e8ee; --muted: #8b90a0; --accent: #6366f1; --hot: #f43f5e; --ok: #22c55e;
+}
+* { box-sizing: border-box; }
+body {
+  width: 320px; margin: 0; padding: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg); color: var(--text);
+}
+.hdr { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+.logo { font-weight: 700; font-size: 16px; letter-spacing: .2px; }
+.sub { color: var(--muted); font-size: 11px; }
+.banner {
+  background: #2a2030; border: 1px solid #4a3550; color: #f5d9a8;
+  padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 12px;
+}
+.banner a { color: #ffd27a; }
+.hidden { display: none; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.stat {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 4px; text-align: center;
+}
+.num { display: block; font-size: 20px; font-weight: 700; }
+.num.accent { color: var(--accent); }
+.num.hot { color: var(--hot); }
+.stat label { font-size: 10px; color: var(--muted); }
+.progress { height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+.bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), #8b5cf6); transition: width .3s; }
+.status { font-size: 12px; color: var(--muted); margin: 0 0 12px; min-height: 16px; }
+.controls { display: flex; gap: 8px; margin-bottom: 10px; }
+.btn {
+  flex: 1; padding: 9px 10px; border-radius: 9px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--text); font-weight: 600; font-size: 13px; cursor: pointer;
+}
+.btn:hover { border-color: #39405a; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: #5457e6; }
+.btn.ghost { background: transparent; color: var(--muted); }
+.btn.dash { width: 100%; margin-bottom: 10px; }
+.project { font-size: 12px; color: #a5b4fc; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; margin-bottom: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.check { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.foot { font-size: 10px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.5; }
+
+/* batch automation */
+.batch { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; }
+.batch-h { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.binput { width: 100%; background: var(--panel); border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: 12px; margin-bottom: 7px; }
+.binput::placeholder { color: var(--muted); }
+.batch-preview { font-size: 11px; color: var(--muted); margin-bottom: 8px; min-height: 14px; line-height: 1.4; }
+.batch-preview b { color: #a5b4fc; font-weight: 600; }
+.batchbtn { width: 100%; margin-bottom: 8px; }
+.batch-status { font-size: 11px; color: #a5b4fc; min-height: 14px; }
+.queuebox { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; }
+.qs-info { font-size: 11px; color: #a5b4fc; white-space: pre-line; line-height: 1.5; margin-bottom: 8px; min-height: 16px; }

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="dashboard.css" />
+  <title>GridLeads — Dashboard</title>
+</head>
+<body>
+  <div class="app">
+    <!-- LEFT SIDEBAR: PROJECTS -->
+    <aside class="sidebar">
+      <div class="brand">◧ GridLeads</div>
+      <div class="side-h">
+        <span>Projects</span>
+        <span class="side-tools">
+          <button id="newFolder" class="mini" title="New folder">＋</button>
+          <button id="importBtn" class="mini" title="Import JSON">⤴</button>
+          <button id="exportAll" class="mini" title="Export all (JSON)">⤓</button>
+          <button id="syncAll" class="mini" title="Sync all to web app">⟳</button>
+        </span>
+      </div>
+      <div id="bulkbar" class="bulkbar hidden">
+        <div class="bulk-row"><b id="bulkcount">0</b> selected <span class="bulk-clear" id="bulkClear">clear</span></div>
+        <div class="bulk-row">
+          <select id="moveTo" class="bulk-select"><option value="">Move to…</option></select>
+        </div>
+        <div class="bulk-row">
+          <button id="bulkRename" class="mini">Rename</button>
+          <button id="bulkExport" class="mini">Export</button>
+          <button id="bulkSync" class="mini">Sync</button>
+          <button id="bulkDelete" class="mini danger">Delete</button>
+        </div>
+      </div>
+      <nav class="nav" id="projects"></nav>
+      <div class="side-foot">Each Google Maps search is saved as a project.</div>
+      <div class="resizer" id="resizer" title="Drag to resize"></div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <header class="topbar">
+        <input id="search" class="search" type="search" placeholder="Search businesses, category, city, phone…" />
+        <select id="sort" class="select">
+          <option value="opportunity_desc">Sort: Opportunity ↓</option>
+          <option value="score_desc">Lead score ↓</option>
+          <option value="rating_desc">Highest rating</option>
+          <option value="rating_asc">Lowest rating</option>
+          <option value="reviews_desc">Most reviews</option>
+          <option value="name_asc">Name A–Z</option>
+        </select>
+        <button id="refresh" class="btn">⟳ Refresh</button>
+        <button id="batchBtn" class="btn">⚡ Batch</button>
+        <button id="dupes" class="btn">⧉ Duplicates</button>
+        <button id="exportJson" class="btn">⤓ Export JSON</button>
+        <button id="export" class="btn primary">⤓ Export CSV</button>
+      </header>
+
+      <div class="filters">
+        <button class="chipbtn active" data-filter="all">All</button>
+        <button class="chipbtn" data-filter="nowebsite">No website</button>
+        <button class="chipbtn" data-filter="haswebsite">Has website</button>
+        <button class="chipbtn" data-filter="hot">🔥 Hot</button>
+        <button class="chipbtn" data-filter="email">Email found</button>
+        <div class="spacer"></div>
+        <span id="title" class="title">All leads</span>
+      </div>
+
+      <section class="widgets">
+        <div class="widget"><div class="w-num" id="w-total">0</div><div class="w-label">Total leads</div></div>
+        <div class="widget"><div class="w-num accent" id="w-noweb">0</div><div class="w-label">No website</div></div>
+        <div class="widget"><div class="w-num hot" id="w-hot">0</div><div class="w-label">Hot leads</div></div>
+        <div class="widget"><div class="w-num" id="w-email">0</div><div class="w-label">Emails found</div></div>
+        <div class="widget"><div class="w-num" id="w-avg">0</div><div class="w-label">Avg opportunity</div></div>
+      </section>
+
+      <section class="tablewrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="cb"><input type="checkbox" id="selall" /></th>
+              <th class="sortable" data-key="checked">Checked</th>
+              <th class="sortable" data-key="name">Business</th>
+              <th class="sortable" data-key="category">Category</th>
+              <th class="sortable" data-key="rating">★</th>
+              <th class="sortable" data-key="reviewCount">Reviews</th>
+              <th class="sortable" data-key="phone">Phone</th>
+              <th class="sortable" data-key="email">Email</th>
+              <th class="sortable" data-key="websiteStatus">Website</th>
+              <th class="sortable" data-key="opportunityScore">Opportunity</th>
+              <th class="sortable" data-key="leadTemperature">Temp</th>
+              <th class="sortable" data-key="address">Location</th>
+              <th>Maps</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="empty" class="empty hidden">
+          No leads yet. Open Google Maps, run a search, then use the GridLeads popup → <b>Start scraping</b>.
+        </div>
+      </section>
+      <footer class="foot"><span id="rowcount">0</span> shown</footer>
+    </main>
+  </div>
+  <!-- DUPLICATES MODAL -->
+  <div id="dupeOverlay" class="overlay hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">⧉ Duplicate businesses</div>
+          <div class="modal-sub"><span id="dupeCount">0</span> duplicate group(s) across your projects</div>
+        </div>
+        <div class="modal-actions">
+          <button id="dupeDeleteSel" class="btn danger hidden">🗑 Delete selected (<span id="dupeSelCount">0</span>)</button>
+          <button id="dupeFixAll" class="btn fixall">⚡ Fix all</button>
+          <button id="dupeClose" class="btn">✕ Close</button>
+        </div>
+      </div>
+      <div id="dupeBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- IMPORT MODAL -->
+  <div id="importOverlay" class="overlay hidden">
+    <div class="modal modal-sm">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">⤴ Import JSON</div>
+          <div class="modal-sub">Load a GridLeads export (the .json you get from Export). It merges — nothing is deleted.</div>
+        </div>
+        <button id="importClose" class="btn">✕ Close</button>
+      </div>
+      <div class="modal-body">
+        <button id="importChoose" class="btn primary import-choose">📁 Choose JSON file…</button>
+        <input id="importFile" type="file" accept="application/json,.json" style="display:none" />
+        <div class="import-or">— or paste JSON below —</div>
+        <textarea id="importText" class="import-text" placeholder='{"gridleads":1,"projects":{ ... }}'></textarea>
+        <button id="importGo" class="btn primary import-go">⬆ Import</button>
+        <div id="importResult" class="import-result"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BATCH MODAL -->
+  <div id="batchOverlay" class="overlay hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">⚡ Batch automation</div>
+          <div class="modal-sub">Queue searches here, then press ▶ Start in the extension popup. They run one after another; a finished batch leaves the queue.</div>
+        </div>
+        <div class="modal-actions">
+          <button id="batchStopAll" class="btn danger">■ Stop all</button>
+          <button id="batchClose" class="btn">✕ Close</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="batch-form">
+          <input id="bd_prefix" class="binput" type="text" placeholder="Prefix — e.g. restaurants near" />
+          <input id="bd_middle" class="binput" type="text" placeholder="List, comma-separated — Corona, Manhattan, Brooklyn" />
+          <input id="bd_suffix" class="binput" type="text" placeholder="Suffix — e.g. newyork" />
+          <div id="bd_preview" class="batch-preview"></div>
+          <button id="bd_add" class="btn primary batch-add">＋ Add to queue (Done)</button>
+        </div>
+        <div class="batch-queue-h">Queue <span id="bd_count" class="muted"></span></div>
+        <div id="bd_queue" class="batch-queue"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="popup.css" />
+  <title>GridLeads</title>
+</head>
+<body>
+  <header class="hdr">
+    <div class="logo">◧ GridLeads</div>
+    <div class="sub">Maps Lead Scraper</div>
+  </header>
+
+  <div id="notMaps" class="banner hidden">
+    Open a <b>Google Maps</b> search to start scraping.
+    <a href="https://www.google.com/maps/search/dentists+near+me" target="_blank">Open Maps →</a>
+  </div>
+
+  <div id="project" class="project hidden"></div>
+
+  <section class="stats">
+    <div class="stat"><span id="total" class="num">0</span><label>Total</label></div>
+    <div class="stat"><span id="noweb" class="num accent">0</span><label>No website</label></div>
+    <div class="stat"><span id="hot" class="num hot">0</span><label>Hot</label></div>
+    <div class="stat"><span id="email" class="num">0</span><label>Emails</label></div>
+  </section>
+
+  <div class="progress"><div id="bar" class="bar"></div></div>
+  <p id="status" class="status">Idle</p>
+
+  <div class="controls">
+    <button id="start" class="btn primary">▶ Start scraping</button>
+    <button id="stop" class="btn" disabled>■ Stop</button>
+  </div>
+
+  <label class="check"><input type="checkbox" id="onlyNoWeb" /> Export only “no website” leads</label>
+
+  <div class="controls">
+    <button id="export" class="btn">⤓ Export CSV</button>
+    <button id="clear" class="btn ghost">Clear</button>
+  </div>
+
+  <button id="openDash" class="btn dash primary">▦ Open dashboard</button>
+
+  <div class="batch">
+    <div class="batch-h">⚙ Batch automation</div>
+    <input id="bPrefix" class="binput" type="text" placeholder="Prefix — e.g. restaurants near" />
+    <input id="bMiddle" class="binput" type="text" placeholder="List, comma-separated — Corona, Manhattan, Brooklyn" />
+    <input id="bSuffix" class="binput" type="text" placeholder="Suffix — e.g. newyork" />
+    <div id="bPreview" class="batch-preview"></div>
+    <button id="bRun" class="btn batchbtn">＋ Add to queue</button>
+    <div id="bStatus" class="batch-status"></div>
+  </div>
+
+  <div class="queuebox">
+    <div class="batch-h">▶ Batch queue</div>
+    <div id="qsInfo" class="qs-info">No batches queued</div>
+    <button id="qsStart" class="btn primary batchbtn">▶ Start all batches</button>
+    <button id="qsStop" class="btn batchbtn hidden">■ Stop</button>
+  </div>
+
+  <footer class="foot">Local-only MVP · no account needed · data stays in your browser</footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

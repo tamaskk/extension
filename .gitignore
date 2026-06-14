@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+
+# next.js / build
+.next/
+out/
+build/
+dist/
+
+# secrets — never commit
+.env
+.env.*
+!.env.example
+
+# vercel
+.vercel/
+
+# downloaded exports (lead data)
+apps/web/gridleads-*.json
+gridleads-*.json
+
+# third-party reference (decompiled), not part of this project
+LeadsMap_Crx/
+
+# misc
+.DS_Store
+*.log
+.gstack/
