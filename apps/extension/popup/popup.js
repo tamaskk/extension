@@ -1,5 +1,15 @@
 // GridLeads popup controller.
 const $ = (id) => document.getElementById(id);
+
+// Safe message to the background: callback form + reading lastError fully
+// suppresses "Could not establish connection. Receiving end does not exist."
+// (which happens while the service worker is starting up). Never rejects.
+function bg(message) {
+  return new Promise((resolve) => {
+    try { chrome.runtime.sendMessage(message, (res) => { void chrome.runtime.lastError; resolve(res); }); }
+    catch { resolve(null); }
+  });
+}
 let pollTimer = null;
 let activeQuery = '';
 let contentQuery = '';
@@ -58,7 +68,7 @@ function setRunning(running) {
 }
 
 async function refreshStats() {
-  const s = await chrome.runtime.sendMessage({ type: 'getStats', query: contentQuery || undefined });
+  const s = await bg({ type: 'getStats', query: contentQuery || undefined });
   if (s) {
     $('total').textContent = s.total || 0;
     $('noweb').textContent = s.noWebsite || 0;
@@ -75,7 +85,7 @@ async function refreshStats() {
 // Live batch-queue display: which batch is running and where we are.
 async function refreshQueue() {
   try {
-    const st = await chrome.runtime.sendMessage({ type: 'batchQueue' });
+    const st = await bg({ type: 'batchQueue' });
     const q = (st && st.queue) || [];
     if (!q.length) {
       $('qsInfo').textContent = 'No batches queued';
@@ -105,7 +115,7 @@ async function pollContent() {
     if (res) {
       contentQuery = res.query || contentQuery;
       setRunning(res.running);
-      const s = await chrome.runtime.sendMessage({ type: 'getStats', query: contentQuery || undefined });
+      const s = await bg({ type: 'getStats', query: contentQuery || undefined });
       const total = (s && s.total) || 0;
       $('status').textContent = res.running
         ? (res.note || `Scraping… ${total} collected`)
@@ -118,9 +128,11 @@ async function pollContent() {
 }
 
 async function init() {
-  const tab = await activeTab();
-  $('notMaps').classList.toggle('hidden', onMaps(tab));
-  $('start').disabled = !onMaps(tab);
+  try {
+    const tab = await activeTab();
+    $('notMaps').classList.toggle('hidden', onMaps(tab));
+    $('start').disabled = !onMaps(tab);
+  } catch { /* never block listener wiring below */ }
 
   $('start').addEventListener('click', async () => {
     const t = await activeTab();
@@ -141,7 +153,7 @@ async function init() {
   });
 
   $('export').addEventListener('click', async () => {
-    const res = await chrome.runtime.sendMessage({
+    const res = await bg({
       type: 'export',
       query: activeQuery || undefined,
       onlyNoWebsite: $('onlyNoWeb').checked,
@@ -173,7 +185,7 @@ async function init() {
   $('bRun').addEventListener('click', async () => {
     const middles = middlesOf();
     if (!middles.length) { $('bStatus').textContent = 'Enter at least one comma-separated value.'; return; }
-    const res = await chrome.runtime.sendMessage({
+    const res = await bg({
       type: 'batchEnqueue', prefix: $('bPrefix').value, middles, suffix: $('bSuffix').value,
     });
     if (res && res.ok) { $('bMiddle').value = ''; updatePreview(); saveBatch(); $('bStatus').textContent = `＋ Added ${res.count} searches to the queue`; refreshQueue(); }
@@ -181,19 +193,19 @@ async function init() {
   });
   $('qsStart').addEventListener('click', async () => {
     const tabId = await mapsTabId();
-    const res = await chrome.runtime.sendMessage({ type: 'batchStartQueue', tabId });
+    const res = await bg({ type: 'batchStartQueue', tabId });
     if (res && res.error === 'no-tab') $('qsInfo').textContent = 'Open a Google Maps tab first, then Start.';
     else if (res && res.error === 'empty') $('qsInfo').textContent = 'Queue is empty — add a batch first.';
     else refreshQueue();
   });
   $('qsStop').addEventListener('click', async () => {
-    await chrome.runtime.sendMessage({ type: 'batchStopAll' });
+    await bg({ type: 'batchStopAll' });
     refreshQueue();
   });
 
   $('clear').addEventListener('click', async () => {
     if (!confirm('Clear ALL projects and leads?')) return;
-    await chrome.runtime.sendMessage({ type: 'clearAll' });
+    await bg({ type: 'clearAll' });
     await refreshStats();
     $('status').textContent = 'Cleared';
   });
@@ -201,7 +213,7 @@ async function init() {
   // start polling LAST, so a polling error can never block the buttons above
   await refreshStats().catch(() => {});
   await pollContent().catch(() => {});
-  pollTimer = setInterval(pollContent, 1000);
+  pollTimer = setInterval(() => pollContent().catch(() => {}), 1000);
 }
 
 document.addEventListener('DOMContentLoaded', init);
