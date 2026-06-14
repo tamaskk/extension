@@ -6,21 +6,28 @@ export function OPTIONS() { return new Response(null, { headers: CORS }); }
 
 export async function GET() {
   await dbConnect();
-  const folders = await Folder.find().lean();
-  return json(folders.map((f: any) => ({ id: f.folderId, name: f.name, createdAt: f.createdAt, collapsed: !!f.collapsed })));
+  const folders = await Folder.find().sort({ order: 1, createdAt: 1 }).lean();
+  return json((folders as any[]).map((f) => ({ id: f.folderId, name: f.name, createdAt: f.createdAt, collapsed: !!f.collapsed, order: f.order ?? 0 })));
 }
 
 export async function POST(req: Request) {
   await dbConnect();
   const b = await req.json();
   const id = b.id || ('f_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7));
-  await Folder.updateOne({ folderId: id }, { $set: { folderId: id, name: (b.name || 'New folder').trim(), createdAt: b.createdAt || new Date().toISOString(), collapsed: b.collapsed ?? true } }, { upsert: true });
+  const order = await Folder.countDocuments(); // new folders go to the end
+  await Folder.updateOne({ folderId: id }, { $set: { folderId: id, name: (b.name || 'New folder').trim(), createdAt: b.createdAt || new Date().toISOString(), collapsed: b.collapsed ?? true, order } }, { upsert: true });
   return json({ ok: true, id });
 }
 
+// Single edit { id, name?, collapsed? } OR reorder { order: [id1, id2, ...] }
 export async function PATCH(req: Request) {
   await dbConnect();
   const b = await req.json();
+  if (Array.isArray(b.order)) {
+    const ops = b.order.map((id: string, i: number) => ({ updateOne: { filter: { folderId: id }, update: { $set: { order: i } } } }));
+    if (ops.length) await Folder.bulkWrite(ops);
+    return json({ ok: true });
+  }
   const set: Record<string, unknown> = {};
   if (typeof b.name === 'string') set.name = b.name;
   if (typeof b.collapsed === 'boolean') set.collapsed = b.collapsed;
@@ -32,6 +39,6 @@ export async function DELETE(req: Request) {
   await dbConnect();
   const b = await req.json();
   await Folder.deleteOne({ folderId: b.id });
-  await Project.updateMany({ folderId: b.id }, { $set: { folderId: null } }); // projects fall back to ungrouped
+  await Project.updateMany({ folderId: b.id }, { $set: { folderId: null } });
   return json({ ok: true });
 }

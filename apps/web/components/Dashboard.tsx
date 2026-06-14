@@ -14,6 +14,7 @@ const SORTABLE: Record<string, SortType> = {
   opportunityScore: 'num', leadScore: 'num', leadTemperature: 'temp', address: 'str',
 };
 const byCreated = (a: { createdAt: string }, b: { createdAt: string }) => (a.createdAt < b.createdAt ? -1 : 1);
+const byOrder = (a: { order?: number; createdAt: string }, b: { order?: number; createdAt: string }) => ((a.order ?? 0) - (b.order ?? 0)) || (a.createdAt < b.createdAt ? -1 : 1);
 const PAGE_SIZES = [10, 20, 50, 100, 200, 500, 1000];
 
 const STATUS_MAP: Record<string, [string, string]> = {
@@ -59,6 +60,7 @@ export default function Dashboard() {
   const [sidebarW, setSidebarW] = useState(264);
   const [dupesOpen, setDupesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [pageRows, setPageRows] = useState<LeadRow[]>([]);
@@ -66,6 +68,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const lastChecked = useRef<string | null>(null);
+  const dragFolderId = useRef<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -112,7 +115,7 @@ export default function Dashboard() {
     });
     const order: string[] = [];
     const blocks: { folder?: typeof folderList[number]; projects: ProjectSummary[] }[] = [];
-    folderList.slice().sort(byCreated).forEach((f) => {
+    folderList.slice().sort(byOrder).forEach((f) => {
       const fp = (grouped[f.id] || []).sort(byCreated);
       blocks.push({ folder: f, projects: fp });
       if (!f.collapsed) fp.forEach((p) => order.push(p.query));
@@ -183,6 +186,20 @@ export default function Dashboard() {
   };
   const refreshAll = () => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); };
 
+  // drag-and-drop folder reordering
+  const orderedFolderIds = () => folderList.slice().sort(byOrder).map((f) => f.id);
+  const dropFolder = (targetId: string) => {
+    const from = dragFolderId.current; dragFolderId.current = null; setDragOverId(null);
+    if (!from || from === targetId) return;
+    const ids = orderedFolderIds();
+    const fromIdx = ids.indexOf(from), toIdx = ids.indexOf(targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    ids.splice(fromIdx, 1);
+    const newToIdx = ids.indexOf(targetId);
+    ids.splice(fromIdx < toIdx ? newToIdx + 1 : newToIdx, 0, from);
+    actions.reorderFolders(ids);
+  };
+
   if (!mounted) return null;
   if (!hydrated) return <div style={{ display: 'grid', placeItems: 'center', height: '100vh', color: 'var(--muted)' }}>Loading from database…</div>;
 
@@ -207,7 +224,7 @@ export default function Dashboard() {
               <select className="bulk-select" value="" onChange={(e) => { const v = e.target.value; if (v) moveSelected(v === '__root__' ? null : v); }}>
                 <option value="">Move to…</option>
                 <option value="__root__">↥ Ungrouped (root)</option>
-                {folderList.slice().sort(byCreated).map((f) => <option key={f.id} value={f.id}>📁 {f.name}</option>)}
+                {folderList.slice().sort(byOrder).map((f) => <option key={f.id} value={f.id}>📁 {f.name}</option>)}
               </select>
             </div>
             <div className="bulk-row">
@@ -225,7 +242,16 @@ export default function Dashboard() {
           {tree.blocks.map((block, bi) => (
             <div key={block.folder ? block.folder.id : `ung-${bi}`}>
               {block.folder && (
-                <div className={`folder ${activeFolder === block.folder.id ? 'active' : ''}`} onClick={() => { setActiveFolder(block.folder!.id); setActiveProject(null); }}>
+                <div
+                  className={`folder ${activeFolder === block.folder.id ? 'active' : ''} ${dragOverId === block.folder.id ? 'dragover' : ''}`}
+                  draggable
+                  onDragStart={(e) => { dragFolderId.current = block.folder!.id; e.dataTransfer.effectAllowed = 'move'; }}
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragOverId !== block.folder!.id) setDragOverId(block.folder!.id); }}
+                  onDragLeave={() => setDragOverId((cur) => (cur === block.folder!.id ? null : cur))}
+                  onDrop={(e) => { e.preventDefault(); dropFolder(block.folder!.id); }}
+                  onDragEnd={() => { dragFolderId.current = null; setDragOverId(null); }}
+                  onClick={() => { setActiveFolder(block.folder!.id); setActiveProject(null); }}
+                >
                   <span className="caret" onClick={(e) => { e.stopPropagation(); actions.setFolderCollapsed(block.folder!.id, !block.folder!.collapsed); }}>{block.folder.collapsed ? '▸' : '▾'}</span>
                   <span className="fname" title={block.folder.name}>📁 {block.folder.name}</span>
                   <span className="ni-right">

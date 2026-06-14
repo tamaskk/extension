@@ -45,6 +45,7 @@ export const api = {
   renameFolder: (id: string, name: string) => jsend('/api/folders', 'PATCH', { id, name }),
   setFolderCollapsed: (id: string, collapsed: boolean) => jsend('/api/folders', 'PATCH', { id, collapsed }),
   deleteFolder: (id: string) => jsend('/api/folders', 'DELETE', { id }),
+  reorderFolders: (ids: string[]) => jsend('/api/folders', 'PATCH', { order: ids }),
 
   renameProject: (query: string, name: string) => jsend('/api/projects', 'PATCH', { query, name }),
   renameProjects: (queries: string[], name: string) => jsend('/api/projects', 'PATCH', { queries, name }),

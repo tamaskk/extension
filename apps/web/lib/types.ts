@@ -43,6 +43,7 @@ export interface Folder {
   name: string;
   createdAt: string;
   collapsed: boolean;
+  order?: number;
 }
 
 /** A Lead decorated with its origin, for cross-project (All leads / duplicates) views. */

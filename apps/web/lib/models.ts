@@ -6,6 +6,7 @@ const FolderSchema = new Schema({
   name: String,
   createdAt: String,
   collapsed: { type: Boolean, default: true },
+  order: { type: Number, default: 0 }, // manual drag-and-drop ordering
 }, { versionKey: false });
 
 // ── Project (one Google Maps search) ─────────────────────────────────────

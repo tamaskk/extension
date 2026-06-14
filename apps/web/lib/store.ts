@@ -27,6 +27,7 @@ interface GridState {
   renameFolder(id: string, name: string): void;
   deleteFolder(id: string): void;
   setFolderCollapsed(id: string, collapsed: boolean): void;
+  reorderFolders(ids: string[]): void;
 
   renameProject(query: string, name: string): void;
   deleteProject(query: string): void;
@@ -79,6 +80,15 @@ export const useGrid = create<GridState>()((set, get) => ({
   setFolderCollapsed: (id, collapsed) => {
     set((s) => { const f = s.folders[id]; return f ? { folders: { ...s.folders, [id]: { ...f, collapsed } } } : {}; });
     api.setFolderCollapsed(id, collapsed).catch(swallow);
+  },
+
+  reorderFolders: (ids) => {
+    set((s) => {
+      const folders = { ...s.folders };
+      ids.forEach((id, i) => { if (folders[id]) folders[id] = { ...folders[id], order: i }; });
+      return { folders };
+    });
+    api.reorderFolders(ids).catch(swallow);
   },
 
   renameProject: (query, name) => {

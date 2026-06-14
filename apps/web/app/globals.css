@@ -34,6 +34,8 @@ body.resizing { cursor: col-resize; user-select: none; }
 .folder { display: flex; align-items: center; gap: 7px; padding: 8px 11px; border-radius: 8px; cursor: pointer; color: var(--text); font-size: 13px; font-weight: 600; }
 .folder:hover { background: var(--panel); }
 .folder.active { background: var(--panel2); color: var(--text); }
+.folder[draggable="true"] { cursor: grab; }
+.folder.dragover { box-shadow: inset 0 2px 0 var(--accent); background: rgba(99,102,241,.1); }
 .caret { width: 10px; color: var(--muted); font-size: 10px; flex-shrink: 0; }
 .fname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fedit, .fdel, .fexport { color: var(--muted); opacity: 0; font-size: 12px; padding: 0 2px; cursor: pointer; }
