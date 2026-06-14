@@ -251,7 +251,7 @@ async function exportJsonFile(opts, hintFallback) {
 }
 
 // ---------- sync to the web app (MongoDB) ----------
-const SYNC_BASE = 'http://localhost:3000'; // change for a deployed web app
+const SYNC_BASE = 'https://gridleads-wheat.vercel.app'; // deployed web app (use http://localhost:3000 for local dev)
 async function syncBundle(opts) {
   const res = await msg(Object.assign({ type: 'exportJson' }, opts));
   if (!res || !res.ok || !res.bundle) return;
