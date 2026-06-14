@@ -28,6 +28,30 @@ function loadScript(src: string) {
   });
 }
 const esc = (s: string) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+const STATUS_LABEL: Record<string, string> = {
+  HAS_WEBSITE: 'Has site', NO_WEBSITE: 'No website', FACEBOOK_ONLY: 'Facebook only', INSTAGRAM_ONLY: 'Instagram only',
+  BROKEN: 'Broken', DOMAIN_EXPIRED: 'Expired', DOMAIN_PARKED: 'Parked', UNDER_CONSTRUCTION: 'Under constr.', NOT_WORKING: 'Not working', REDIRECTS: 'Redirects',
+};
+
+function popupHtml(p: any) {
+  const noSite = NO_SITE.has(p.websiteStatus);
+  const label = STATUS_LABEL[p.websiteStatus] || p.websiteStatus || '—';
+  const meta = [p.category, p.rating ? `★ ${p.rating}${p.reviewCount ? ` (${p.reviewCount})` : ''}` : '', p.opportunityScore != null ? `⚡ ${p.opportunityScore}` : '']
+    .filter(Boolean).map(esc).join(' · ');
+  const gmaps = p.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  return `
+    <div class="mp">
+      <div class="mp-name">${esc(p.name)}</div>
+      ${meta ? `<div class="mp-meta">${meta}</div>` : ''}
+      <div class="mp-tags"><span class="chip ${noSite ? 'red' : 'green'}">${esc(label)}</span>${p.leadTemperature ? `<span class="temp ${esc(p.leadTemperature)}">${esc(p.leadTemperature)}</span>` : ''}</div>
+      ${p.phone ? `<div class="mp-phone">📞 ${esc(p.phone)}</div>` : ''}
+      <div class="mp-btns">
+        <a href="${esc(gmaps)}" target="_blank" rel="noreferrer">📍 Google Maps</a>
+        ${p.website ? `<a href="${esc(p.website)}" target="_blank" rel="noreferrer">🌐 Website</a>` : ''}
+        ${p.phone ? `<a href="tel:${esc(p.phone)}">📞 Call</a>` : ''}
+      </div>
+    </div>`;
+}
 
 export default function MapModal({ onClose, title, project, folder, filter, search }:
   { onClose: () => void; title: string; project: string | null; folder: string | null; filter: string; search: string }) {
@@ -60,7 +84,7 @@ export default function MapModal({ onClose, title, project, folder, filter, sear
           if (typeof p.lat !== 'number' || typeof p.lng !== 'number') continue;
           const noSite = NO_SITE.has(p.websiteStatus as never);
           const m = L.circleMarker([p.lat, p.lng], { radius: 5, color: noSite ? '#f43f5e' : '#22c55e', weight: 1, fillColor: noSite ? '#f43f5e' : '#22c55e', fillOpacity: 0.7 });
-          m.bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.websiteStatus)}${p.phone ? '<br>' + esc(p.phone) : ''}`);
+          m.bindPopup(popupHtml(p), { minWidth: 210 });
           cluster.addLayer(m);
           bounds.push([p.lat, p.lng]);
         }

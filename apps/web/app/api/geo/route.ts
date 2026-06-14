@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
 
 function escapeRegex(s: string) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-const CAP = 20000; // max markers plotted
+const CAP = 60000; // max markers plotted
 
 // GET /api/geo?project=&folder=&filter=&search=  → [{lat,lng,name,websiteStatus}]
 export async function GET(req: Request) {
@@ -34,9 +34,10 @@ export async function GET(req: Request) {
     }
 
     const total = await Lead.countDocuments(match);
-    const docs = await Lead.find(match).select('lat lng name websiteStatus phone -_id').limit(CAP).lean();
-    const points = (docs as { lat: number; lng: number; name: string; websiteStatus: string; phone?: string }[])
-      .filter((d) => typeof d.lat === 'number' && typeof d.lng === 'number');
+    const docs = await Lead.find(match)
+      .select('lat lng name category rating reviewCount phone website websiteStatus mapsUrl opportunityScore leadTemperature -_id')
+      .limit(CAP).lean();
+    const points = (docs as { lat: number; lng: number }[]).filter((d) => typeof d.lat === 'number' && typeof d.lng === 'number');
     return json({ points, total, capped: total > CAP });
   } catch (e: any) {
     return json({ points: [], total: 0, capped: false, error: e?.message || 'geo query failed' }, { status: 500 });

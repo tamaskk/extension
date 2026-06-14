@@ -21,6 +21,13 @@ export interface LeadsQuery {
 
 export interface DupeGroup { name: string; address?: string; items: { project: string; key: string; name: string; category?: string; rating?: number; reviewCount?: number; checked?: boolean }[]; }
 
+export interface GeoPoint {
+  lat: number; lng: number; name: string;
+  category?: string; rating?: number | null; reviewCount?: number | null;
+  phone?: string; website?: string; websiteStatus: string;
+  mapsUrl?: string; opportunityScore?: number; leadTemperature?: string;
+}
+
 export const api = {
   getFolders: () => jget('/api/folders'),
   getProjects: () => jget('/api/projects'),
@@ -39,7 +46,7 @@ export const api = {
   },
 
   getDuplicates: (): Promise<DupeGroup[]> => jget('/api/duplicates'),
-  getGeo: (q: { project?: string | null; folder?: string | null; filter?: string; search?: string }): Promise<{ points: { lat: number; lng: number; name: string; websiteStatus: string; phone?: string }[]; total: number; capped: boolean }> => {
+  getGeo: (q: { project?: string | null; folder?: string | null; filter?: string; search?: string }): Promise<{ points: GeoPoint[]; total: number; capped: boolean }> => {
     const p = new URLSearchParams();
     if (q.project) p.set('project', q.project);
     if (q.folder) p.set('folder', q.folder);
