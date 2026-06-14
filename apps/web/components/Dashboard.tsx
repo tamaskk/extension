@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { type LeadRow, type ProjectSummary, type WebsiteStatus } from '@/lib/types';
 import DuplicatesModal from './DuplicatesModal';
 import ImportModal from './ImportModal';
+import MapModal from './MapModal';
 
 type SortType = 'has' | 'str' | 'num' | 'temp';
 const SORTABLE: Record<string, SortType> = {
@@ -61,6 +62,7 @@ export default function Dashboard() {
   const [dupesOpen, setDupesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [mapOpen, setMapOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [pageRows, setPageRows] = useState<LeadRow[]>([]);
@@ -295,6 +297,7 @@ export default function Dashboard() {
           </select>
           <button className="btn" onClick={refreshAll}>⟳ Refresh</button>
           <button className="btn" onClick={() => setDupesOpen(true)}>⧉ Duplicates</button>
+          <button className="btn" onClick={() => setMapOpen(true)}>🗺 Map</button>
           <button className="btn" onClick={() => exportJsonScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export JSON</button>
           <button className="btn primary" onClick={() => exportCsvScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export CSV</button>
         </header>
@@ -375,6 +378,17 @@ export default function Dashboard() {
       </main>
 
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
+
+      {mapOpen && (
+        <MapModal
+          onClose={() => setMapOpen(false)}
+          title={title}
+          project={activeProject}
+          folder={activeFolder}
+          filter={filter}
+          search={debTerm}
+        />
+      )}
 
       {dupesOpen && (
         <DuplicatesModal

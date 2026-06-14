@@ -39,6 +39,14 @@ export const api = {
   },
 
   getDuplicates: (): Promise<DupeGroup[]> => jget('/api/duplicates'),
+  getGeo: (q: { project?: string | null; folder?: string | null; filter?: string; search?: string }): Promise<{ points: { lat: number; lng: number; name: string; websiteStatus: string; phone?: string }[]; total: number; capped: boolean }> => {
+    const p = new URLSearchParams();
+    if (q.project) p.set('project', q.project);
+    if (q.folder) p.set('folder', q.folder);
+    if (q.filter) p.set('filter', q.filter);
+    if (q.search) p.set('search', q.search);
+    return jget('/api/geo?' + p.toString());
+  },
   exportBundle: (opts: { queries?: string[]; folderId?: string }) => jsend('/api/export', 'POST', opts),
 
   createFolder: (id: string, name: string, createdAt: string) => jsend('/api/folders', 'POST', { id, name, createdAt }),

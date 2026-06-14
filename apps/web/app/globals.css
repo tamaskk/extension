@@ -172,6 +172,11 @@ a.mlink:hover { text-decoration: underline; }
 .dupe-del:hover { border-color: var(--hot); background: rgba(244,63,94,.1); }
 .dupe-empty { padding: 30px; text-align: center; color: var(--muted); }
 
+/* map modal */
+.modal-lg { width: min(1100px, 95vw); }
+.map-canvas { height: 72vh; width: 100%; border-radius: 0 0 14px 14px; background: var(--panel2); }
+.map-canvas .leaflet-popup-content { font-size: 12px; }
+
 /* import modal */
 .modal-sm { width: min(560px, 92vw); }
 .import-choose { width: 100%; }
