@@ -262,33 +262,63 @@ async function postSync(payload) {
   return r.json();
 }
 
-// Sync in chunks so a big project never exceeds the serverless body limit.
+// ----- live sync progress toast -----
+let syncToast = null;
+function showSync(html, kind) {
+  if (!syncToast) { syncToast = document.createElement('div'); syncToast.className = 'sync-toast'; document.body.appendChild(syncToast); }
+  syncToast.className = 'sync-toast' + (kind ? ' ' + kind : '');
+  syncToast.innerHTML = html;
+  syncToast.style.display = 'block';
+}
+function hideSync(delay) { if (syncToast) setTimeout(() => { if (syncToast) syncToast.style.display = 'none'; }, delay || 0); }
+const fmt = (n) => n.toLocaleString();
+
+// Sync in chunks so a big project never exceeds the serverless body limit,
+// with a live progress panel: which request we're on and how many are left.
 async function syncBundle(opts) {
   const res = await msg(Object.assign({ type: 'exportJson' }, opts));
   if (!res || !res.ok || !res.bundle) return;
   const folders = res.bundle.folders || {};
   const projects = Object.values(res.bundle.projects || {});
-  let sentFolders = false, projCount = 0, leadCount = 0, skipped = 0;
+
+  // totals up front, so we can show "request X/Y · Z left"
+  let totalLeads = 0, totalReqs = 0;
+  for (const p of projects) { const n = Object.keys(p.records || {}).length; totalLeads += n; totalReqs += n ? Math.ceil(n / SYNC_CHUNK) : 1; }
+  if (Object.keys(folders).length) totalReqs += 1;
+
+  let doneReqs = 0, doneLeads = 0, projCount = 0, leadCount = 0, skipped = 0;
+  const render = () => {
+    const pct = totalReqs ? Math.round((doneReqs / totalReqs) * 100) : 100;
+    showSync(`<b>⤴ Syncing to web…</b><div class="st-bar"><div class="st-fill" style="width:${pct}%"></div></div>`
+      + `request <b>${doneReqs}/${totalReqs}</b> · <b>${totalReqs - doneReqs}</b> left<br>`
+      + `${fmt(doneLeads)} / ${fmt(totalLeads)} leads`);
+  };
+  render();
+
   try {
-    if (Object.keys(folders).length) { await postSync({ gridleads: 1, folders, projects: {} }); sentFolders = true; }
+    if (Object.keys(folders).length) { await postSync({ gridleads: 1, folders, projects: {} }); doneReqs++; render(); }
+    let sentFolders = Object.keys(folders).length > 0;
     for (const p of projects) {
       const meta = { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId };
       const entries = Object.entries(p.records || {});
       if (!entries.length) {
         await postSync({ gridleads: 1, folders: sentFolders ? {} : folders, projects: { [p.query]: { ...meta, records: {} } } });
-        sentFolders = true; projCount++; continue;
+        sentFolders = true; doneReqs++; projCount++; render(); continue;
       }
       for (let i = 0; i < entries.length; i += SYNC_CHUNK) {
-        const chunk = Object.fromEntries(entries.slice(i, i + SYNC_CHUNK));
-        const j = await postSync({ gridleads: 1, folders: sentFolders ? {} : folders, projects: { [p.query]: { ...meta, records: chunk } } });
-        sentFolders = true;
+        const slice = entries.slice(i, i + SYNC_CHUNK);
+        const j = await postSync({ gridleads: 1, folders: sentFolders ? {} : folders, projects: { [p.query]: { ...meta, records: Object.fromEntries(slice) } } });
+        sentFolders = true; doneReqs++; doneLeads += slice.length;
         if (j) { leadCount += (j.added || 0) + (j.updated || 0); skipped += (j.skippedDuplicates || 0); }
+        render();
       }
       projCount++;
     }
-    alert(`✓ Synced ${projCount} project(s), ${leadCount} lead(s)${skipped ? `, ${skipped} cross-project duplicate(s) skipped` : ''}.`);
+    showSync(`<b>✓ Sync complete</b><br>${projCount} project(s) · ${fmt(leadCount)} lead(s)${skipped ? ` · ${fmt(skipped)} dupes skipped` : ''}`, 'ok');
+    hideSync(6000);
   } catch (e) {
-    alert(`Sync failed — ${e.message}. Is ${SYNC_BASE} reachable (and MongoDB allowing Vercel)?`);
+    showSync(`<b>❌ Sync failed</b><br>${e.message} (at request ${doneReqs}/${totalReqs})<br>Is ${SYNC_BASE} reachable & MongoDB allowing Vercel?`, 'err');
+    hideSync(10000);
   }
 }
 const CSV_COLUMNS = [

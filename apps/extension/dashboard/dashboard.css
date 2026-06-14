@@ -169,6 +169,19 @@ a.mlink:hover { text-decoration: underline; }
 .dupe-del:hover { border-color: var(--hot); background: rgba(244,63,94,.1); }
 .dupe-empty { padding: 30px; text-align: center; color: var(--muted); }
 
+/* sync progress toast */
+.sync-toast {
+  position: fixed; right: 18px; bottom: 18px; z-index: 200; display: none;
+  min-width: 240px; max-width: 320px; background: var(--panel2); color: var(--text);
+  border: 1px solid var(--accent); border-radius: 12px; padding: 12px 14px;
+  font-size: 12px; line-height: 1.6; box-shadow: 0 12px 40px rgba(0,0,0,.5);
+}
+.sync-toast.ok { border-color: var(--ok); }
+.sync-toast.err { border-color: var(--hot); }
+.sync-toast b { color: #c7d2fe; }
+.st-bar { height: 6px; background: var(--line); border-radius: 6px; overflow: hidden; margin: 8px 0; }
+.st-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #8b5cf6); transition: width .2s; }
+
 /* import modal */
 .modal-sm { width: min(560px, 92vw); }
 .import-choose { width: 100%; }
