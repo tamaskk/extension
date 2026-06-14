@@ -13,18 +13,16 @@ export default function ImportModal({ onClose }: { onClose: () => void }) {
   const doImport = async (raw: string) => {
     let data: unknown;
     try { data = JSON.parse(raw); } catch { setResult('❌ Invalid JSON — check the file/text.'); return; }
+    const b = data as { projects?: Record<string, unknown> };
+    if (!b || typeof b !== 'object' || !b.projects) { setResult('❌ Not a valid GridLeads export (need a { projects: … } JSON).'); return; }
     setBusy(true); setResult('Importing…');
     try {
-      const res = await api.sync(data);
+      const res = await api.syncBundleChunked(b as never, (done, total) => setResult(`Importing… ${done}/${total} project(s)`));
       await useGrid.getState().hydrate();
-      if (res && res.ok) {
-        const skipped = res.skippedDuplicates ? `, ${res.skippedDuplicates} cross-project duplicate(s) skipped` : '';
-        setResult(`✓ Imported ${res.projects} project(s), ${res.added ?? 0} new lead(s)${skipped}.`);
-      } else {
-        setResult('❌ Not a valid GridLeads export (need a { projects: … } JSON).');
-      }
+      const skipped = res.skippedDuplicates ? `, ${res.skippedDuplicates} cross-project duplicate(s) skipped` : '';
+      setResult(`✓ Imported ${res.projects} project(s), ${res.added} new lead(s)${skipped}.`);
     } catch {
-      setResult('❌ Import failed (server error).');
+      setResult('❌ Import failed (server/network error).');
     }
     setBusy(false);
   };

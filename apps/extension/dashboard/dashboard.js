@@ -252,19 +252,43 @@ async function exportJsonFile(opts, hintFallback) {
 
 // ---------- sync to the web app (MongoDB) ----------
 const SYNC_BASE = 'https://gridleads-wheat.vercel.app'; // deployed web app (use http://localhost:3000 for local dev)
+const SYNC_CHUNK = 500; // leads per request — stays well under Vercel's 4.5MB body limit
+
+async function postSync(payload) {
+  const r = await fetch(SYNC_BASE + '/api/sync', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status + (r.status === 413 ? ' (chunk too large)' : ''));
+  return r.json();
+}
+
+// Sync in chunks so a big project never exceeds the serverless body limit.
 async function syncBundle(opts) {
   const res = await msg(Object.assign({ type: 'exportJson' }, opts));
   if (!res || !res.ok || !res.bundle) return;
-  const n = Object.keys(res.bundle.projects || {}).length;
+  const folders = res.bundle.folders || {};
+  const projects = Object.values(res.bundle.projects || {});
+  let sentFolders = false, projCount = 0, leadCount = 0, skipped = 0;
   try {
-    const r = await fetch(SYNC_BASE + '/api/sync', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(res.bundle),
-    });
-    const j = await r.json();
-    if (j && j.ok) alert(`✓ Synced to web: ${j.projects} project(s), ${j.leads} lead(s).`);
-    else alert('Sync failed: ' + ((j && j.error) || 'server error'));
+    if (Object.keys(folders).length) { await postSync({ gridleads: 1, folders, projects: {} }); sentFolders = true; }
+    for (const p of projects) {
+      const meta = { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId };
+      const entries = Object.entries(p.records || {});
+      if (!entries.length) {
+        await postSync({ gridleads: 1, folders: sentFolders ? {} : folders, projects: { [p.query]: { ...meta, records: {} } } });
+        sentFolders = true; projCount++; continue;
+      }
+      for (let i = 0; i < entries.length; i += SYNC_CHUNK) {
+        const chunk = Object.fromEntries(entries.slice(i, i + SYNC_CHUNK));
+        const j = await postSync({ gridleads: 1, folders: sentFolders ? {} : folders, projects: { [p.query]: { ...meta, records: chunk } } });
+        sentFolders = true;
+        if (j) { leadCount += (j.added || 0) + (j.updated || 0); skipped += (j.skippedDuplicates || 0); }
+      }
+      projCount++;
+    }
+    alert(`✓ Synced ${projCount} project(s), ${leadCount} lead(s)${skipped ? `, ${skipped} cross-project duplicate(s) skipped` : ''}.`);
   } catch (e) {
-    alert(`Sync failed — is the web app running at ${SYNC_BASE}?\n(${e.message})\nSyncing ${n} project(s).`);
+    alert(`Sync failed — ${e.message}. Is ${SYNC_BASE} reachable (and MongoDB allowing Vercel)?`);
   }
 }
 const CSV_COLUMNS = [

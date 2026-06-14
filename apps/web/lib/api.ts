@@ -53,4 +53,35 @@ export const api = {
   deleteRecords: (items: { query: string; key: string }[]) => jsend('/api/leads', 'DELETE', { items }),
 
   sync: (bundle: unknown) => jsend('/api/sync', 'POST', bundle),
+
+  // Chunked sync — splits big bundles so no request exceeds the serverless body
+  // limit (Vercel ~4.5MB). Returns aggregate counts.
+  syncBundleChunked: async (
+    bundle: { folders?: Record<string, unknown>; projects?: Record<string, { query: string; name?: string; createdAt?: string; folderId?: string | null; records?: Record<string, unknown> }> },
+    onProgress?: (done: number, total: number) => void,
+    chunkSize = 500,
+  ) => {
+    const folders = bundle.folders || {};
+    const projects = Object.values(bundle.projects || {});
+    let sentFolders = false, projCount = 0, added = 0, updated = 0, skippedDuplicates = 0;
+    if (Object.keys(folders).length) { await jsend('/api/sync', 'POST', { gridleads: 1, folders, projects: {} }); sentFolders = true; }
+    for (const p of projects) {
+      const meta = { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId };
+      const entries = Object.entries(p.records || {});
+      if (!entries.length) {
+        await jsend('/api/sync', 'POST', { gridleads: 1, folders: sentFolders ? {} : folders, projects: { [p.query]: { ...meta, records: {} } } });
+        sentFolders = true;
+      } else {
+        for (let i = 0; i < entries.length; i += chunkSize) {
+          const chunk = Object.fromEntries(entries.slice(i, i + chunkSize));
+          const j = await jsend('/api/sync', 'POST', { gridleads: 1, folders: sentFolders ? {} : folders, projects: { [p.query]: { ...meta, records: chunk } } });
+          sentFolders = true;
+          if (j) { added += j.added || 0; updated += j.updated || 0; skippedDuplicates += j.skippedDuplicates || 0; }
+        }
+      }
+      projCount++;
+      if (onProgress) onProgress(projCount, projects.length);
+    }
+    return { ok: true, projects: projCount, added, updated, skippedDuplicates };
+  },
 };
