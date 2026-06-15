@@ -36,15 +36,15 @@ function cityFromFolder(name?: string): string {
   const city = parts.length > 1 ? parts.slice(0, -1).join(' ') : (name || '');
   return city.replace(/([a-z])([A-Z])/g, '$1 $2'); // "NewYork" → "New York"
 }
-// Geocode a (US) city via OpenStreetMap Nominatim → center + bounding box.
-async function geocodeCity(city: string): Promise<{ lat: number; lng: number; box: [[number, number], [number, number]] } | null> {
+// Geocode a (US) city via OpenStreetMap Nominatim → its actual boundary polygon + bbox.
+async function geocodeCity(city: string): Promise<{ geojson: any; box: [[number, number], [number, number]] } | null> {
   try {
-    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(city + ', USA')}`, { headers: { 'Accept-Language': 'en' } });
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&polygon_geojson=1&q=${encodeURIComponent(city + ', USA')}`, { headers: { 'Accept-Language': 'en' } });
     const arr = await r.json();
     if (!Array.isArray(arr) || !arr.length) return null;
     const x = arr[0];
     const bb = x.boundingbox; // [south, north, west, east]
-    return { lat: +x.lat, lng: +x.lon, box: [[+bb[0], +bb[2]], [+bb[1], +bb[3]]] };
+    return { geojson: x.geojson || null, box: [[+bb[0], +bb[2]], [+bb[1], +bb[3]]] };
   } catch { return null; }
 }
 const STATUS_LABEL: Record<string, string> = {
@@ -145,9 +145,14 @@ export default function MapModal({ onClose, project, folder, filter, search }:
           const g = await geocodeCity(city);
           if (cancelled || !mapInstance.current) return;
           if (g) {
-            const rect = L.rectangle(g.box, { color: '#6366f1', weight: 2, dashArray: '6', fill: false }).addTo(mapInstance.current);
-            highlightRef.current = rect;
-            mapInstance.current.fitBounds(g.box, { padding: [20, 20] });
+            const style = { color: '#6366f1', weight: 2, fillColor: '#6366f1', fillOpacity: 0.14 };
+            const layer = g.geojson
+              ? L.geoJSON(g.geojson, { style, interactive: false })
+              : L.rectangle(g.box, { ...style, fill: true });
+            layer.addTo(mapInstance.current);
+            highlightRef.current = layer;
+            const fitTo = g.geojson ? layer.getBounds() : g.box;
+            mapInstance.current.fitBounds(fitTo, { padding: [20, 20] });
             cityNote = ` · 📍 ${city}`;
             framed = true;
           }
