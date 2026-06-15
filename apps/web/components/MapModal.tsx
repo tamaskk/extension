@@ -30,11 +30,16 @@ function loadScript(src: string) {
 }
 const esc = (s: string) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 
+const norm = (s: string) => s.replace(/([a-z])([A-Z])/g, '$1 $2'); // "NewYork" → "New York"
 // Folder names are "<City...> <BusinessType>" — drop the last word to get the city.
 function cityFromFolder(name?: string): string {
   const parts = String(name || '').trim().split(/\s+/);
-  const city = parts.length > 1 ? parts.slice(0, -1).join(' ') : (name || '');
-  return city.replace(/([a-z])([A-Z])/g, '$1 $2'); // "NewYork" → "New York"
+  return norm(parts.length > 1 ? parts.slice(0, -1).join(' ') : (name || ''));
+}
+// Project queries are "restaurants near <Area... City>" — drop the first 2 words.
+function areaFromProject(query?: string): string {
+  const parts = String(query || '').trim().split(/\s+/);
+  return norm(parts.length > 2 ? parts.slice(2).join(' ') : (query || ''));
 }
 // Geocode a (US) city via OpenStreetMap Nominatim → its actual boundary polygon + bbox.
 async function geocodeCity(city: string): Promise<{ geojson: any; box: [[number, number], [number, number]] } | null> {
@@ -139,20 +144,23 @@ export default function MapModal({ onClose, project, folder, filter, search }:
 
       let framed = false;
       let cityNote = '';
-      if (scope.type === 'folder') {
-        const city = cityFromFolder(folders[scope.id]?.name);
-        if (city) {
+      const place = scope.type === 'folder' ? cityFromFolder(folders[scope.id]?.name)
+        : scope.type === 'project' ? areaFromProject(scope.id)
+        : '';
+      if (place) {
+        {
+          const city = place;
           const g = await geocodeCity(city);
           if (cancelled || !mapInstance.current) return;
           if (g) {
             const style = { color: '#6366f1', weight: 2, fillColor: '#6366f1', fillOpacity: 0.14 };
-            const layer = g.geojson
+            const isPoly = g.geojson && (g.geojson.type === 'Polygon' || g.geojson.type === 'MultiPolygon');
+            const layer = isPoly
               ? L.geoJSON(g.geojson, { style, interactive: false })
-              : L.rectangle(g.box, { ...style, fill: true });
+              : L.rectangle(g.box, style); // point / no-polygon → filled bbox area
             layer.addTo(mapInstance.current);
             highlightRef.current = layer;
-            const fitTo = g.geojson ? layer.getBounds() : g.box;
-            mapInstance.current.fitBounds(fitTo, { padding: [20, 20] });
+            mapInstance.current.fitBounds(isPoly ? layer.getBounds() : g.box, { padding: [20, 20] });
             cityNote = ` · 📍 ${city}`;
             framed = true;
           }
