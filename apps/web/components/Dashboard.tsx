@@ -36,12 +36,19 @@ const DROPDOWN_SORT: Record<string, [string, number]> = {
   rating_desc: ['rating', -1], rating_asc: ['rating', 1],
   reviews_desc: ['reviewCount', -1], name_asc: ['name', 1],
 };
-const COLUMNS = [
-  { key: 'checked', label: 'Checked' }, { key: 'name', label: 'Business' }, { key: 'category', label: 'Category' },
-  { key: 'rating', label: '★' }, { key: 'reviewCount', label: 'Reviews' }, { key: 'phone', label: 'Phone' },
-  { key: 'email', label: 'Email' }, { key: 'websiteStatus', label: 'Website' }, { key: 'opportunityScore', label: 'Opportunity' },
-  { key: 'leadTemperature', label: 'Temp' }, { key: 'address', label: 'Location' },
+// All reorderable columns (the far-left select-all checkbox stays fixed).
+const ALL_COLUMNS: { key: string; label: string; sortable: boolean }[] = [
+  { key: 'checked', label: 'Checked', sortable: true }, { key: 'name', label: 'Business', sortable: true },
+  { key: 'category', label: 'Category', sortable: true }, { key: 'rating', label: '★', sortable: true },
+  { key: 'reviewCount', label: 'Reviews', sortable: true }, { key: 'phone', label: 'Phone', sortable: true },
+  { key: 'email', label: 'Email', sortable: true }, { key: 'websiteStatus', label: 'Website', sortable: true },
+  { key: 'opportunityScore', label: 'Opportunity', sortable: true }, { key: 'leadTemperature', label: 'Temp', sortable: true },
+  { key: 'address', label: 'Location', sortable: true }, { key: 'tags', label: 'Tags', sortable: false },
+  { key: 'maps', label: 'Maps', sortable: false },
 ];
+const COL_BY_KEY: Record<string, { key: string; label: string; sortable: boolean }> = Object.fromEntries(ALL_COLUMNS.map((c) => [c.key, c]));
+const DEFAULT_COLS = ALL_COLUMNS.map((c) => c.key);
+const COLS_LS = 'gridleads_cols';
 
 export default function Dashboard() {
   const folders = useGrid((s) => s.folders);
@@ -71,7 +78,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [tagReg, setTagReg] = useState<Record<string, string>>({}); // tag name → color
+  const [columnOrder, setColumnOrder] = useState<string[]>(DEFAULT_COLS);
+  const [dragOverCol, setDragOverCol] = useState<string | null>(null);
   const lastChecked = useRef<string | null>(null);
+  const dragColKey = useRef<string | null>(null);
   const dragFolderId = useRef<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -79,9 +89,34 @@ export default function Dashboard() {
     setMounted(true);
     const saved = parseInt(localStorage.getItem('gridleads_sw') || '', 10);
     if (saved >= 200 && saved <= 560) setSidebarW(saved);
+    // restore saved column order, dropping unknown keys and appending any new ones
+    try {
+      const arr = JSON.parse(localStorage.getItem(COLS_LS) || 'null');
+      if (Array.isArray(arr)) {
+        const filtered = arr.filter((k: string) => COL_BY_KEY[k]);
+        setColumnOrder([...filtered, ...DEFAULT_COLS.filter((k) => !filtered.includes(k))]);
+      }
+    } catch { /* keep default */ }
     useGrid.getState().hydrate().catch(() => {});
     api.getTags().then((r) => { const m: Record<string, string> = {}; (r.tags || []).forEach((t) => { m[t.name] = t.color; }); setTagReg(m); }).catch(() => {});
   }, []);
+
+  const orderedColumns = useMemo(() => columnOrder.map((k) => COL_BY_KEY[k]).filter(Boolean), [columnOrder]);
+  const dropColumn = (targetKey: string) => {
+    const from = dragColKey.current; dragColKey.current = null; setDragOverCol(null);
+    if (!from || from === targetKey) return;
+    setColumnOrder((prev) => {
+      const ids = prev.slice();
+      const fi = ids.indexOf(from), ti = ids.indexOf(targetKey);
+      if (fi < 0 || ti < 0) return prev;
+      ids.splice(fi, 1);
+      const nti = ids.indexOf(targetKey);
+      ids.splice(fi < ti ? nti + 1 : nti, 0, from);
+      localStorage.setItem(COLS_LS, JSON.stringify(ids));
+      return ids;
+    });
+  };
+  const resetColumns = () => { setColumnOrder(DEFAULT_COLS); localStorage.removeItem(COLS_LS); };
 
   const tagNames = useMemo(() => Object.keys(tagReg).sort((a, b) => a.localeCompare(b)), [tagReg]);
   const createTag = useCallback((name: string, color: string) => {
@@ -217,6 +252,26 @@ export default function Dashboard() {
     actions.reorderFolders(ids);
   };
 
+  // render one body cell by column key (order-independent)
+  const renderCell = (key: string, r: LeadRow) => {
+    switch (key) {
+      case 'checked': return <td key={key} className="cb"><input type="checkbox" className="rowcheck" checked={!!r.checked} onChange={(e) => setChecked(r, (e.target as HTMLInputElement).checked)} /></td>;
+      case 'name': return <td key={key} className="bizname" title={r.name}>{r.name}</td>;
+      case 'category': return <td key={key} className="muted">{r.category}</td>;
+      case 'rating': return <td key={key}>{r.rating ?? '—'}</td>;
+      case 'reviewCount': return <td key={key} className="muted">{r.reviewCount ?? '—'}</td>;
+      case 'phone': return <td key={key}>{r.phone || <span className="muted">—</span>}</td>;
+      case 'email': return <td key={key}>{r.email || <span className="muted">—</span>}</td>;
+      case 'websiteStatus': return <td key={key}>{r.website ? <a className="mlink" href={r.website} target="_blank" rel="noreferrer"><StatusChip s={r.websiteStatus} /></a> : <StatusChip s={r.websiteStatus} />}</td>;
+      case 'opportunityScore': { const opp = r.opportunityScore || 0; return <td key={key}><div className="opp"><div className="track"><div className="fill" style={{ width: `${opp}%` }} /></div><div className="val">{opp}</div></div></td>; }
+      case 'leadTemperature': return <td key={key}><span className={`temp ${r.leadTemperature}`}>{r.leadTemperature || ''}</span></td>;
+      case 'address': return <td key={key} className="muted loc" title={r.address || ''}>{r.address || ''}</td>;
+      case 'tags': return <td key={key} className="tagstd"><TagsCell tags={r.tags || []} registry={tagReg} allNames={tagNames} onAdd={(name) => addRowTag(r, name)} onRemove={(name) => removeRowTag(r, name)} onCreate={createTag} /></td>;
+      case 'maps': return <td key={key}>{r.mapsUrl ? <a className="mlink" href={r.mapsUrl} target="_blank" rel="noreferrer">open ↗</a> : ''}</td>;
+      default: return null;
+    }
+  };
+
   if (!mounted) return null;
   if (!hydrated) return <div style={{ display: 'grid', placeItems: 'center', height: '100vh', color: 'var(--muted)' }}>Loading from database…</div>;
 
@@ -322,6 +377,7 @@ export default function Dashboard() {
             <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
           ))}
           <div className="spacer" />
+          {columnOrder.join() !== DEFAULT_COLS.join() && <button className="chipbtn reset-cols" title="Reset column order" onClick={resetColumns}>↺ Columns</button>}
           <span className="title">{title}</span>
         </div>
 
@@ -338,44 +394,31 @@ export default function Dashboard() {
             <thead>
               <tr>
                 <th className="cb"><input type="checkbox" onChange={(e) => setRowSel((e.target as HTMLInputElement).checked ? new Set(pageRows.map((r) => `${r._project}|${r._key}`)) : new Set())} /></th>
-                {COLUMNS.map((c) => (
-                  <th key={c.key} className={`sortable ${sortKey === c.key ? 'active' : ''}`} onClick={() => clickHeader(c.key)}>
-                    {c.label}{sortKey === c.key ? (sortDir === 1 ? ' ▲' : ' ▼') : ''}
+                {orderedColumns.map((c) => (
+                  <th
+                    key={c.key}
+                    className={`col-h ${c.sortable ? 'sortable' : ''} ${sortKey === c.key ? 'active' : ''} ${dragColKey.current === c.key ? 'col-dragging' : ''} ${dragOverCol === c.key ? 'col-dragover' : ''}`}
+                    draggable
+                    onDragStart={(e) => { dragColKey.current = c.key; e.dataTransfer.effectAllowed = 'move'; }}
+                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragOverCol !== c.key) setDragOverCol(c.key); }}
+                    onDragLeave={() => setDragOverCol((cur) => (cur === c.key ? null : cur))}
+                    onDrop={(e) => { e.preventDefault(); dropColumn(c.key); }}
+                    onDragEnd={() => { dragColKey.current = null; setDragOverCol(null); }}
+                    onClick={() => c.sortable && clickHeader(c.key)}
+                    title="Drag to reorder"
+                  >
+                    <span className="col-grip">⋮⋮</span>{c.label}{c.sortable && sortKey === c.key ? (sortDir === 1 ? ' ▲' : ' ▼') : ''}
                   </th>
                 ))}
-                <th className="tags-th">Tags</th>
-                <th>Maps</th>
               </tr>
             </thead>
             <tbody>
               {pageRows.map((r) => {
                 const id = `${r._project}|${r._key}`;
-                const opp = r.opportunityScore || 0;
                 return (
                   <tr key={id} title={r.topPitch || undefined}>
                     <td className="cb"><input type="checkbox" className="selcheck" checked={rowSel.has(id)} onChange={(e) => setRowSel((s) => { const n = new Set(s); if ((e.target as HTMLInputElement).checked) n.add(id); else n.delete(id); return n; })} /></td>
-                    <td className="cb"><input type="checkbox" className="rowcheck" checked={!!r.checked} onChange={(e) => setChecked(r, (e.target as HTMLInputElement).checked)} /></td>
-                    <td className="bizname" title={r.name}>{r.name}</td>
-                    <td className="muted">{r.category}</td>
-                    <td>{r.rating ?? '—'}</td>
-                    <td className="muted">{r.reviewCount ?? '—'}</td>
-                    <td>{r.phone || <span className="muted">—</span>}</td>
-                    <td>{r.email || <span className="muted">—</span>}</td>
-                    <td>{r.website ? <a className="mlink" href={r.website} target="_blank" rel="noreferrer"><StatusChip s={r.websiteStatus} /></a> : <StatusChip s={r.websiteStatus} />}</td>
-                    <td><div className="opp"><div className="track"><div className="fill" style={{ width: `${opp}%` }} /></div><div className="val">{opp}</div></div></td>
-                    <td><span className={`temp ${r.leadTemperature}`}>{r.leadTemperature || ''}</span></td>
-                    <td className="muted loc" title={r.address || ''}>{r.address || ''}</td>
-                    <td className="tagstd">
-                      <TagsCell
-                        tags={r.tags || []}
-                        registry={tagReg}
-                        allNames={tagNames}
-                        onAdd={(name) => addRowTag(r, name)}
-                        onRemove={(name) => removeRowTag(r, name)}
-                        onCreate={createTag}
-                      />
-                    </td>
-                    <td>{r.mapsUrl ? <a className="mlink" href={r.mapsUrl} target="_blank" rel="noreferrer">open ↗</a> : ''}</td>
+                    {columnOrder.map((k) => renderCell(k, r))}
                   </tr>
                 );
               })}

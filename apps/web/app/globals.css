@@ -156,6 +156,14 @@ a.mlink { color: #93c5fd; text-decoration: none; }
 .palette .sw { width: 17px; height: 17px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; box-sizing: border-box; }
 .palette .sw.on { border-color: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.4); }
 .tagempty { color: var(--muted); font-size: 12px; padding: 8px; }
+
+/* ── reorderable columns (drag the headers) ──────────────────── */
+.col-h { cursor: grab; }
+.col-h .col-grip { display: inline-block; color: var(--muted); opacity: 0; margin-right: 5px; font-size: 11px; letter-spacing: -2px; cursor: grab; vertical-align: middle; }
+.col-h:hover .col-grip { opacity: .7; }
+.col-h.col-dragging { opacity: .4; }
+.col-h.col-dragover { box-shadow: inset 3px 0 0 0 var(--accent); background: rgba(99,102,241,.08); }
+.reset-cols { margin-right: 8px; }
 a.mlink:hover { text-decoration: underline; }
 .empty { padding: 40px; text-align: center; color: var(--muted); }
 .hidden { display: none; }
