@@ -702,28 +702,85 @@ function bdPreview() {
 function bdSave() { chrome.storage.local.set({ gridleads_batch_fields: { p: $('bd_prefix').value, s: $('bd_suffix').value } }); }
 ['bd_prefix', 'bd_middle', 'bd_suffix'].forEach((id) => $(id).addEventListener('input', () => { bdPreview(); bdSave(); }));
 
-async function renderQueue() {
+const expandedBatches = new Set(); // batch ids currently expanded (areas shown)
+let queueDragging = false;         // true while an area is being dragged
+let lastQueueSig = '';             // skip poll-rebuilds when nothing changed
+let dragAreaEl = null, dragAreaBid = null;
+
+async function renderQueue(force) {
+  if (queueDragging) return; // never rebuild mid-drag
   const st = await msg({ type: 'batchQueue' });
   const q = (st && st.queue) || [];
+  const sig = JSON.stringify(q.map((b) => [b.id, b.count, b.running, b.doneInBatch, expandedBatches.has(b.id)]));
+  if (!force && sig === lastQueueSig) return; // nothing visible changed
+  lastQueueSig = sig;
+
   $('bd_count').textContent = q.length ? `(${q.length})` : '';
   if (!q.length) { $('bd_queue').innerHTML = '<div class="bq-empty">Queue is empty. Add a batch above.</div>'; return; }
-  $('bd_queue').innerHTML = q.map((bt) => `
+
+  $('bd_queue').innerHTML = q.map((bt) => {
+    const open = expandedBatches.has(bt.id);
+    const areas = (bt.items || []).map((it, i) => {
+      const done = bt.running && i < bt.doneInBatch;
+      const cur = bt.running && i === bt.doneInBatch;
+      return `<div class="bq-area ${done ? 'done' : ''} ${cur ? 'cur' : ''}" ${bt.running ? '' : 'draggable="true"'} data-bid="${escAttr(bt.id)}" data-q="${escAttr(it.q)}">
+        ${bt.running ? '' : '<span class="bq-grip">⋮⋮</span>'}<span class="bq-area-name">${esc(it.a)}</span></div>`;
+    }).join('');
+    return `
     <div class="bq-item ${bt.running ? 'running' : ''}">
-      <div class="bq-main">
-        <div class="bq-label" title="${escAttr(bt.label)}">${bt.running ? '▶ ' : ''}${esc(bt.label)}</div>
-        <div class="bq-sub">${bt.running ? `running ${bt.doneInBatch}/${bt.count} · ${esc(bt.currentQuery || '')}` : `${bt.count} searches · queued`}</div>
+      <div class="bq-main" data-toggle="${escAttr(bt.id)}">
+        <span class="bq-caret">${open ? '▾' : '▸'}</span>
+        <div class="bq-text">
+          <div class="bq-label" title="${escAttr(bt.label)}">${bt.running ? '▶ ' : ''}${esc(bt.label)}</div>
+          <div class="bq-sub">${bt.running ? `running ${bt.doneInBatch}/${bt.count} · ${esc(bt.currentQuery || '')}` : `${bt.count} searches · queued`}</div>
+        </div>
+        <span class="bq-del" data-bid="${escAttr(bt.id)}" title="Remove from queue">✕</span>
       </div>
-      <span class="bq-del" data-bid="${bt.id}" title="Remove from queue">✕</span>
-    </div>`).join('');
+      <div class="bq-areas ${open ? '' : 'hidden'}">${bt.running ? '<div class="bq-hint">Running — reorder paused. Drag works on queued batches.</div>' : ''}${areas}</div>
+    </div>`;
+  }).join('');
+
+  // expand / collapse
+  $('bd_queue').querySelectorAll('.bq-main').forEach((m) => {
+    m.addEventListener('click', (e) => {
+      if (e.target.classList.contains('bq-del')) return;
+      const id = m.dataset.toggle;
+      if (expandedBatches.has(id)) expandedBatches.delete(id); else expandedBatches.add(id);
+      renderQueue(true);
+    });
+  });
+  // remove batch
   $('bd_queue').querySelectorAll('.bq-del').forEach((d) => {
-    d.addEventListener('click', async () => { await msg({ type: 'batchRemove', id: d.dataset.bid }); renderQueue(); });
+    d.addEventListener('click', async (e) => { e.stopPropagation(); await msg({ type: 'batchRemove', id: d.dataset.bid }); renderQueue(true); });
+  });
+  // drag-and-drop reorder of areas (queued batches only)
+  $('bd_queue').querySelectorAll('.bq-area[draggable="true"]').forEach((a) => {
+    a.addEventListener('dragstart', (e) => { dragAreaEl = a; dragAreaBid = a.dataset.bid; queueDragging = true; a.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    a.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (!dragAreaEl || a === dragAreaEl || a.dataset.bid !== dragAreaBid) return;
+      const r = a.getBoundingClientRect();
+      const after = (e.clientY - r.top) > r.height / 2;
+      a.parentNode.insertBefore(dragAreaEl, after ? a.nextSibling : a);
+    });
+    a.addEventListener('dragend', async () => {
+      if (!dragAreaEl) return;
+      dragAreaEl.classList.remove('dragging');
+      const container = dragAreaEl.parentNode, bid = dragAreaBid;
+      dragAreaEl = null; dragAreaBid = null; queueDragging = false;
+      if (container) {
+        const order = [...container.querySelectorAll('.bq-area')].map((n) => n.dataset.q);
+        await msg({ type: 'batchReorderItems', id: bid, order });
+        lastQueueSig = ''; // DOM already correct; allow future polls to reconcile
+      }
+    });
   });
 }
 
 $('batchBtn').addEventListener('click', () => {
   $('batchOverlay').classList.remove('hidden');
   chrome.storage.local.get('gridleads_batch_fields', (o) => { const f = o.gridleads_batch_fields; if (f) { $('bd_prefix').value = f.p || ''; $('bd_suffix').value = f.s || ''; } bdPreview(); });
-  renderQueue();
+  lastQueueSig = ''; renderQueue(true);
   if (batchPoll) clearInterval(batchPoll);
   batchPoll = setInterval(renderQueue, 1500);
 });

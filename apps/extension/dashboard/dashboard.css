@@ -201,12 +201,26 @@ a.mlink:hover { text-decoration: underline; }
 .batch-queue-h { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 8px; }
 .batch-queue { display: flex; flex-direction: column; gap: 8px; }
 .bq-empty { color: var(--muted); font-size: 13px; padding: 14px; text-align: center; }
-.bq-item { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; }
+.bq-item { background: var(--panel); border: 1px solid var(--line); border-radius: 9px; }
 .bq-item.running { border-color: var(--accent); background: rgba(99,102,241,.08); }
-.bq-main { flex: 1; min-width: 0; }
+.bq-main { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; }
+.bq-main:hover { background: rgba(255,255,255,.03); border-radius: 9px; }
+.bq-caret { color: var(--muted); font-size: 11px; flex-shrink: 0; width: 12px; }
+.bq-text { flex: 1; min-width: 0; }
 .bq-label { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bq-sub { font-size: 11px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bq-item.running .bq-sub { color: #a5b4fc; }
 .bq-del { color: var(--muted); cursor: pointer; font-size: 13px; padding: 0 4px; flex-shrink: 0; }
 .bq-del:hover { color: var(--hot); }
+
+/* expanded area (search) list — drag to reorder */
+.bq-areas { display: flex; flex-direction: column; gap: 3px; padding: 4px 10px 10px 30px; max-height: 320px; overflow-y: auto; }
+.bq-hint { font-size: 11px; color: #a5b4fc; padding: 2px 0 6px; }
+.bq-area { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 5px 8px; border-radius: 6px; background: rgba(255,255,255,.02); border: 1px solid transparent; cursor: grab; user-select: none; }
+.bq-area:hover { background: rgba(255,255,255,.05); border-color: var(--line); }
+.bq-area.dragging { opacity: .45; }
+.bq-area.done { opacity: .45; text-decoration: line-through; }
+.bq-area.cur { color: #a5b4fc; font-weight: 600; }
+.bq-grip { color: var(--muted); font-size: 11px; letter-spacing: -2px; flex-shrink: 0; }
+.bq-area-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .foot { padding: 10px 18px; color: var(--muted); border-top: 1px solid var(--line); font-size: 12px; }

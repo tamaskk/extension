@@ -127,7 +127,7 @@ function buildItems(prefix, middles, suffix) {
   const seen = new Set(); const items = [];
   for (const m of (middles || []).map((x) => (x || '').trim()).filter(Boolean)) {
     const q = [(prefix || '').trim(), m, (suffix || '').trim()].filter(Boolean).join(' ').trim();
-    if (q && !seen.has(q)) { seen.add(q); items.push({ query: q, url: buildSearchUrl(q) }); }
+    if (q && !seen.has(q)) { seen.add(q); items.push({ query: q, area: m, url: buildSearchUrl(q) }); }
   }
   return items;
 }
@@ -361,6 +361,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
               running: i === 0 && b.active,
               currentQuery: i === 0 ? (bt.items[b.itemIndex] ? bt.items[b.itemIndex].query : '') : '',
               doneInBatch: i === 0 ? b.itemIndex : 0,
+              items: bt.items.map((it) => ({ q: it.query, a: it.area || it.query })),
             })),
           });
         } else { sendResponse({ active: false, queue: [] }); }
@@ -385,6 +386,27 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           }
         }
         sendResponse({ ok: true });
+        break;
+      }
+      // Reorder the areas (searches) within one batch. Not allowed on the
+      // currently-running batch, to avoid racing the driver's itemIndex.
+      case 'batchReorderItems': {
+        const b = await getBatch();
+        if (b && b.queue) {
+          const idx = b.queue.findIndex((x) => x.id === msg.id);
+          const canReorder = idx >= 0 && !(idx === 0 && b.active);
+          if (canReorder) {
+            const bt = b.queue[idx];
+            const order = Array.isArray(msg.order) ? msg.order : [];
+            const byQuery = new Map(bt.items.map((it) => [it.query, it]));
+            const next = [];
+            for (const qy of order) { const it = byQuery.get(qy); if (it) { next.push(it); byQuery.delete(qy); } }
+            for (const it of byQuery.values()) next.push(it); // keep any not listed
+            bt.items = next;
+            await setBatch(b);
+            sendResponse({ ok: true });
+          } else { sendResponse({ ok: false, error: 'running' }); }
+        } else { sendResponse({ ok: false }); }
         break;
       }
       case 'batchStop':
