@@ -739,6 +739,34 @@ $('bd_add').addEventListener('click', async () => {
   else if (res && res.error === 'no-tab') { alert('No Google Maps tab found — open google.com/maps in a tab first.'); }
   else { $('bd_preview').textContent = 'Could not add this batch.'; }
 });
+// Load many batches from a JSON file: [{ city, areas:[...] }]. You only fill the
+// Prefix (e.g. "restaurants near"); each city becomes one batch, areas = searches.
+$('bd_loadJson').addEventListener('click', () => $('bd_file').click());
+$('bd_file').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = ''; // allow re-picking the same file
+  if (!file) return;
+  const prefix = $('bd_prefix').value.trim();
+  if (!prefix) { $('bd_preview').textContent = '⚠ Fill the Prefix first (e.g. "restaurants near").'; return; }
+  let data;
+  try { data = JSON.parse(await file.text()); }
+  catch { $('bd_preview').textContent = '⚠ Invalid JSON file.'; return; }
+  if (!Array.isArray(data)) { $('bd_preview').textContent = '⚠ JSON must be an array of { city, areas }.'; return; }
+
+  let batches = 0, searches = 0;
+  for (const entry of data) {
+    const city = (entry && (entry.city || entry.suffix) || '').trim();
+    const areas = Array.isArray(entry && entry.areas) ? entry.areas : [];
+    const middles = areas.map((a) => String(a || '').trim()).filter(Boolean);
+    if (!city || !middles.length) continue;
+    const label = `${prefix} {${middles.length} areas} ${city}`;
+    const res = await msg({ type: 'batchEnqueue', prefix, middles, suffix: city, label });
+    if (res && res.ok) { batches++; searches += res.count || middles.length; }
+  }
+  if (batches) { $('bd_preview').textContent = `⤴ Loaded ${batches} batch(es) · ${searches} searches total`; renderQueue(); }
+  else { $('bd_preview').textContent = '⚠ No valid { city, areas } entries found.'; }
+});
+
 $('batchStopAll').addEventListener('click', async () => {
   if (!confirm('Stop all batches and clear the queue?')) return;
   await msg({ type: 'batchStopAll' });
