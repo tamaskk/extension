@@ -702,10 +702,10 @@ function bdPreview() {
 function bdSave() { chrome.storage.local.set({ gridleads_batch_fields: { p: $('bd_prefix').value, s: $('bd_suffix').value } }); }
 ['bd_prefix', 'bd_middle', 'bd_suffix'].forEach((id) => $(id).addEventListener('input', () => { bdPreview(); bdSave(); }));
 
-const expandedBatches = new Set(); // batch ids currently expanded (areas shown)
-let queueDragging = false;         // true while an area is being dragged
+const expandedBatches = new Set(); // batch ids currently expanded (areas shown) — closed by default
+let queueDragging = false;         // true while a batch is being dragged
 let lastQueueSig = '';             // skip poll-rebuilds when nothing changed
-let dragAreaEl = null, dragAreaBid = null;
+let dragItemEl = null;             // the .bq-item being dragged
 
 async function renderQueue(force) {
   if (queueDragging) return; // never rebuild mid-drag
@@ -723,24 +723,24 @@ async function renderQueue(force) {
     const areas = (bt.items || []).map((it, i) => {
       const done = bt.running && i < bt.doneInBatch;
       const cur = bt.running && i === bt.doneInBatch;
-      return `<div class="bq-area ${done ? 'done' : ''} ${cur ? 'cur' : ''}" ${bt.running ? '' : 'draggable="true"'} data-bid="${escAttr(bt.id)}" data-q="${escAttr(it.q)}">
-        ${bt.running ? '' : '<span class="bq-grip">⋮⋮</span>'}<span class="bq-area-name">${esc(it.a)}</span></div>`;
+      return `<div class="bq-area ${done ? 'done' : ''} ${cur ? 'cur' : ''}"><span class="bq-area-num">${i + 1}.</span><span class="bq-area-name">${esc(it.a)}</span></div>`;
     }).join('');
     return `
-    <div class="bq-item ${bt.running ? 'running' : ''}">
-      <div class="bq-main" data-toggle="${escAttr(bt.id)}">
+    <div class="bq-item ${bt.running ? 'running' : ''}" data-bid="${escAttr(bt.id)}">
+      <div class="bq-main" data-toggle="${escAttr(bt.id)}" ${bt.running ? '' : 'draggable="true"'}>
+        ${bt.running ? '<span class="bq-grip dim">▶</span>' : '<span class="bq-grip" title="Drag to reorder">⋮⋮</span>'}
         <span class="bq-caret">${open ? '▾' : '▸'}</span>
         <div class="bq-text">
-          <div class="bq-label" title="${escAttr(bt.label)}">${bt.running ? '▶ ' : ''}${esc(bt.label)}</div>
+          <div class="bq-label" title="${escAttr(bt.label)}">${esc(bt.label)}</div>
           <div class="bq-sub">${bt.running ? `running ${bt.doneInBatch}/${bt.count} · ${esc(bt.currentQuery || '')}` : `${bt.count} searches · queued`}</div>
         </div>
         <span class="bq-del" data-bid="${escAttr(bt.id)}" title="Remove from queue">✕</span>
       </div>
-      <div class="bq-areas ${open ? '' : 'hidden'}">${bt.running ? '<div class="bq-hint">Running — reorder paused. Drag works on queued batches.</div>' : ''}${areas}</div>
+      <div class="bq-areas ${open ? '' : 'hidden'}">${areas}</div>
     </div>`;
   }).join('');
 
-  // expand / collapse
+  // expand / collapse (click the header, but not the ✕)
   $('bd_queue').querySelectorAll('.bq-main').forEach((m) => {
     m.addEventListener('click', (e) => {
       if (e.target.classList.contains('bq-del')) return;
@@ -753,26 +753,27 @@ async function renderQueue(force) {
   $('bd_queue').querySelectorAll('.bq-del').forEach((d) => {
     d.addEventListener('click', async (e) => { e.stopPropagation(); await msg({ type: 'batchRemove', id: d.dataset.bid }); renderQueue(true); });
   });
-  // drag-and-drop reorder of areas (queued batches only)
-  $('bd_queue').querySelectorAll('.bq-area[draggable="true"]').forEach((a) => {
-    a.addEventListener('dragstart', (e) => { dragAreaEl = a; dragAreaBid = a.dataset.bid; queueDragging = true; a.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
-    a.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      if (!dragAreaEl || a === dragAreaEl || a.dataset.bid !== dragAreaBid) return;
-      const r = a.getBoundingClientRect();
-      const after = (e.clientY - r.top) > r.height / 2;
-      a.parentNode.insertBefore(dragAreaEl, after ? a.nextSibling : a);
+  // drag-and-drop reorder of the batches (cities) themselves
+  $('bd_queue').querySelectorAll('.bq-main[draggable="true"]').forEach((m) => {
+    const item = m.closest('.bq-item');
+    m.addEventListener('dragstart', (e) => { dragItemEl = item; queueDragging = true; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    m.addEventListener('dragend', async () => {
+      if (!dragItemEl) return;
+      dragItemEl.classList.remove('dragging');
+      dragItemEl = null; queueDragging = false;
+      const order = [...$('bd_queue').querySelectorAll('.bq-item')].map((n) => n.dataset.bid);
+      await msg({ type: 'batchReorderQueue', order });
+      lastQueueSig = ''; // DOM already correct; allow future polls to reconcile
     });
-    a.addEventListener('dragend', async () => {
-      if (!dragAreaEl) return;
-      dragAreaEl.classList.remove('dragging');
-      const container = dragAreaEl.parentNode, bid = dragAreaBid;
-      dragAreaEl = null; dragAreaBid = null; queueDragging = false;
-      if (container) {
-        const order = [...container.querySelectorAll('.bq-area')].map((n) => n.dataset.q);
-        await msg({ type: 'batchReorderItems', id: bid, order });
-        lastQueueSig = ''; // DOM already correct; allow future polls to reconcile
-      }
+  });
+  // reposition while dragging over other batches (running one stays pinned on top)
+  $('bd_queue').querySelectorAll('.bq-item').forEach((item) => {
+    item.addEventListener('dragover', (e) => {
+      if (!dragItemEl || item === dragItemEl || item.classList.contains('running')) return;
+      e.preventDefault();
+      const r = item.getBoundingClientRect();
+      const after = (e.clientY - r.top) > r.height / 2;
+      $('bd_queue').insertBefore(dragItemEl, after ? item.nextSibling : item);
     });
   });
 }

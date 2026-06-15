@@ -388,24 +388,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ ok: true });
         break;
       }
-      // Reorder the areas (searches) within one batch. Not allowed on the
-      // currently-running batch, to avoid racing the driver's itemIndex.
-      case 'batchReorderItems': {
+      // Reorder the batches (cities) in the queue. The currently-running batch
+      // always stays first (don't race the driver); the rest follow msg.order.
+      case 'batchReorderQueue': {
         const b = await getBatch();
-        if (b && b.queue) {
-          const idx = b.queue.findIndex((x) => x.id === msg.id);
-          const canReorder = idx >= 0 && !(idx === 0 && b.active);
-          if (canReorder) {
-            const bt = b.queue[idx];
-            const order = Array.isArray(msg.order) ? msg.order : [];
-            const byQuery = new Map(bt.items.map((it) => [it.query, it]));
-            const next = [];
-            for (const qy of order) { const it = byQuery.get(qy); if (it) { next.push(it); byQuery.delete(qy); } }
-            for (const it of byQuery.values()) next.push(it); // keep any not listed
-            bt.items = next;
-            await setBatch(b);
-            sendResponse({ ok: true });
-          } else { sendResponse({ ok: false, error: 'running' }); }
+        if (b && b.queue && b.queue.length) {
+          const order = Array.isArray(msg.order) ? msg.order : [];
+          const byId = new Map(b.queue.map((bt) => [bt.id, bt]));
+          const runningId = b.active ? b.queue[0].id : null;
+          const next = [];
+          if (runningId && byId.has(runningId)) { next.push(byId.get(runningId)); byId.delete(runningId); }
+          for (const id of order) { if (id === runningId) continue; const bt = byId.get(id); if (bt) { next.push(bt); byId.delete(id); } }
+          for (const bt of byId.values()) next.push(bt); // keep any not listed
+          b.queue = next;
+          await setBatch(b);
+          sendResponse({ ok: true });
         } else { sendResponse({ ok: false }); }
         break;
       }
