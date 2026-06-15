@@ -191,6 +191,34 @@ async function init() {
     if (res && res.ok) { $('bMiddle').value = ''; updatePreview(); saveBatch(); $('bStatus').textContent = `＋ Added ${res.count} searches to the queue`; refreshQueue(); }
     else { $('bStatus').textContent = 'Could not add (no valid searches).'; }
   });
+
+  // Load many batches from a JSON file: [{ city, areas:[...] }]. You only fill the
+  // Prefix (e.g. "restaurants near"); each city becomes one batch, areas = searches.
+  $('bLoadJson').addEventListener('click', () => $('bFile').click());
+  $('bFile').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = ''; // allow re-picking the same file
+    if (!file) return;
+    const prefix = $('bPrefix').value.trim();
+    if (!prefix) { $('bStatus').textContent = '⚠ Fill the Prefix first (e.g. "restaurants near").'; return; }
+    let data;
+    try { data = JSON.parse(await file.text()); }
+    catch { $('bStatus').textContent = '⚠ Invalid JSON file.'; return; }
+    if (!Array.isArray(data)) { $('bStatus').textContent = '⚠ JSON must be an array of { city, areas }.'; return; }
+
+    let batches = 0, searches = 0;
+    for (const entry of data) {
+      const city = (entry && (entry.city || entry.suffix) || '').trim();
+      const areas = Array.isArray(entry && entry.areas) ? entry.areas : [];
+      const middles = areas.map((a) => String(a || '').trim()).filter(Boolean);
+      if (!city || !middles.length) continue;
+      const label = `${prefix} {${middles.length} areas} ${city}`;
+      const res = await bg({ type: 'batchEnqueue', prefix, middles, suffix: city, label });
+      if (res && res.ok) { batches++; searches += res.count || middles.length; }
+    }
+    if (batches) { $('bStatus').textContent = `⤴ Loaded ${batches} batch(es) · ${searches} searches total`; refreshQueue(); }
+    else { $('bStatus').textContent = '⚠ No valid { city, areas } entries found.'; }
+  });
   $('qsStart').addEventListener('click', async () => {
     const tabId = await mapsTabId();
     const res = await bg({ type: 'batchStartQueue', tabId });
