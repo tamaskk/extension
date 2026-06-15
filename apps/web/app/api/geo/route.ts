@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
 
 function escapeRegex(s: string) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-const CAP = 60000; // max markers plotted
+const CAP = 200000; // max markers plotted
 
 // GET /api/geo?project=&folder=&filter=&search=  → [{lat,lng,name,websiteStatus}]
 export async function GET(req: Request) {

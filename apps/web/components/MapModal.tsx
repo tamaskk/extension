@@ -29,6 +29,24 @@ function loadScript(src: string) {
   });
 }
 const esc = (s: string) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+
+// Folder names are "<City...> <BusinessType>" — drop the last word to get the city.
+function cityFromFolder(name?: string): string {
+  const parts = String(name || '').trim().split(/\s+/);
+  const city = parts.length > 1 ? parts.slice(0, -1).join(' ') : (name || '');
+  return city.replace(/([a-z])([A-Z])/g, '$1 $2'); // "NewYork" → "New York"
+}
+// Geocode a (US) city via OpenStreetMap Nominatim → center + bounding box.
+async function geocodeCity(city: string): Promise<{ lat: number; lng: number; box: [[number, number], [number, number]] } | null> {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(city + ', USA')}`, { headers: { 'Accept-Language': 'en' } });
+    const arr = await r.json();
+    if (!Array.isArray(arr) || !arr.length) return null;
+    const x = arr[0];
+    const bb = x.boundingbox; // [south, north, west, east]
+    return { lat: +x.lat, lng: +x.lon, box: [[+bb[0], +bb[2]], [+bb[1], +bb[3]]] };
+  } catch { return null; }
+}
 const STATUS_LABEL: Record<string, string> = {
   HAS_WEBSITE: 'Has site', NO_WEBSITE: 'No website', FACEBOOK_ONLY: 'Facebook only', INSTAGRAM_ONLY: 'Instagram only',
   BROKEN: 'Broken', DOMAIN_EXPIRED: 'Expired', DOMAIN_PARKED: 'Parked', UNDER_CONSTRUCTION: 'Under constr.', NOT_WORKING: 'Not working', REDIRECTS: 'Redirects',
@@ -61,6 +79,7 @@ export default function MapModal({ onClose, project, folder, filter, search }:
   const mapEl = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const clusterRef = useRef<any>(null);
+  const highlightRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const [status, setStatus] = useState('Loading map…');
   const [scope, setScope] = useState<Scope>(() => folder ? { type: 'folder', id: folder } : project ? { type: 'project', id: project } : { type: 'all', id: '' });
@@ -114,10 +133,32 @@ export default function MapModal({ onClose, project, folder, filter, search }:
       }
       mapInstance.current.addLayer(cluster);
       clusterRef.current = cluster;
-      if (bounds.length) mapInstance.current.fitBounds(bounds, { padding: [30, 30] });
-      else mapInstance.current.setView([39.8, -98.5], 4);
+
+      // clear any previous city highlight
+      if (highlightRef.current) { mapInstance.current.removeLayer(highlightRef.current); highlightRef.current = null; }
+
+      let framed = false;
+      let cityNote = '';
+      if (scope.type === 'folder') {
+        const city = cityFromFolder(folders[scope.id]?.name);
+        if (city) {
+          const g = await geocodeCity(city);
+          if (cancelled || !mapInstance.current) return;
+          if (g) {
+            const rect = L.rectangle(g.box, { color: '#6366f1', weight: 2, dashArray: '6', fill: false }).addTo(mapInstance.current);
+            highlightRef.current = rect;
+            mapInstance.current.fitBounds(g.box, { padding: [20, 20] });
+            cityNote = ` · 📍 ${city}`;
+            framed = true;
+          }
+        }
+      }
+      if (!framed) {
+        if (bounds.length) mapInstance.current.fitBounds(bounds, { padding: [30, 30] });
+        else mapInstance.current.setView([39.8, -98.5], 4);
+      }
       setTimeout(() => mapInstance.current && mapInstance.current.invalidateSize(), 80);
-      setStatus(`${geo.points.length.toLocaleString()} plotted${geo.capped ? ` (first ${geo.points.length.toLocaleString()} of ${geo.total.toLocaleString()})` : ''} · 🔴 no website · 🟢 has site`);
+      setStatus(`${geo.points.length.toLocaleString()} plotted${geo.capped ? ` (first ${geo.points.length.toLocaleString()} of ${geo.total.toLocaleString()})` : ''}${cityNote} · 🔴 no website · 🟢 has site`);
     })();
     return () => { cancelled = true; };
   }, [ready, scope, filter, search]);
