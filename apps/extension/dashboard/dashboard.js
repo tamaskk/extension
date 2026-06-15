@@ -720,11 +720,12 @@ async function renderQueue(force) {
 
   $('bd_queue').innerHTML = q.map((bt) => {
     const open = expandedBatches.has(bt.id);
-    const areas = (bt.items || []).map((it, i) => {
+    // only build the areas DOM when expanded (closed by default; avoids thousands of hidden nodes)
+    const areasHtml = open ? `<div class="bq-areas">${(bt.items || []).map((it, i) => {
       const done = bt.running && i < bt.doneInBatch;
       const cur = bt.running && i === bt.doneInBatch;
       return `<div class="bq-area ${done ? 'done' : ''} ${cur ? 'cur' : ''}"><span class="bq-area-num">${i + 1}.</span><span class="bq-area-name">${esc(it.a)}</span></div>`;
-    }).join('');
+    }).join('')}</div>` : '';
     return `
     <div class="bq-item ${bt.running ? 'running' : ''}" data-bid="${escAttr(bt.id)}">
       <div class="bq-main" data-toggle="${escAttr(bt.id)}" ${bt.running ? '' : 'draggable="true"'}>
@@ -736,7 +737,7 @@ async function renderQueue(force) {
         </div>
         <span class="bq-del" data-bid="${escAttr(bt.id)}" title="Remove from queue">✕</span>
       </div>
-      <div class="bq-areas ${open ? '' : 'hidden'}">${areas}</div>
+      ${areasHtml}
     </div>`;
   }).join('');
 
