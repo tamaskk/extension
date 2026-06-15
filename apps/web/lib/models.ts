@@ -40,8 +40,15 @@ const LeadSchema = new Schema({
   opportunityScore: Number,
   topPitch: String,
   checked: { type: Boolean, default: false },
+  tags: { type: [String], default: [] },
   hasBookingHint: Schema.Types.Mixed,
   scrapedAt: String,
+}, { versionKey: false });
+
+// ── Tag (a reusable, colored label) — registry shared across all leads ────
+const TagSchema = new Schema({
+  name: { type: String, required: true, unique: true, index: true },
+  color: { type: String, default: '#6366f1' },
 }, { versionKey: false });
 
 LeadSchema.index({ project: 1, dedupKey: 1 }, { unique: true });
@@ -53,10 +60,12 @@ LeadSchema.index({ opportunityScore: 1 });
 LeadSchema.index({ leadScore: 1 });
 LeadSchema.index({ rating: 1 });
 LeadSchema.index({ reviewCount: 1 });
+LeadSchema.index({ tags: 1 }); // tag filtering
 
 export const Folder = models.Folder || model('Folder', FolderSchema);
 export const Project = models.Project || model('Project', ProjectSchema);
 export const Lead = models.Lead || model('Lead', LeadSchema);
+export const Tag = models.Tag || model('Tag', TagSchema);
 
 export const NO_SITE = ['NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'NOT_WORKING'];
 

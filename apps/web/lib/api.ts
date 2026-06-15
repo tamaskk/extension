@@ -68,7 +68,12 @@ export const api = {
   deleteProjects: (queries: string[]) => jsend('/api/projects', 'DELETE', { queries }),
 
   setChecked: (project: string, dedupKey: string, checked: boolean) => jsend('/api/leads', 'PATCH', { project, dedupKey, checked }),
+  setTags: (project: string, dedupKey: string, tags: string[]) => jsend('/api/leads', 'PATCH', { project, dedupKey, tags }),
   deleteRecords: (items: { query: string; key: string }[]) => jsend('/api/leads', 'DELETE', { items }),
+
+  getTags: (): Promise<{ tags: { name: string; color: string }[] }> => jget('/api/tags'),
+  createTag: (name: string, color: string) => jsend('/api/tags', 'POST', { name, color }),
+  deleteTag: (name: string) => jsend('/api/tags', 'DELETE', { name }),
 
   sync: (bundle: unknown) => jsend('/api/sync', 'POST', bundle),
 

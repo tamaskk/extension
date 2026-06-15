@@ -26,6 +26,7 @@ export interface Lead {
   opportunityScore: number;
   topPitch?: string;
   checked?: boolean;
+  tags?: string[];
   hasBookingHint?: boolean | null;
   scrapedAt?: string;
 }

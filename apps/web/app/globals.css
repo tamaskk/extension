@@ -130,6 +130,32 @@ body.resizing { cursor: col-resize; user-select: none; }
 .opp .val { font-weight: 700; font-size: 12px; width: 24px; text-align: right; }
 
 a.mlink { color: #93c5fd; text-decoration: none; }
+
+/* ── tags column ─────────────────────────────────────────────── */
+.tags-th { white-space: nowrap; }
+.tagstd { min-width: 150px; }
+.tags-cell { position: relative; }
+.tags-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; max-width: 220px; }
+.tagchip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; line-height: 1.4; }
+.tagchip .tagx { cursor: pointer; opacity: .65; font-weight: 700; font-size: 13px; line-height: 1; }
+.tagchip .tagx:hover { opacity: 1; }
+.tagadd { width: 20px; height: 20px; border-radius: 50%; border: 1px dashed var(--line); background: transparent; color: var(--muted); cursor: pointer; font-size: 14px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+.tagadd:hover { color: var(--text); border-color: var(--accent); }
+
+.tags-pop { position: fixed; z-index: 1000; width: 240px; background: var(--panel, #11151f); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.5); padding: 8px; }
+.tags-input { width: 100%; box-sizing: border-box; background: var(--bg, #0b1020); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; color: var(--text); font-size: 13px; outline: none; }
+.tags-input:focus { border-color: var(--accent); }
+.tags-list { margin-top: 6px; max-height: 230px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.tagopt { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; cursor: pointer; font-size: 13px; }
+.tagopt:hover { background: rgba(255,255,255,.06); }
+.tagopt.create { color: #a5b4fc; font-weight: 600; }
+.tagopt-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tagdot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+.tagcreate { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 4px; }
+.palette { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 8px 2px; }
+.palette .sw { width: 17px; height: 17px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; box-sizing: border-box; }
+.palette .sw.on { border-color: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.4); }
+.tagempty { color: var(--muted); font-size: 12px; padding: 8px; }
 a.mlink:hover { text-decoration: underline; }
 .empty { padding: 40px; text-align: center; color: var(--muted); }
 .hidden { display: none; }

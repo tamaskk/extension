@@ -69,11 +69,14 @@ export async function POST(req: Request) {
   return json({ ok: true });
 }
 
-// Update "checked": { project, dedupKey, checked }
+// Update a lead: { project, dedupKey, checked?, tags? }
 export async function PATCH(req: Request) {
   await dbConnect();
   const b = await req.json();
-  await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: { checked: !!b.checked } });
+  const set: Record<string, unknown> = {};
+  if ('checked' in b) set.checked = !!b.checked;
+  if ('tags' in b && Array.isArray(b.tags)) set.tags = b.tags.map((t: unknown) => String(t));
+  if (Object.keys(set).length) await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: set });
   return json({ ok: true });
 }
 

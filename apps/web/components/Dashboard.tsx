@@ -7,6 +7,7 @@ import { type LeadRow, type ProjectSummary, type WebsiteStatus } from '@/lib/typ
 import DuplicatesModal from './DuplicatesModal';
 import ImportModal from './ImportModal';
 import MapModal from './MapModal';
+import TagsCell from './TagsCell';
 
 type SortType = 'has' | 'str' | 'num' | 'temp';
 const SORTABLE: Record<string, SortType> = {
@@ -69,6 +70,7 @@ export default function Dashboard() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [tagReg, setTagReg] = useState<Record<string, string>>({}); // tag name → color
   const lastChecked = useRef<string | null>(null);
   const dragFolderId = useRef<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -78,7 +80,20 @@ export default function Dashboard() {
     const saved = parseInt(localStorage.getItem('gridleads_sw') || '', 10);
     if (saved >= 200 && saved <= 560) setSidebarW(saved);
     useGrid.getState().hydrate().catch(() => {});
+    api.getTags().then((r) => { const m: Record<string, string> = {}; (r.tags || []).forEach((t) => { m[t.name] = t.color; }); setTagReg(m); }).catch(() => {});
   }, []);
+
+  const tagNames = useMemo(() => Object.keys(tagReg).sort((a, b) => a.localeCompare(b)), [tagReg]);
+  const createTag = useCallback((name: string, color: string) => {
+    setTagReg((m) => ({ ...m, [name]: color }));
+    api.createTag(name, color).catch(() => {});
+  }, []);
+  const setRowTags = useCallback((r: LeadRow, tags: string[]) => {
+    setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, tags } : x)));
+    api.setTags(r._project, r._key, tags).catch(() => {});
+  }, []);
+  const addRowTag = useCallback((r: LeadRow, name: string) => { const cur = r.tags || []; if (!cur.includes(name)) setRowTags(r, [...cur, name]); }, [setRowTags]);
+  const removeRowTag = useCallback((r: LeadRow, name: string) => setRowTags(r, (r.tags || []).filter((t) => t !== name)), [setRowTags]);
 
   // debounce the search box
   useEffect(() => { const t = setTimeout(() => setDebTerm(term.trim()), 300); return () => clearTimeout(t); }, [term]);
@@ -328,6 +343,7 @@ export default function Dashboard() {
                     {c.label}{sortKey === c.key ? (sortDir === 1 ? ' ▲' : ' ▼') : ''}
                   </th>
                 ))}
+                <th className="tags-th">Tags</th>
                 <th>Maps</th>
               </tr>
             </thead>
@@ -349,6 +365,16 @@ export default function Dashboard() {
                     <td><div className="opp"><div className="track"><div className="fill" style={{ width: `${opp}%` }} /></div><div className="val">{opp}</div></div></td>
                     <td><span className={`temp ${r.leadTemperature}`}>{r.leadTemperature || ''}</span></td>
                     <td className="muted loc" title={r.address || ''}>{r.address || ''}</td>
+                    <td className="tagstd">
+                      <TagsCell
+                        tags={r.tags || []}
+                        registry={tagReg}
+                        allNames={tagNames}
+                        onAdd={(name) => addRowTag(r, name)}
+                        onRemove={(name) => removeRowTag(r, name)}
+                        onCreate={createTag}
+                      />
+                    </td>
                     <td>{r.mapsUrl ? <a className="mlink" href={r.mapsUrl} target="_blank" rel="noreferrer">open ↗</a> : ''}</td>
                   </tr>
                 );
