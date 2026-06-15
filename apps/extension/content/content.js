@@ -62,7 +62,9 @@
         document.documentElement.appendChild(banner);
       }
       const next = st.next ? ` &nbsp;·&nbsp; next: <b>${escHtml(st.next)}</b>` : ' &nbsp;·&nbsp; last one';
-      banner.innerHTML = `⚡ GridLeads batch <b>${st.index + 1}/${st.total}</b> &nbsp;·&nbsp; now: <b>${escHtml(st.current)}</b>${next}`;
+      const batchesLeft = (st.queuedBatches || 0) + 1; // current + the ones still queued
+      const batchInfo = `📦 <b>${batchesLeft}</b> batch${batchesLeft === 1 ? '' : 'es'} left${st.batchLabel ? ` &nbsp;·&nbsp; <b>${escHtml(st.batchLabel)}</b>` : ''}`;
+      banner.innerHTML = `${batchInfo}<br>⚡ search <b>${st.index + 1}/${st.total}</b> &nbsp;·&nbsp; now: <b>${escHtml(st.current)}</b>${next}`;
     } else if (banner) {
       banner.remove();
       banner = null;
