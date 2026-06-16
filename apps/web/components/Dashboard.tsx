@@ -76,7 +76,7 @@ export default function Dashboard() {
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
-  const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[] } | null>(null);
+  const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; folderCount: number; projectCount: number } | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [pageRows, setPageRows] = useState<LeadRow[]>([]);
@@ -325,8 +325,10 @@ export default function Dashboard() {
   // gather the cities present beneath a folder (from every descendant folder's name)
   const openFolderInfo = (f: typeof folderList[number]) => {
     const ids = tree.descOf[f.id] ? [...tree.descOf[f.id]] : [f.id];
-    const cities = ids.filter((id) => id !== f.id).map((id) => cityFromFolderName(folders[id]?.name || '')).filter(Boolean);
-    setInfoFolder({ name: f.name, cities });
+    const childIds = ids.filter((id) => id !== f.id);
+    const cities = childIds.map((id) => cityFromFolderName(folders[id]?.name || '')).filter(Boolean);
+    const projectCount = ids.reduce((s, id) => s + (tree.projsOf[id]?.length || 0), 0);
+    setInfoFolder({ name: f.name, cities, folderCount: childIds.length, projectCount });
   };
   const deleteSelectedFolders = () => {
     if (!confirm(`Delete ${selFolders.size} selected folder(s)? Sub-folders move up to their parent and projects go back to ungrouped (leads kept).`)) return;
@@ -570,7 +572,7 @@ export default function Dashboard() {
 
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
 
-      {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} onClose={() => setInfoFolder(null)} />}
+      {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
 
       {mapOpen && (
         <MapModal

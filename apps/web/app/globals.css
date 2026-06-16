@@ -48,6 +48,10 @@ body.resizing { cursor: col-resize; user-select: none; }
 .fdel:hover { color: var(--hot); opacity: 1; }
 
 /* folder city-coverage modal */
+.fi-stats { display: flex; gap: 10px; margin-bottom: 16px; }
+.fi-stat { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.fi-num { font-size: 24px; font-weight: 800; color: #a5b4fc; }
+.fi-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .fi-sec { margin-bottom: 16px; }
 .fi-h { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
 .fi-chips { display: flex; flex-wrap: wrap; gap: 6px; }

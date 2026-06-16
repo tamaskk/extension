@@ -18,7 +18,8 @@ const MASTER_CITIES = [
 // loose normalize so "St. Louis" == "st louis", "NewYork City" == "newyork city"
 const norm = (s: string) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-export default function FolderInfoModal({ name, cities, onClose }: { name: string; cities: string[]; onClose: () => void }) {
+export default function FolderInfoModal({ name, cities, folderCount, projectCount, onClose }:
+  { name: string; cities: string[]; folderCount: number; projectCount: number; onClose: () => void }) {
   const present = new Set(cities.map(norm).filter(Boolean));
   const missing = MASTER_CITIES.filter((c) => !present.has(norm(c)));
   const covered = MASTER_CITIES.filter((c) => present.has(norm(c)));
@@ -37,6 +38,10 @@ export default function FolderInfoModal({ name, cities, onClose }: { name: strin
           <div className="modal-actions"><button className="btn" onClick={onClose}>✕ Close</button></div>
         </div>
         <div className="modal-body">
+          <div className="fi-stats">
+            <div className="fi-stat"><div className="fi-num">{folderCount.toLocaleString()}</div><div className="fi-lbl">sub-folders inside</div></div>
+            <div className="fi-stat"><div className="fi-num">{projectCount.toLocaleString()}</div><div className="fi-lbl">projects total</div></div>
+          </div>
           <div className="fi-sec">
             <div className="fi-h">❌ Missing cities ({missing.length})</div>
             {missing.length ? <div className="fi-chips">{missing.map((c) => <span key={c} className="chip red">{c}</span>)}</div>
