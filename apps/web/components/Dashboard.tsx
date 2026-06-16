@@ -35,6 +35,32 @@ function StatusChip({ s }: { s: WebsiteStatus }) {
   return <span className={`chip ${cls}`}>{label}</span>;
 }
 
+const STATUS_OPTIONS = Object.keys(STATUS_MAP) as WebsiteStatus[];
+// editable website-status chip (a select styled like the chip)
+function StatusSelect({ value, onChange }: { value: WebsiteStatus; onChange: (s: WebsiteStatus) => void }) {
+  const [cls] = STATUS_MAP[value] || ['gray'];
+  return (
+    <select className={`status-sel chip ${cls}`} value={value || 'NO_WEBSITE'} title="Click to change status"
+      onClick={(e) => e.stopPropagation()} onChange={(e) => onChange(e.target.value as WebsiteStatus)}>
+      {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{STATUS_MAP[s][1]}</option>)}
+    </select>
+  );
+}
+// editable opportunity score: progress bar + a number input you can type into
+function OppEdit({ value, onCommit }: { value: number; onCommit: (n: number) => void }) {
+  const [v, setV] = useState(String(value));
+  useEffect(() => { setV(String(value)); }, [value]);
+  const commit = () => { const n = parseInt(v, 10); if (!isNaN(n) && n !== value) onCommit(n); else setV(String(value)); };
+  return (
+    <div className="opp">
+      <div className="track"><div className="fill" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} /></div>
+      <input className="opp-input" type="number" min={0} max={100} value={v}
+        onClick={(e) => e.stopPropagation()} onChange={(e) => setV(e.target.value)} onBlur={commit}
+        onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} />
+    </div>
+  );
+}
+
 const DROPDOWN_SORT: Record<string, [string, number]> = {
   opportunity_desc: ['opportunityScore', -1], score_desc: ['leadScore', -1],
   rating_desc: ['rating', -1], rating_asc: ['rating', 1],
@@ -288,6 +314,16 @@ export default function Dashboard() {
     setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, checked } : x)));
     api.setChecked(r._project, r._key, checked).catch(() => {});
   };
+  const setRowStatus = (r: LeadRow, websiteStatus: WebsiteStatus) => {
+    setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, websiteStatus } : x)));
+    api.setWebsiteStatus(r._project, r._key, websiteStatus).catch(() => {});
+  };
+  const setRowOpportunity = (r: LeadRow, n: number) => {
+    const v = Math.max(0, Math.min(100, Math.round(n || 0)));
+    const leadTemperature = (v >= 70 ? 'HOT' : v >= 40 ? 'WARM' : 'COLD') as LeadRow['leadTemperature'];
+    setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, opportunityScore: v, leadTemperature } : x)));
+    api.setOpportunity(r._project, r._key, v).catch(() => {});
+  };
   const refreshAll = () => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); };
 
   // Recompute every lead's opportunity score with the new engine, chunk by chunk.
@@ -373,8 +409,8 @@ export default function Dashboard() {
       case 'reviewCount': return <td key={key} className="muted">{r.reviewCount ?? '—'}</td>;
       case 'phone': return <td key={key}>{r.phone || <span className="muted">—</span>}</td>;
       case 'email': return <td key={key}>{r.email || <span className="muted">—</span>}</td>;
-      case 'websiteStatus': return <td key={key}>{r.website ? <a className="mlink" href={r.website} target="_blank" rel="noreferrer"><StatusChip s={r.websiteStatus} /></a> : <StatusChip s={r.websiteStatus} />}</td>;
-      case 'opportunityScore': { const opp = r.opportunityScore || 0; return <td key={key}><div className="opp"><div className="track"><div className="fill" style={{ width: `${opp}%` }} /></div><div className="val">{opp}</div></div></td>; }
+      case 'websiteStatus': return <td key={key}><div className="status-cell"><StatusSelect value={r.websiteStatus} onChange={(s) => setRowStatus(r, s)} />{r.website && <a className="mlink wlink" href={r.website} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title={r.website}>↗</a>}</div></td>;
+      case 'opportunityScore': return <td key={key}><OppEdit value={r.opportunityScore || 0} onCommit={(n) => setRowOpportunity(r, n)} /></td>;
       case 'leadTemperature': return <td key={key}><span className={`temp ${r.leadTemperature}`}>{r.leadTemperature || ''}</span></td>;
       case 'address': return <td key={key} className="muted loc" title={r.address || ''}>{r.address || ''}</td>;
       case 'tags': return <td key={key} className="tagstd"><TagsCell tags={r.tags || []} registry={tagReg} allNames={tagNames} onAdd={(name) => addRowTag(r, name)} onRemove={(name) => removeRowTag(r, name)} onCreate={createTag} /></td>;

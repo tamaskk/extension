@@ -70,13 +70,19 @@ export async function POST(req: Request) {
   return json({ ok: true });
 }
 
-// Update a lead: { project, dedupKey, checked?, tags? }
+// Update a lead: { project, dedupKey, checked?, tags?, websiteStatus?, opportunityScore? }
 export async function PATCH(req: Request) {
   await dbConnect();
   const b = await req.json();
   const set: Record<string, unknown> = {};
   if ('checked' in b) set.checked = !!b.checked;
   if ('tags' in b && Array.isArray(b.tags)) set.tags = b.tags.map((t: unknown) => String(t));
+  if (typeof b.websiteStatus === 'string' && b.websiteStatus) set.websiteStatus = b.websiteStatus;
+  if (b.opportunityScore != null && b.opportunityScore !== '' && !isNaN(Number(b.opportunityScore))) {
+    const v = Math.max(0, Math.min(100, Math.round(Number(b.opportunityScore))));
+    set.opportunityScore = v;
+    set.leadTemperature = v >= 70 ? 'HOT' : v >= 40 ? 'WARM' : 'COLD'; // temperature follows opportunity
+  }
   if (Object.keys(set).length) await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: set });
   return json({ ok: true });
 }
