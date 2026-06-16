@@ -97,7 +97,8 @@ async function refreshQueue() {
     if (st.active) {
       const cur = q[0];
       const more = q.length > 1 ? ` · ${q.length - 1} more queued` : '';
-      $('qsInfo').textContent = `▶ Batch 1/${q.length}: ${cur.label}\n${cur.doneInBatch}/${cur.count} done · now: ${cur.currentQuery || '…'}${more}`;
+      const synced = st.mode === 'stream' ? `\n☁ DB stream: ${st.streamSynced || 0} batch(es) synced & freed` : '';
+      $('qsInfo').textContent = `▶ Batch 1/${q.length}: ${cur.label}\n${cur.doneInBatch}/${cur.count} done · now: ${cur.currentQuery || '…'}${more}${synced}`;
       $('qsStart').classList.add('hidden');
       $('qsStop').classList.remove('hidden');
     } else {
@@ -230,6 +231,11 @@ async function init() {
     await bg({ type: 'batchStopAll' });
     refreshQueue();
   });
+
+  // Batch mode switch: stream-to-DB vs keep-in-browser (persisted in the background).
+  const applyModeHint = (on) => { $('bModeHint').textContent = on ? 'On — upload each batch to DB, free browser storage' : 'Off — keep everything in the browser'; };
+  bg({ type: 'getBatchMode' }).then((r) => { const on = r && r.mode === 'stream'; $('bMode').checked = on; applyModeHint(on); }).catch(() => {});
+  $('bMode').addEventListener('change', async () => { const on = $('bMode').checked; applyModeHint(on); await bg({ type: 'setBatchMode', mode: on ? 'stream' : 'local' }); });
 
   $('clear').addEventListener('click', async () => {
     if (!confirm('Clear ALL projects and leads?')) return;

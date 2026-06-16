@@ -57,6 +57,10 @@
 
   <div class="queuebox">
     <div class="batch-h">▶ Batch queue</div>
+    <label class="switch-row" title="When ON: after every batch finishes, its leads are uploaded to the database and the previous batch is removed from the browser — so huge runs never fill up local storage.">
+      <span class="switch"><input type="checkbox" id="bMode" /><span class="slider"></span></span>
+      <span class="switch-text"><b>Stream to DB</b><small id="bModeHint">Off — keep everything in the browser</small></span>
+    </label>
     <div id="qsInfo" class="qs-info">No batches queued</div>
     <button id="qsStart" class="btn primary batchbtn">▶ Start all batches</button>
     <button id="qsStop" class="btn batchbtn hidden">■ Stop</button>

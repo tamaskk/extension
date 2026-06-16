@@ -779,8 +779,14 @@ async function renderQueue(force) {
   });
 }
 
+// Batch mode switch (shared persisted setting; same as the popup).
+const bdModeHint = (on) => { $('bd_modeHint').textContent = on ? 'On — upload each batch to DB, free browser storage' : 'Off — keep everything in the browser'; };
+msg({ type: 'getBatchMode' }).then((r) => { const on = r && r.mode === 'stream'; $('bd_mode').checked = on; bdModeHint(on); }).catch(() => {});
+$('bd_mode').addEventListener('change', async () => { const on = $('bd_mode').checked; bdModeHint(on); await msg({ type: 'setBatchMode', mode: on ? 'stream' : 'local' }); });
+
 $('batchBtn').addEventListener('click', () => {
   $('batchOverlay').classList.remove('hidden');
+  msg({ type: 'getBatchMode' }).then((r) => { const on = r && r.mode === 'stream'; $('bd_mode').checked = on; bdModeHint(on); }).catch(() => {});
   chrome.storage.local.get('gridleads_batch_fields', (o) => { const f = o.gridleads_batch_fields; if (f) { $('bd_prefix').value = f.p || ''; $('bd_suffix').value = f.s || ''; } bdPreview(); });
   lastQueueSig = ''; renderQueue(true);
   if (batchPoll) clearInterval(batchPoll);

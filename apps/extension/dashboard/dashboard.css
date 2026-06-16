@@ -198,6 +198,18 @@ a.mlink:hover { text-decoration: underline; }
 .batch-preview { font-size: 12px; color: var(--muted); margin-bottom: 10px; min-height: 16px; }
 .batch-preview b { color: #a5b4fc; }
 .batch-add { width: 100%; }
+/* batch-mode toggle */
+.switch-row { display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 4px 0 14px; }
+.switch { position: relative; flex-shrink: 0; width: 38px; height: 22px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; inset: 0; background: var(--line); border-radius: 22px; transition: .15s; }
+.slider::before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .15s; }
+.switch input:checked + .slider { background: var(--accent, #6366f1); }
+.switch input:checked + .slider::before { transform: translateX(16px); }
+.switch-text { display: flex; flex-direction: column; line-height: 1.35; }
+.switch-text b { font-size: 13px; color: var(--text); }
+.switch-text small { font-size: 11px; color: var(--muted); }
+
 .batch-queue-h { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 8px; }
 .batch-queue { display: flex; flex-direction: column; gap: 8px; }
 .bq-empty { color: var(--muted); font-size: 13px; padding: 14px; text-align: center; }

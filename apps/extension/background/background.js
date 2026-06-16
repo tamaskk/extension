@@ -115,9 +115,82 @@ async function captureSearch(url, tabId) {
 // State holds a QUEUE of batches; each batch is a group of searches. They run
 // one after another (a batch waits for the previous to finish, then starts);
 // a finished batch is removed from the queue. queue[0] is the running batch.
-const BKEY = 'gridleads_batch';   // { tabId, active, stage, ts, itemIndex, queue:[{id,label,items}] }
+const BKEY = 'gridleads_batch';   // { tabId, active, stage, ts, itemIndex, mode, pendingDeleteQueries, streamSynced, queue:[{id,label,items}] }
 const HB_ALARM = 'gl_batch_hb';
+const SKEY = 'gridleads_batch_mode'; // 'local' (keep all in browser) | 'stream' (sync each batch to DB, free storage)
+const SYNC_BASE = 'https://gridleads-wheat.vercel.app'; // deployed web app
+const SYNC_CHUNK = 500;            // leads per request (well under Vercel's 4.5MB body limit)
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function getBatchMode() { const o = await chrome.storage.local.get(SKEY); return o[SKEY] === 'stream' ? 'stream' : 'local'; }
+
+// POST one sync chunk to the web app.
+async function postSync(body) {
+  const r = await fetch(SYNC_BASE + '/api/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('sync HTTP ' + r.status);
+  return r.json().catch(() => ({}));
+}
+
+// Push the given project queries (with their leads) to the DB, chunked. Throws on failure.
+async function syncProjectsToDb(queries) {
+  const projects = await getProjects();
+  const folders = await getFolders();
+  let sentFolders = false;
+  for (const q of queries) {
+    const p = projects[q];
+    if (!p) continue;
+    const meta = { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId || null };
+    const entries = Object.entries(p.records || {});
+    if (!entries.length) {
+      await postSync({ gridleads: 1, folders: sentFolders ? {} : folders, projects: { [q]: { ...meta, records: {} } } });
+      sentFolders = true;
+    } else {
+      for (let i = 0; i < entries.length; i += SYNC_CHUNK) {
+        const chunk = Object.fromEntries(entries.slice(i, i + SYNC_CHUNK));
+        await postSync({ gridleads: 1, folders: sentFolders ? {} : folders, projects: { [q]: { ...meta, records: chunk } } });
+        sentFolders = true;
+      }
+    }
+  }
+  return true;
+}
+
+// Remove the given projects from local browser storage (after they're safely in the DB).
+async function deleteLocalProjects(queries) {
+  if (!queries || !queries.length) return;
+  const projects = await getProjects();
+  let changed = false;
+  for (const q of queries) if (projects[q]) { delete projects[q]; changed = true; }
+  if (changed) { await setProjects(projects); await refreshBadge(); }
+}
+
+// Stream mode: after a batch finishes, sync ITS projects to the DB, then delete
+// the PREVIOUS synced batch's projects from the browser (keeps storage bounded).
+async function streamSyncBatch(completed) {
+  const queries = [...new Set((completed.items || []).map((it) => it.query))];
+  try { await syncProjectsToDb(queries); }
+  catch (e) { console.warn('[GridLeads] batch DB sync failed, keeping local copy:', e && e.message); return; }
+  const b = await getBatch();
+  if (!b) return; // queue already finished — leave the last batch locally
+  await deleteLocalProjects(b.pendingDeleteQueries || []);
+  b.pendingDeleteQueries = queries; // becomes the "previous" to delete after the next batch syncs
+  b.streamSynced = (b.streamSynced || 0) + 1;
+  await setBatch(b);
+}
+
+// Advance past the current item; if the batch just completed, in stream mode
+// sync it to the DB + prune the previous one. Returns true if the queue continues.
+async function finishItemAndMaybeBatch(b) {
+  b.itemIndex += 1;
+  const cur = b.queue[0];
+  let completed = null;
+  if (cur && b.itemIndex >= cur.items.length) { completed = cur; b.queue.shift(); b.itemIndex = 0; }
+  b.stage = 'init'; b.ts = tsNow();
+  await setBatch(b);
+  if (completed && b.mode === 'stream') await streamSyncBatch(completed);
+  if (!b.queue.length) { await finishBatch(); return false; }
+  return true;
+}
 
 function buildSearchUrl(query) {
   return 'https://www.google.com/maps/search/' + encodeURIComponent(query).replace(/%20/g, '+');
@@ -188,6 +261,9 @@ async function startQueue(tabId) {
   if (tab == null) return { ok: false, error: 'no-tab' };
   b.tabId = tab;
   if (!b.active) {
+    b.mode = await getBatchMode(); // fix the mode for the whole run
+    if (!Array.isArray(b.pendingDeleteQueries)) b.pendingDeleteQueries = [];
+    b.streamSynced = b.streamSynced || 0;
     b.active = true; b.stage = 'init'; b.ts = tsNow();
     await setBatch(b);
     try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
@@ -233,13 +309,7 @@ async function onScrapeDoneBatch() {
   const b = await getBatch();
   if (!b || !b.active || b.stage !== 'scraping') return;
   await wait(1200); // let the last captures land
-  b.itemIndex += 1;
-  const cur = b.queue[0];
-  if (cur && b.itemIndex >= cur.items.length) { b.queue.shift(); b.itemIndex = 0; } // batch done → remove
-  b.stage = 'init'; b.ts = tsNow();
-  await setBatch(b);
-  if (!b.queue.length) { await finishBatch(); return; }
-  driveCurrent();
+  if (await finishItemAndMaybeBatch(b)) driveCurrent();
 }
 
 async function finishBatch() {
@@ -254,11 +324,7 @@ async function batchWatchdog() {
   const age = tsNow() - (b.ts || 0);
   if (b.stage === 'navigating' && age > 45000) { b.ts = tsNow(); await setBatch(b); driveCurrent(); }
   else if (b.stage === 'scraping' && age > 300000) { // scrape stuck >5min → skip on
-    b.itemIndex += 1;
-    const cur = b.queue[0];
-    if (cur && b.itemIndex >= cur.items.length) { b.queue.shift(); b.itemIndex = 0; }
-    b.stage = 'init'; b.ts = tsNow(); await setBatch(b);
-    if (!b.queue.length) await finishBatch(); else driveCurrent();
+    if (await finishItemAndMaybeBatch(b)) driveCurrent();
   }
 }
 
@@ -334,6 +400,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse(await startQueue(msg.tabId));
         break;
       }
+      case 'getBatchMode': {
+        sendResponse({ mode: await getBatchMode() });
+        break;
+      }
+      case 'setBatchMode': {
+        await chrome.storage.local.set({ [SKEY]: msg.mode === 'stream' ? 'stream' : 'local' });
+        sendResponse({ ok: true });
+        break;
+      }
       // Current-batch progress (popup + on-page banner).
       case 'batchStatus': {
         const b = await getBatch();
@@ -346,6 +421,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             active: true, index: b.itemIndex, total: cur.items.length, stage: b.stage,
             current: c ? c.query : '', next: nxt ? nxt.query : '',
             batchLabel: cur.label, queuedBatches: remainingBatches,
+            mode: b.mode || 'local', streamSynced: b.streamSynced || 0,
           });
         } else { sendResponse({ active: false }); }
         break;
@@ -356,6 +432,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         if (b && b.queue && b.queue.length) {
           sendResponse({
             active: !!b.active, stage: b.stage, itemIndex: b.itemIndex,
+            mode: b.mode || 'local', streamSynced: b.streamSynced || 0,
             queue: b.queue.map((bt, i) => ({
               id: bt.id, label: bt.label, count: bt.items.length,
               running: i === 0 && b.active,
