@@ -155,32 +155,62 @@ export default function Dashboard() {
   const summariesArr = useMemo(() => Object.values(summaries), [summaries]);
   const folderList = useMemo(() => Object.values(folders), [folders]);
 
-  // ----- sidebar tree -----
+  // ----- sidebar tree (folders can nest inside folders) -----
   const tree = useMemo(() => {
-    const byId: Record<string, boolean> = {};
-    folderList.forEach((f) => { byId[f.id] = true; });
-    const grouped: Record<string, ProjectSummary[]> = {};
+    const exists: Record<string, boolean> = {};
+    folderList.forEach((f) => { exists[f.id] = true; });
+    // folders grouped by parent
+    const childrenOf: Record<string, typeof folderList> = {};
+    const roots: typeof folderList = [];
+    folderList.slice().sort(byOrder).forEach((f) => {
+      const pid = f.parentId && exists[f.parentId] ? f.parentId : '';
+      if (pid) (childrenOf[pid] = childrenOf[pid] || []).push(f);
+      else roots.push(f);
+    });
+    // projects grouped by folder
+    const projsOf: Record<string, ProjectSummary[]> = {};
     const ungrouped: ProjectSummary[] = [];
     summariesArr.forEach((p) => {
-      if (p.folderId && byId[p.folderId]) (grouped[p.folderId] = grouped[p.folderId] || []).push(p);
+      if (p.folderId && exists[p.folderId]) (projsOf[p.folderId] = projsOf[p.folderId] || []).push(p);
       else ungrouped.push(p);
     });
+    Object.keys(projsOf).forEach((k) => projsOf[k].sort(byCreated));
+    ungrouped.sort(byCreated);
+    // recursive total (a folder's own projects + every descendant folder's)
+    const totalOf: Record<string, number> = {};
+    const computeTotal = (f: typeof folderList[number]): number => {
+      let t = (projsOf[f.id] || []).reduce((s, p) => s + p.total, 0);
+      for (const c of (childrenOf[f.id] || [])) t += computeTotal(c);
+      totalOf[f.id] = t; return t;
+    };
+    roots.forEach(computeTotal);
+    // descendant ids per folder (for stats scope)
+    const descOf: Record<string, Set<string>> = {};
+    const computeDesc = (f: typeof folderList[number]): Set<string> => {
+      const set = new Set<string>([f.id]);
+      for (const c of (childrenOf[f.id] || [])) computeDesc(c).forEach((id) => set.add(id));
+      descOf[f.id] = set; return set;
+    };
+    roots.forEach(computeDesc);
+    // visible project order (respects collapse) — for shift-click range select
     const order: string[] = [];
-    const blocks: { folder?: typeof folderList[number]; projects: ProjectSummary[] }[] = [];
-    folderList.slice().sort(byOrder).forEach((f) => {
-      const fp = (grouped[f.id] || []).sort(byCreated);
-      blocks.push({ folder: f, projects: fp });
-      if (!f.collapsed) fp.forEach((p) => order.push(p.query));
-    });
-    const ung = ungrouped.sort(byCreated);
-    blocks.push({ projects: ung });
-    ung.forEach((p) => order.push(p.query));
-    return { blocks, order };
+    const walk = (f: typeof folderList[number]) => {
+      if (f.collapsed) return;
+      (childrenOf[f.id] || []).forEach(walk);
+      (projsOf[f.id] || []).forEach((p) => order.push(p.query));
+    };
+    roots.forEach(walk);
+    ungrouped.forEach((p) => order.push(p.query));
+    // flat list with depth (for the "Move to…" dropdown)
+    const flat: { f: typeof folderList[number]; depth: number }[] = [];
+    const flatten = (f: typeof folderList[number], depth: number) => { flat.push({ f, depth }); (childrenOf[f.id] || []).forEach((c) => flatten(c, depth + 1)); };
+    roots.forEach((f) => flatten(f, 0));
+    return { childrenOf, roots, projsOf, ungrouped, totalOf, descOf, order, flat };
   }, [summariesArr, folderList]);
 
   // ----- widgets (full scope, from summaries) -----
   const stats = useMemo(() => {
-    const scope = activeFolder ? summariesArr.filter((p) => p.folderId === activeFolder)
+    const scope = activeFolder ? summariesArr.filter((p) => p.folderId && (tree.descOf[activeFolder]?.has(p.folderId) ?? p.folderId === activeFolder))
       : activeProject ? (summaries[activeProject] ? [summaries[activeProject]] : [])
       : summariesArr;
     const total = scope.reduce((s, p) => s + p.total, 0);
@@ -189,7 +219,7 @@ export default function Dashboard() {
     const email = scope.reduce((s, p) => s + p.email, 0);
     const oppSum = scope.reduce((s, p) => s + (p.oppSum || 0), 0);
     return { total, noweb, hot, email, avg: total ? Math.round(oppSum / total) : 0 };
-  }, [activeProject, activeFolder, summaries, summariesArr]);
+  }, [activeProject, activeFolder, summaries, summariesArr, tree]);
 
   const title = activeFolder ? `📁 ${folders[activeFolder]?.name || 'Folder'}`
     : activeProject === null ? 'All leads'
@@ -238,18 +268,23 @@ export default function Dashboard() {
   };
   const refreshAll = () => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); };
 
-  // drag-and-drop folder reordering
-  const orderedFolderIds = () => folderList.slice().sort(byOrder).map((f) => f.id);
-  const dropFolder = (targetId: string) => {
+  // drag a folder ONTO another folder → nest it inside (or onto "All leads" → root)
+  const isDescendant = (maybeChild: string, ancestor: string): boolean => {
+    let cur = folders[maybeChild]; const guard = new Set<string>();
+    while (cur && cur.parentId) {
+      if (guard.has(cur.id)) break; guard.add(cur.id);
+      if (cur.parentId === ancestor) return true;
+      cur = folders[cur.parentId];
+    }
+    return false;
+  };
+  const nestFolder = (targetId: string | null) => {
     const from = dragFolderId.current; dragFolderId.current = null; setDragOverId(null);
     if (!from || from === targetId) return;
-    const ids = orderedFolderIds();
-    const fromIdx = ids.indexOf(from), toIdx = ids.indexOf(targetId);
-    if (fromIdx < 0 || toIdx < 0) return;
-    ids.splice(fromIdx, 1);
-    const newToIdx = ids.indexOf(targetId);
-    ids.splice(fromIdx < toIdx ? newToIdx + 1 : newToIdx, 0, from);
-    actions.reorderFolders(ids);
+    if (targetId && (targetId === from || isDescendant(targetId, from))) return; // no cycles
+    if ((folders[from]?.parentId || null) === (targetId || null)) return; // already there
+    actions.moveFolder(from, targetId);
+    if (targetId && folders[targetId]?.collapsed) actions.setFolderCollapsed(targetId, false); // reveal the drop
   };
 
   // render one body cell by column key (order-independent)
@@ -270,6 +305,54 @@ export default function Dashboard() {
       case 'maps': return <td key={key}>{r.mapsUrl ? <a className="mlink" href={r.mapsUrl} target="_blank" rel="noreferrer">open ↗</a> : ''}</td>;
       default: return null;
     }
+  };
+
+  // ----- recursive sidebar render (nested folders) -----
+  const renderProject = (p: ProjectSummary, depth: number) => (
+    <div key={p.query} className={`navitem proj ${activeProject === p.query ? 'active' : ''}`} style={{ paddingLeft: 10 + depth * 14 }} onClick={() => { setActiveProject(p.query); setActiveFolder(null); }}>
+      <input type="checkbox" className="proj-check" checked={selected.has(p.query)} onChange={() => {}} onClick={(e) => { e.stopPropagation(); toggleSelect(p.query, !selected.has(p.query), e.shiftKey); }} />
+      <span className="ni-name" title={p.name}>{p.name}</span>
+      <span className="ni-right">
+        <span className={`badge ${p.noWebsite ? 'accent' : ''}`}>{p.total}</span>
+        <span className="edit" onClick={(e) => { e.stopPropagation(); const n = prompt('Rename project:', p.name); if (n && n.trim()) actions.renameProject(p.query, n.trim()); }}>✎</span>
+        <span className="del" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete project "${p.query}" and all its leads?`)) { actions.deleteProject(p.query); setSelected((s) => { const n = new Set(s); n.delete(p.query); return n; }); if (activeProject === p.query) setActiveProject(null); setReloadKey((k) => k + 1); } }}>✕</span>
+      </span>
+    </div>
+  );
+  const renderFolder = (f: typeof folderList[number], depth: number): React.ReactNode => {
+    const kids = tree.childrenOf[f.id] || [];
+    const projs = tree.projsOf[f.id] || [];
+    return (
+      <div key={f.id}>
+        <div
+          className={`folder ${activeFolder === f.id ? 'active' : ''} ${dragOverId === f.id ? 'dragover' : ''}`}
+          style={{ paddingLeft: 4 + depth * 14 }}
+          draggable
+          onDragStart={(e) => { dragFolderId.current = f.id; e.dataTransfer.effectAllowed = 'move'; }}
+          onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragOverId !== f.id) setDragOverId(f.id); }}
+          onDragLeave={() => setDragOverId((cur) => (cur === f.id ? null : cur))}
+          onDrop={(e) => { e.preventDefault(); nestFolder(f.id); }}
+          onDragEnd={() => { dragFolderId.current = null; setDragOverId(null); }}
+          onClick={() => { setActiveFolder(f.id); setActiveProject(null); }}
+        >
+          <span className="caret" onClick={(e) => { e.stopPropagation(); actions.setFolderCollapsed(f.id, !f.collapsed); }}>{(kids.length || projs.length) ? (f.collapsed ? '▸' : '▾') : '·'}</span>
+          <span className="fname" title={f.name}>📁 {f.name}</span>
+          <span className="ni-right">
+            <span className="badge">{tree.totalOf[f.id] ?? 0}</span>
+            <span className="fadd" title="New sub-folder" onClick={(e) => { e.stopPropagation(); const n = prompt(`New folder inside "${f.name}":`); if (n && n.trim()) { actions.createFolder(n.trim(), f.id); if (f.collapsed) actions.setFolderCollapsed(f.id, false); } }}>＋</span>
+            <span className="fexport" title="Export folder (JSON)" onClick={(e) => { e.stopPropagation(); exportJsonScope({ folderId: f.id }, f.name); }}>⤓</span>
+            <span className="fedit" onClick={(e) => { e.stopPropagation(); const n = prompt('Rename folder:', f.name); if (n && n.trim()) actions.renameFolder(f.id, n.trim()); }}>✎</span>
+            <span className="fdel" onClick={(e) => { e.stopPropagation(); if (confirm('Delete this folder? Sub-folders move up to its parent and its projects go back to ungrouped (leads kept).')) actions.deleteFolder(f.id); }}>✕</span>
+          </span>
+        </div>
+        {!f.collapsed && (
+          <>
+            {kids.map((c) => renderFolder(c, depth + 1))}
+            {projs.map((p) => renderProject(p, depth + 1))}
+          </>
+        )}
+      </div>
+    );
   };
 
   if (!mounted) return null;
@@ -296,7 +379,7 @@ export default function Dashboard() {
               <select className="bulk-select" value="" onChange={(e) => { const v = e.target.value; if (v) moveSelected(v === '__root__' ? null : v); }}>
                 <option value="">Move to…</option>
                 <option value="__root__">↥ Ungrouped (root)</option>
-                {folderList.slice().sort(byOrder).map((f) => <option key={f.id} value={f.id}>📁 {f.name}</option>)}
+                {tree.flat.map(({ f, depth }) => <option key={f.id} value={f.id}>{' '.repeat(depth * 2)}📁 {f.name}</option>)}
               </select>
             </div>
             <div className="bulk-row">
@@ -308,45 +391,18 @@ export default function Dashboard() {
         )}
 
         <nav className="nav">
-          <div className={`navitem all ${activeProject === null && activeFolder === null ? 'active' : ''}`} onClick={() => { setActiveProject(null); setActiveFolder(null); }}>
+          <div
+            className={`navitem all ${activeProject === null && activeFolder === null ? 'active' : ''} ${dragOverId === '__root__' ? 'dragover' : ''}`}
+            onClick={() => { setActiveProject(null); setActiveFolder(null); }}
+            onDragOver={(e) => { if (!dragFolderId.current) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragOverId !== '__root__') setDragOverId('__root__'); }}
+            onDragLeave={() => setDragOverId((cur) => (cur === '__root__' ? null : cur))}
+            onDrop={(e) => { e.preventDefault(); nestFolder(null); }}
+            title="Drop a folder here to move it to the top level"
+          >
             <span className="ni-name">All leads</span><span className="badge">{totalAll}</span>
           </div>
-          {tree.blocks.map((block, bi) => (
-            <div key={block.folder ? block.folder.id : `ung-${bi}`}>
-              {block.folder && (
-                <div
-                  className={`folder ${activeFolder === block.folder.id ? 'active' : ''} ${dragOverId === block.folder.id ? 'dragover' : ''}`}
-                  draggable
-                  onDragStart={(e) => { dragFolderId.current = block.folder!.id; e.dataTransfer.effectAllowed = 'move'; }}
-                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragOverId !== block.folder!.id) setDragOverId(block.folder!.id); }}
-                  onDragLeave={() => setDragOverId((cur) => (cur === block.folder!.id ? null : cur))}
-                  onDrop={(e) => { e.preventDefault(); dropFolder(block.folder!.id); }}
-                  onDragEnd={() => { dragFolderId.current = null; setDragOverId(null); }}
-                  onClick={() => { setActiveFolder(block.folder!.id); setActiveProject(null); }}
-                >
-                  <span className="caret" onClick={(e) => { e.stopPropagation(); actions.setFolderCollapsed(block.folder!.id, !block.folder!.collapsed); }}>{block.folder.collapsed ? '▸' : '▾'}</span>
-                  <span className="fname" title={block.folder.name}>📁 {block.folder.name}</span>
-                  <span className="ni-right">
-                    <span className="badge">{block.projects.reduce((s, p) => s + p.total, 0)}</span>
-                    <span className="fexport" title="Export folder (JSON)" onClick={(e) => { e.stopPropagation(); exportJsonScope({ folderId: block.folder!.id }, block.folder!.name); }}>⤓</span>
-                    <span className="fedit" onClick={(e) => { e.stopPropagation(); const n = prompt('Rename folder:', block.folder!.name); if (n && n.trim()) actions.renameFolder(block.folder!.id, n.trim()); }}>✎</span>
-                    <span className="fdel" onClick={(e) => { e.stopPropagation(); if (confirm('Delete this folder? Its projects move back to ungrouped (leads kept).')) actions.deleteFolder(block.folder!.id); }}>✕</span>
-                  </span>
-                </div>
-              )}
-              {(!block.folder || !block.folder.collapsed) && block.projects.map((p) => (
-                <div key={p.query} className={`navitem proj ${activeProject === p.query ? 'active' : ''}`} onClick={() => { setActiveProject(p.query); setActiveFolder(null); }}>
-                  <input type="checkbox" className="proj-check" checked={selected.has(p.query)} onChange={() => {}} onClick={(e) => { e.stopPropagation(); toggleSelect(p.query, !selected.has(p.query), e.shiftKey); }} />
-                  <span className="ni-name" title={p.name}>{p.name}</span>
-                  <span className="ni-right">
-                    <span className={`badge ${p.noWebsite ? 'accent' : ''}`}>{p.total}</span>
-                    <span className="edit" onClick={(e) => { e.stopPropagation(); const n = prompt('Rename project:', p.name); if (n && n.trim()) actions.renameProject(p.query, n.trim()); }}>✎</span>
-                    <span className="del" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete project "${p.query}" and all its leads?`)) { actions.deleteProject(p.query); setSelected((s) => { const n = new Set(s); n.delete(p.query); return n; }); if (activeProject === p.query) setActiveProject(null); setReloadKey((k) => k + 1); } }}>✕</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          ))}
+          {tree.roots.map((f) => renderFolder(f, 0))}
+          {tree.ungrouped.map((p) => renderProject(p, 0))}
         </nav>
 
         <div className="side-foot">Each Google Maps search is saved as a project.</div>

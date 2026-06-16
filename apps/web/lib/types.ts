@@ -45,6 +45,7 @@ export interface Folder {
   createdAt: string;
   collapsed: boolean;
   order?: number;
+  parentId?: string | null; // null = root; otherwise nested under this folder
 }
 
 /** A Lead decorated with its origin, for cross-project (All leads / duplicates) views. */

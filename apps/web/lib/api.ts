@@ -56,9 +56,10 @@ export const api = {
   },
   exportBundle: (opts: { queries?: string[]; folderId?: string }) => jsend('/api/export', 'POST', opts),
 
-  createFolder: (id: string, name: string, createdAt: string) => jsend('/api/folders', 'POST', { id, name, createdAt }),
+  createFolder: (id: string, name: string, createdAt: string, parentId: string | null = null) => jsend('/api/folders', 'POST', { id, name, createdAt, parentId }),
   renameFolder: (id: string, name: string) => jsend('/api/folders', 'PATCH', { id, name }),
   setFolderCollapsed: (id: string, collapsed: boolean) => jsend('/api/folders', 'PATCH', { id, collapsed }),
+  moveFolder: (id: string, parentId: string | null) => jsend('/api/folders', 'PATCH', { id, parentId }),
   deleteFolder: (id: string) => jsend('/api/folders', 'DELETE', { id }),
   reorderFolders: (ids: string[]) => jsend('/api/folders', 'PATCH', { order: ids }),
 

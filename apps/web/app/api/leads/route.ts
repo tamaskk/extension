@@ -1,5 +1,5 @@
 import { dbConnect } from '@/lib/db';
-import { Lead, Project, NO_SITE, CORS, json } from '@/lib/models';
+import { Lead, Project, NO_SITE, CORS, json, descendantFolderIds } from '@/lib/models';
 
 export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
@@ -29,7 +29,8 @@ export async function GET(req: Request) {
 
     const match: Record<string, unknown> = {};
     if (folder) {
-      const projs = await Project.find({ folderId: folder }).select('query').lean();
+      const ids = await descendantFolderIds(folder); // include nested sub-folders
+      const projs = await Project.find({ folderId: { $in: ids } }).select('query').lean();
       match.project = { $in: (projs as { query: string }[]).map((p) => p.query) };
     } else if (project) {
       match.project = project;

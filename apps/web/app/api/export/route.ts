@@ -1,5 +1,5 @@
 import { dbConnect } from '@/lib/db';
-import { Folder, Project, Lead, CORS, json } from '@/lib/models';
+import { Folder, Project, Lead, CORS, json, descendantFolderIds } from '@/lib/models';
 
 export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
@@ -9,7 +9,10 @@ export async function POST(req: Request) {
   await dbConnect();
   const b = await req.json().catch(() => ({}));
   let queries: string[] | undefined = b.queries;
-  if (b.folderId) queries = (await Project.find({ folderId: b.folderId }).lean()).map((p: any) => p.query);
+  if (b.folderId) {
+    const ids = await descendantFolderIds(b.folderId); // include nested sub-folders
+    queries = (await Project.find({ folderId: { $in: ids } }).lean()).map((p: any) => p.query);
+  }
 
   const projDocs = queries
     ? await Project.find({ query: { $in: queries } }).lean()
@@ -26,9 +29,13 @@ export async function POST(req: Request) {
   }
   if (b.folderId) folderIds.add(b.folderId);
 
+  // also carry every ancestor folder so the nested hierarchy round-trips
+  const folders = await Folder.find().lean() as any[];
+  const byId: Record<string, any> = {}; folders.forEach((f) => { byId[f.folderId] = f; });
+  for (const id of [...folderIds]) { let cur = byId[id]; while (cur && cur.parentId) { folderIds.add(cur.parentId); cur = byId[cur.parentId]; } }
+
   const outFolders: Record<string, unknown> = {};
-  const folders = await Folder.find().lean();
-  for (const f of folders as any[]) if (folderIds.has(f.folderId)) outFolders[f.folderId] = { id: f.folderId, name: f.name, createdAt: f.createdAt, collapsed: f.collapsed };
+  for (const f of folders) if (folderIds.has(f.folderId)) outFolders[f.folderId] = { id: f.folderId, name: f.name, createdAt: f.createdAt, collapsed: f.collapsed, parentId: f.parentId || null };
 
   return json({ gridleads: 1, exportedAt: new Date().toISOString(), folders: outFolders, projects: outProjects });
 }

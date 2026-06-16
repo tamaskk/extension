@@ -7,7 +7,7 @@ export function OPTIONS() { return new Response(null, { headers: CORS }); }
 export async function GET() {
   await dbConnect();
   const folders = await Folder.find().sort({ order: 1, createdAt: 1 }).lean();
-  return json((folders as any[]).map((f) => ({ id: f.folderId, name: f.name, createdAt: f.createdAt, collapsed: !!f.collapsed, order: f.order ?? 0 })));
+  return json((folders as any[]).map((f) => ({ id: f.folderId, name: f.name, createdAt: f.createdAt, collapsed: !!f.collapsed, order: f.order ?? 0, parentId: f.parentId || null })));
 }
 
 export async function POST(req: Request) {
@@ -15,11 +15,11 @@ export async function POST(req: Request) {
   const b = await req.json();
   const id = b.id || ('f_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7));
   const order = await Folder.countDocuments(); // new folders go to the end
-  await Folder.updateOne({ folderId: id }, { $set: { folderId: id, name: (b.name || 'New folder').trim(), createdAt: b.createdAt || new Date().toISOString(), collapsed: b.collapsed ?? true, order } }, { upsert: true });
+  await Folder.updateOne({ folderId: id }, { $set: { folderId: id, name: (b.name || 'New folder').trim(), createdAt: b.createdAt || new Date().toISOString(), collapsed: b.collapsed ?? true, order, parentId: b.parentId || null } }, { upsert: true });
   return json({ ok: true, id });
 }
 
-// Single edit { id, name?, collapsed? } OR reorder { order: [id1, id2, ...] }
+// Single edit { id, name?, collapsed?, parentId? } OR reorder { order: [id1, id2, ...] }
 export async function PATCH(req: Request) {
   await dbConnect();
   const b = await req.json();
@@ -31,6 +31,7 @@ export async function PATCH(req: Request) {
   const set: Record<string, unknown> = {};
   if (typeof b.name === 'string') set.name = b.name;
   if (typeof b.collapsed === 'boolean') set.collapsed = b.collapsed;
+  if (Object.prototype.hasOwnProperty.call(b, 'parentId')) set.parentId = b.parentId || null;
   if (Object.keys(set).length) await Folder.updateOne({ folderId: b.id }, { $set: set });
   return json({ ok: true });
 }
@@ -38,6 +39,10 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   await dbConnect();
   const b = await req.json();
+  // move this folder's sub-folders up to its parent, and its projects to ungrouped
+  const folder = await Folder.findOne({ folderId: b.id }).select('parentId').lean() as { parentId?: string | null } | null;
+  const newParent = folder?.parentId || null;
+  await Folder.updateMany({ parentId: b.id }, { $set: { parentId: newParent } });
   await Folder.deleteOne({ folderId: b.id });
   await Project.updateMany({ folderId: b.id }, { $set: { folderId: null } });
   return json({ ok: true });

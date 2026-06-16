@@ -7,6 +7,7 @@ const FolderSchema = new Schema({
   createdAt: String,
   collapsed: { type: Boolean, default: true },
   order: { type: Number, default: 0 }, // manual drag-and-drop ordering
+  parentId: { type: String, default: null, index: true }, // null = root; otherwise nested under this folder
 }, { versionKey: false });
 
 // ── Project (one Google Maps search) ─────────────────────────────────────
@@ -68,6 +69,17 @@ export const Lead = models.Lead || model('Lead', LeadSchema);
 export const Tag = models.Tag || model('Tag', TagSchema);
 
 export const NO_SITE = ['NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'NOT_WORKING'];
+
+// A folder id plus every folder nested beneath it (any depth). Used so that
+// selecting a parent folder scopes leads to all its sub-folders too.
+export async function descendantFolderIds(rootId: string): Promise<string[]> {
+  const all = await Folder.find().select('folderId parentId -_id').lean() as { folderId: string; parentId?: string | null }[];
+  const childrenOf: Record<string, string[]> = {};
+  for (const f of all) { const p = f.parentId || ''; (childrenOf[p] = childrenOf[p] || []).push(f.folderId); }
+  const out: string[] = []; const stack = [rootId];
+  while (stack.length) { const id = stack.pop() as string; out.push(id); for (const c of (childrenOf[id] || [])) stack.push(c); }
+  return out;
+}
 
 // shared CORS headers so the Chrome extension can call these endpoints
 export const CORS: Record<string, string> = {

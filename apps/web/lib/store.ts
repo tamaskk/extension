@@ -23,10 +23,11 @@ interface GridState {
   hydrate(): Promise<void>;
   refresh(): Promise<void>;
 
-  createFolder(name: string): void;
+  createFolder(name: string, parentId?: string | null): void;
   renameFolder(id: string, name: string): void;
   deleteFolder(id: string): void;
   setFolderCollapsed(id: string, collapsed: boolean): void;
+  moveFolder(id: string, parentId: string | null): void;
   reorderFolders(ids: string[]): void;
 
   renameProject(query: string, name: string): void;
@@ -59,10 +60,10 @@ export const useGrid = create<GridState>()((set, get) => ({
     set({ folders: toMap(folders, 'id'), summaries: toMap(projects, 'query') });
   },
 
-  createFolder: (name) => {
+  createFolder: (name, parentId = null) => {
     const id = newId('f_'); const createdAt = new Date().toISOString();
-    set((s) => ({ folders: { ...s.folders, [id]: { id, name: name.trim() || 'New folder', createdAt, collapsed: true } } }));
-    api.createFolder(id, name.trim() || 'New folder', createdAt).catch(swallow);
+    set((s) => ({ folders: { ...s.folders, [id]: { id, name: name.trim() || 'New folder', createdAt, collapsed: true, parentId: parentId || null } } }));
+    api.createFolder(id, name.trim() || 'New folder', createdAt, parentId || null).catch(swallow);
   },
   renameFolder: (id, name) => {
     set((s) => { const f = s.folders[id]; return f ? { folders: { ...s.folders, [id]: { ...f, name } } } : {}; });
@@ -70,7 +71,11 @@ export const useGrid = create<GridState>()((set, get) => ({
   },
   deleteFolder: (id) => {
     set((s) => {
-      const folders = { ...s.folders }; delete folders[id];
+      const folders = { ...s.folders };
+      const newParent = folders[id]?.parentId || null;
+      delete folders[id];
+      // sub-folders move up to the deleted folder's parent
+      for (const fid of Object.keys(folders)) if (folders[fid].parentId === id) folders[fid] = { ...folders[fid], parentId: newParent };
       const summaries = { ...s.summaries };
       for (const q of Object.keys(summaries)) if (summaries[q].folderId === id) summaries[q] = { ...summaries[q], folderId: null };
       return { folders, summaries };
@@ -80,6 +85,10 @@ export const useGrid = create<GridState>()((set, get) => ({
   setFolderCollapsed: (id, collapsed) => {
     set((s) => { const f = s.folders[id]; return f ? { folders: { ...s.folders, [id]: { ...f, collapsed } } } : {}; });
     api.setFolderCollapsed(id, collapsed).catch(swallow);
+  },
+  moveFolder: (id, parentId) => {
+    set((s) => { const f = s.folders[id]; return f ? { folders: { ...s.folders, [id]: { ...f, parentId: parentId || null } } } : {}; });
+    api.moveFolder(id, parentId).catch(swallow);
   },
 
   reorderFolders: (ids) => {
