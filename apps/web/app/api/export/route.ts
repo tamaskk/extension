@@ -2,6 +2,7 @@ import { dbConnect } from '@/lib/db';
 import { Folder, Project, Lead, CORS, json, descendantFolderIds } from '@/lib/models';
 
 export const runtime = 'nodejs';
+export const maxDuration = 300; // big exports can take a while
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
 
 // Build a portable bundle for a scope: { queries? } | { folderId? } | {} (all).
@@ -14,20 +15,31 @@ export async function POST(req: Request) {
     queries = (await Project.find({ folderId: { $in: ids } }).lean()).map((p: any) => p.query);
   }
 
-  const projDocs = queries
+  const projDocs = (queries
     ? await Project.find({ query: { $in: queries } }).lean()
-    : await Project.find().lean();
+    : await Project.find().lean()) as any[];
 
-  const outProjects: Record<string, unknown> = {};
+  // Seed the output with each project (empty records), then fill from ONE lead
+  // query streamed via a cursor — avoids one round-trip per project (which 504'd
+  // on large scopes) and keeps peak memory bounded.
+  const outProjects: Record<string, { query: string; name: string; createdAt: string; folderId?: string; records: Record<string, unknown> }> = {};
   const folderIds = new Set<string>();
-  for (const p of projDocs as any[]) {
-    const leads = await Lead.find({ project: p.query }).lean();
-    const records: Record<string, unknown> = {};
-    for (const l of leads as any[]) { const { _id, ...r } = l; records[l.dedupKey] = r; }
-    outProjects[p.query] = { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId || undefined, records };
+  for (const p of projDocs) {
+    outProjects[p.query] = { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId || undefined, records: {} };
     if (p.folderId) folderIds.add(p.folderId);
   }
   if (b.folderId) folderIds.add(b.folderId);
+
+  const projectSet = projDocs.map((p) => p.query);
+  if (projectSet.length) {
+    const cursor = Lead.find({ project: { $in: projectSet } }).lean().cursor();
+    for (let l = await cursor.next(); l != null; l = await cursor.next()) {
+      const bucket = outProjects[(l as any).project];
+      if (!bucket) continue;
+      const { _id, ...r } = l as any;
+      bucket.records[(l as any).dedupKey] = r;
+    }
+  }
 
   // also carry every ancestor folder so the nested hierarchy round-trips
   const folders = await Folder.find().lean() as any[];
