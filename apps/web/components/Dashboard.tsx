@@ -7,6 +7,10 @@ import { type LeadRow, type ProjectSummary, type WebsiteStatus } from '@/lib/typ
 import DuplicatesModal from './DuplicatesModal';
 import ImportModal from './ImportModal';
 import MapModal from './MapModal';
+import FolderInfoModal from './FolderInfoModal';
+
+// folder names look like "<City...> Restaurants" — drop the last word for the city
+const cityFromFolderName = (name: string) => { const p = String(name || '').trim().split(/\s+/); return p.length > 1 ? p.slice(0, -1).join(' ') : (name || ''); };
 import TagsCell from './TagsCell';
 
 type SortType = 'has' | 'str' | 'num' | 'temp';
@@ -72,6 +76,7 @@ export default function Dashboard() {
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
+  const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[] } | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [pageRows, setPageRows] = useState<LeadRow[]>([]);
@@ -317,6 +322,12 @@ export default function Dashboard() {
     if (valid.length) { actions.moveFolders(valid, targetId); if (targetId && folders[targetId]?.collapsed) actions.setFolderCollapsed(targetId, false); }
     setSelFolders(new Set());
   };
+  // gather the cities present beneath a folder (from every descendant folder's name)
+  const openFolderInfo = (f: typeof folderList[number]) => {
+    const ids = tree.descOf[f.id] ? [...tree.descOf[f.id]] : [f.id];
+    const cities = ids.filter((id) => id !== f.id).map((id) => cityFromFolderName(folders[id]?.name || '')).filter(Boolean);
+    setInfoFolder({ name: f.name, cities });
+  };
   const deleteSelectedFolders = () => {
     if (!confirm(`Delete ${selFolders.size} selected folder(s)? Sub-folders move up to their parent and projects go back to ungrouped (leads kept).`)) return;
     [...selFolders].forEach((id) => actions.deleteFolder(id));
@@ -376,6 +387,7 @@ export default function Dashboard() {
           <span className="fname" title={f.name}>📁 {f.name}</span>
           <span className="ni-right">
             <span className="badge">{tree.totalOf[f.id] ?? 0}</span>
+            <span className="finfo" title="City coverage — which cities are missing?" onClick={(e) => { e.stopPropagation(); openFolderInfo(f); }}>ⓘ</span>
             <span className="fadd" title="New sub-folder" onClick={(e) => { e.stopPropagation(); const n = prompt(`New folder inside "${f.name}":`); if (n && n.trim()) { actions.createFolder(n.trim(), f.id); if (f.collapsed) actions.setFolderCollapsed(f.id, false); } }}>＋</span>
             <span className="fexport" title="Export folder (JSON)" onClick={(e) => { e.stopPropagation(); exportJsonScope({ folderId: f.id }, f.name); }}>⤓</span>
             <span className="fedit" onClick={(e) => { e.stopPropagation(); const n = prompt('Rename folder:', f.name); if (n && n.trim()) actions.renameFolder(f.id, n.trim()); }}>✎</span>
@@ -557,6 +569,8 @@ export default function Dashboard() {
       </main>
 
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
+
+      {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} onClose={() => setInfoFolder(null)} />}
 
       {mapOpen && (
         <MapModal

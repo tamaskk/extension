@@ -42,10 +42,16 @@ body.resizing { cursor: col-resize; user-select: none; }
 .folder.dragover, .navitem.all.dragover { box-shadow: inset 0 0 0 2px var(--accent); background: rgba(99,102,241,.14); border-radius: 8px; }
 .caret { width: 10px; color: var(--muted); font-size: 10px; flex-shrink: 0; }
 .fname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fedit, .fdel, .fexport, .fadd { color: var(--muted); opacity: 0; font-size: 12px; padding: 0 2px; cursor: pointer; }
-.folder:hover .fedit, .folder:hover .fdel, .folder:hover .fexport, .folder:hover .fadd { opacity: .6; }
-.fedit:hover, .fexport:hover, .fadd:hover { color: #a5b4fc; opacity: 1; }
+.fedit, .fdel, .fexport, .fadd, .finfo { color: var(--muted); opacity: 0; font-size: 12px; padding: 0 2px; cursor: pointer; }
+.folder:hover .fedit, .folder:hover .fdel, .folder:hover .fexport, .folder:hover .fadd, .folder:hover .finfo { opacity: .6; }
+.fedit:hover, .fexport:hover, .fadd:hover, .finfo:hover { color: #a5b4fc; opacity: 1; }
 .fdel:hover { color: var(--hot); opacity: 1; }
+
+/* folder city-coverage modal */
+.fi-sec { margin-bottom: 16px; }
+.fi-h { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+.fi-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fi-chips .chip { font-size: 12px; }
 .side-tools { display: flex; gap: 4px; }
 .navitem.proj { padding-left: 8px; }
 .proj-check { flex-shrink: 0; margin: 0 2px 0 0; cursor: pointer; }
