@@ -281,7 +281,7 @@ export default function Dashboard() {
       <aside className="sidebar">
         <div className="brand">◧ GridLeads</div>
         <div className="side-h">
-          <span>Projects</span>
+          <span>Projects <span className="side-count">{folderList.length} folder{folderList.length === 1 ? '' : 's'} · {summariesArr.length} project{summariesArr.length === 1 ? '' : 's'}</span></span>
           <span className="side-tools">
             <button className="mini" title="New folder" onClick={() => { const n = prompt('Folder name:'); if (n && n.trim()) actions.createFolder(n.trim()); }}>＋</button>
             <button className="mini" title="Import JSON" onClick={() => setImportOpen(true)}>⤴</button>
