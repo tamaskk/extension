@@ -96,6 +96,7 @@ export default function Dashboard() {
   const [sortDir, setSortDir] = useState(-1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selFolders, setSelFolders] = useState<Set<string>>(new Set());
+  const [sideFilter, setSideFilter] = useState('');
   const [rowSel, setRowSel] = useState<Set<string>>(new Set());
   const [sidebarW, setSidebarW] = useState(264);
   const [dupesOpen, setDupesOpen] = useState(false);
@@ -242,6 +243,29 @@ export default function Dashboard() {
     roots.forEach((f) => flatten(f, 0));
     return { childrenOf, roots, projsOf, ungrouped, totalOf, descOf, order, flat };
   }, [summariesArr, folderList]);
+
+  // ----- sidebar text filter (matches folder & project names; reveals matches) -----
+  const sideQuery = sideFilter.trim().toLowerCase();
+  const filtered = useMemo(() => {
+    if (!sideQuery) return null;
+    const showFolder = new Set<string>();
+    const showProject = new Set<string>();
+    const visit = (f: typeof folderList[number], ancestorMatched: boolean): boolean => {
+      const nameMatch = f.name.toLowerCase().includes(sideQuery);
+      const sub = ancestorMatched || nameMatch; // matched folder → show everything inside it
+      let anyDesc = false;
+      for (const c of (tree.childrenOf[f.id] || [])) if (visit(c, sub)) anyDesc = true;
+      for (const p of (tree.projsOf[f.id] || [])) {
+        if (sub || p.name.toLowerCase().includes(sideQuery) || p.query.toLowerCase().includes(sideQuery)) { showProject.add(p.query); anyDesc = true; }
+      }
+      const shown = nameMatch || anyDesc || ancestorMatched;
+      if (shown) showFolder.add(f.id);
+      return shown;
+    };
+    tree.roots.forEach((f) => visit(f, false));
+    tree.ungrouped.forEach((p) => { if (p.name.toLowerCase().includes(sideQuery) || p.query.toLowerCase().includes(sideQuery)) showProject.add(p.query); });
+    return { showFolder, showProject };
+  }, [sideQuery, tree]);
 
   // ----- widgets (full scope, from summaries) -----
   const stats = useMemo(() => {
@@ -432,8 +456,10 @@ export default function Dashboard() {
     </div>
   );
   const renderFolder = (f: typeof folderList[number], depth: number): React.ReactNode => {
-    const kids = tree.childrenOf[f.id] || [];
-    const projs = tree.projsOf[f.id] || [];
+    if (filtered && !filtered.showFolder.has(f.id)) return null;
+    const kids = (tree.childrenOf[f.id] || []).filter((c) => !filtered || filtered.showFolder.has(c.id));
+    const projs = (tree.projsOf[f.id] || []).filter((p) => !filtered || filtered.showProject.has(p.query));
+    const open = filtered ? true : !f.collapsed; // force-expand while filtering
     return (
       <div key={f.id}>
         <div
@@ -448,7 +474,7 @@ export default function Dashboard() {
           onClick={() => { setActiveFolder(f.id); setActiveProject(null); }}
         >
           <input type="checkbox" className="folder-check" checked={selFolders.has(f.id)} onChange={() => {}} onClick={(e) => { e.stopPropagation(); toggleFolderSelect(f.id, !selFolders.has(f.id), e.shiftKey); }} />
-          <span className="caret" onClick={(e) => { e.stopPropagation(); actions.setFolderCollapsed(f.id, !f.collapsed); }}>{(kids.length || projs.length) ? (f.collapsed ? '▸' : '▾') : '·'}</span>
+          <span className="caret" onClick={(e) => { e.stopPropagation(); actions.setFolderCollapsed(f.id, !f.collapsed); }}>{(kids.length || projs.length) ? (open ? '▾' : '▸') : '·'}</span>
           <span className="fname" title={f.name}>📁 {f.name}</span>
           <span className="ni-right">
             <span className="badge">{tree.totalOf[f.id] ?? 0}</span>
@@ -459,7 +485,7 @@ export default function Dashboard() {
             <span className="fdel" onClick={(e) => { e.stopPropagation(); if (confirm('Delete this folder? Sub-folders move up to its parent and its projects go back to ungrouped (leads kept).')) actions.deleteFolder(f.id); }}>✕</span>
           </span>
         </div>
-        {!f.collapsed && (
+        {open && (
           <>
             {kids.map((c) => renderFolder(c, depth + 1))}
             {projs.map((p) => renderProject(p, depth + 1))}
@@ -484,6 +510,11 @@ export default function Dashboard() {
             <button className="mini" title="Import JSON" onClick={() => setImportOpen(true)}>⤴</button>
             <button className="mini" title="Export all (JSON)" onClick={() => exportJsonScope({}, 'all')}>⤓</button>
           </span>
+        </div>
+
+        <div className="side-filter-wrap">
+          <input className="side-filter" type="search" placeholder="Filter folders & projects…" value={sideFilter} onChange={(e) => setSideFilter(e.target.value)} />
+          {sideFilter && <span className="side-filter-x" title="Clear" onClick={() => setSideFilter('')}>✕</span>}
         </div>
 
         {selected.size > 0 && (
@@ -533,7 +564,10 @@ export default function Dashboard() {
             <span className="ni-name">All leads</span><span className="badge">{totalAll}</span>
           </div>
           {tree.roots.map((f) => renderFolder(f, 0))}
-          {tree.ungrouped.map((p) => renderProject(p, 0))}
+          {tree.ungrouped.filter((p) => !filtered || filtered.showProject.has(p.query)).map((p) => renderProject(p, 0))}
+          {filtered && filtered.showFolder.size === 0 && filtered.showProject.size === 0 && (
+            <div className="side-empty">No folders or projects match “{sideFilter.trim()}”.</div>
+          )}
         </nav>
 
         <div className="side-foot">Each Google Maps search is saved as a project.</div>
