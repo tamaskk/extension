@@ -28,6 +28,10 @@ export async function PATCH(req: Request) {
     if (ops.length) await Folder.bulkWrite(ops);
     return json({ ok: true });
   }
+  if (Array.isArray(b.ids)) { // bulk move into a parent (or root)
+    await Folder.updateMany({ folderId: { $in: b.ids } }, { $set: { parentId: b.parentId || null } });
+    return json({ ok: true });
+  }
   const set: Record<string, unknown> = {};
   if (typeof b.name === 'string') set.name = b.name;
   if (typeof b.collapsed === 'boolean') set.collapsed = b.collapsed;

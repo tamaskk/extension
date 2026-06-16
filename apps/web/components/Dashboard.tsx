@@ -65,6 +65,7 @@ export default function Dashboard() {
   const [sortKey, setSortKey] = useState('opportunityScore');
   const [sortDir, setSortDir] = useState(-1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selFolders, setSelFolders] = useState<Set<string>>(new Set());
   const [rowSel, setRowSel] = useState<Set<string>>(new Set());
   const [sidebarW, setSidebarW] = useState(264);
   const [dupesOpen, setDupesOpen] = useState(false);
@@ -81,8 +82,10 @@ export default function Dashboard() {
   const [columnOrder, setColumnOrder] = useState<string[]>(DEFAULT_COLS);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
   const lastChecked = useRef<string | null>(null);
+  const lastCheckedFolder = useRef<string | null>(null);
   const dragColKey = useRef<string | null>(null);
   const dragFolderId = useRef<string | null>(null);
+  const dragFolderIds = useRef<string[] | null>(null); // multi-folder drag payload
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -239,6 +242,19 @@ export default function Dashboard() {
     setSelected(next);
   };
 
+  // ----- selection (sidebar folders) -----
+  const folderOrder = useMemo(() => tree.flat.map((x) => x.f.id), [tree]);
+  const toggleFolderSelect = (id: string, checked: boolean, shift: boolean) => {
+    const next = new Set(selFolders);
+    if (shift && lastCheckedFolder.current) {
+      const a = folderOrder.indexOf(lastCheckedFolder.current);
+      const b = folderOrder.indexOf(id);
+      if (a !== -1 && b !== -1) { const lo = Math.min(a, b), hi = Math.max(a, b); for (let i = lo; i <= hi; i++) { if (checked) next.add(folderOrder[i]); else next.delete(folderOrder[i]); } }
+    } else if (checked) next.add(id); else next.delete(id);
+    lastCheckedFolder.current = id;
+    setSelFolders(next);
+  };
+
   const clickHeader = (key: string) => {
     if (sortKey === key) setSortDir((d) => -d);
     else { setSortKey(key); setSortDir(SORTABLE[key] === 'num' || SORTABLE[key] === 'temp' ? -1 : 1); }
@@ -278,13 +294,33 @@ export default function Dashboard() {
     }
     return false;
   };
+  // valid targets for moving a set of folders into `targetId` (drops cycles / no-ops)
+  const validMoveIds = (ids: string[], targetId: string | null) =>
+    ids.filter((id) => id !== targetId
+      && !(targetId && isDescendant(targetId, id)) // can't move into your own descendant
+      && (folders[id]?.parentId || null) !== (targetId || null)); // not already there
   const nestFolder = (targetId: string | null) => {
-    const from = dragFolderId.current; dragFolderId.current = null; setDragOverId(null);
-    if (!from || from === targetId) return;
-    if (targetId && (targetId === from || isDescendant(targetId, from))) return; // no cycles
-    if ((folders[from]?.parentId || null) === (targetId || null)) return; // already there
-    actions.moveFolder(from, targetId);
+    const ids = dragFolderIds.current || (dragFolderId.current ? [dragFolderId.current] : []);
+    dragFolderId.current = null; dragFolderIds.current = null; setDragOverId(null);
+    if (!ids.length) return;
+    if (targetId && ids.includes(targetId)) return; // don't drop a group onto one of its own members
+    const valid = validMoveIds(ids, targetId);
+    if (!valid.length) return;
+    actions.moveFolders(valid, targetId);
     if (targetId && folders[targetId]?.collapsed) actions.setFolderCollapsed(targetId, false); // reveal the drop
+    setSelFolders(new Set());
+  };
+  const moveSelectedFolders = (targetId: string | null) => {
+    const ids = [...selFolders];
+    if (targetId && ids.includes(targetId)) return;
+    const valid = validMoveIds(ids, targetId);
+    if (valid.length) { actions.moveFolders(valid, targetId); if (targetId && folders[targetId]?.collapsed) actions.setFolderCollapsed(targetId, false); }
+    setSelFolders(new Set());
+  };
+  const deleteSelectedFolders = () => {
+    if (!confirm(`Delete ${selFolders.size} selected folder(s)? Sub-folders move up to their parent and projects go back to ungrouped (leads kept).`)) return;
+    [...selFolders].forEach((id) => actions.deleteFolder(id));
+    setSelFolders(new Set());
   };
 
   // render one body cell by column key (order-independent)
@@ -325,16 +361,17 @@ export default function Dashboard() {
     return (
       <div key={f.id}>
         <div
-          className={`folder ${activeFolder === f.id ? 'active' : ''} ${dragOverId === f.id ? 'dragover' : ''}`}
+          className={`folder ${activeFolder === f.id ? 'active' : ''} ${selFolders.has(f.id) ? 'selected' : ''} ${dragOverId === f.id ? 'dragover' : ''}`}
           style={{ paddingLeft: 4 + depth * 14 }}
           draggable
-          onDragStart={(e) => { dragFolderId.current = f.id; e.dataTransfer.effectAllowed = 'move'; }}
+          onDragStart={(e) => { dragFolderId.current = f.id; dragFolderIds.current = (selFolders.has(f.id) && selFolders.size > 1) ? [...selFolders] : [f.id]; e.dataTransfer.effectAllowed = 'move'; }}
           onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragOverId !== f.id) setDragOverId(f.id); }}
           onDragLeave={() => setDragOverId((cur) => (cur === f.id ? null : cur))}
           onDrop={(e) => { e.preventDefault(); nestFolder(f.id); }}
-          onDragEnd={() => { dragFolderId.current = null; setDragOverId(null); }}
+          onDragEnd={() => { dragFolderId.current = null; dragFolderIds.current = null; setDragOverId(null); }}
           onClick={() => { setActiveFolder(f.id); setActiveProject(null); }}
         >
+          <input type="checkbox" className="folder-check" checked={selFolders.has(f.id)} onChange={() => {}} onClick={(e) => { e.stopPropagation(); toggleFolderSelect(f.id, !selFolders.has(f.id), e.shiftKey); }} />
           <span className="caret" onClick={(e) => { e.stopPropagation(); actions.setFolderCollapsed(f.id, !f.collapsed); }}>{(kids.length || projs.length) ? (f.collapsed ? '▸' : '▾') : '·'}</span>
           <span className="fname" title={f.name}>📁 {f.name}</span>
           <span className="ni-right">
@@ -386,6 +423,23 @@ export default function Dashboard() {
               <button className="mini" onClick={() => { const n = prompt(`Rename ${selected.size} selected project(s) to:`); if (n && n.trim()) { actions.renameProjects([...selected], n.trim()); setSelected(new Set()); } }}>Rename</button>
               <button className="mini" onClick={() => exportJsonScope({ queries: [...selected] }, `${selected.size}-projects`)}>Export</button>
               <button className="mini danger" onClick={() => { if (confirm(`Delete ${selected.size} selected project(s) and all their leads?`)) { actions.deleteProjects([...selected]); setSelected(new Set()); setReloadKey((k) => k + 1); } }}>Delete</button>
+            </div>
+          </div>
+        )}
+
+        {selFolders.size > 0 && (
+          <div className="bulkbar">
+            <div className="bulk-row"><b>{selFolders.size}</b>&nbsp;folder(s) selected <span className="bulk-clear" onClick={() => setSelFolders(new Set())}>clear</span></div>
+            <div className="bulk-row">
+              <select className="bulk-select" value="" onChange={(e) => { const v = e.target.value; if (v) moveSelectedFolders(v === '__root__' ? null : v); }}>
+                <option value="">Move into…</option>
+                <option value="__root__">↥ Top level (root)</option>
+                {tree.flat.filter(({ f }) => !selFolders.has(f.id)).map(({ f, depth }) => <option key={f.id} value={f.id}>{' '.repeat(depth * 2)}📁 {f.name}</option>)}
+              </select>
+            </div>
+            <div className="bulk-row">
+              <span className="bulk-hint">Tip: drag any selected folder to move them all.</span>
+              <button className="mini danger" onClick={deleteSelectedFolders}>Delete</button>
             </div>
           </div>
         )}

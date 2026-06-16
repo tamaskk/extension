@@ -60,6 +60,7 @@ export const api = {
   renameFolder: (id: string, name: string) => jsend('/api/folders', 'PATCH', { id, name }),
   setFolderCollapsed: (id: string, collapsed: boolean) => jsend('/api/folders', 'PATCH', { id, collapsed }),
   moveFolder: (id: string, parentId: string | null) => jsend('/api/folders', 'PATCH', { id, parentId }),
+  moveFolders: (ids: string[], parentId: string | null) => jsend('/api/folders', 'PATCH', { ids, parentId }),
   deleteFolder: (id: string) => jsend('/api/folders', 'DELETE', { id }),
   reorderFolders: (ids: string[]) => jsend('/api/folders', 'PATCH', { order: ids }),
 
