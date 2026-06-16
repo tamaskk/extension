@@ -77,6 +77,7 @@ export default function Dashboard() {
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; folderCount: number; projectCount: number } | null>(null);
+  const [recalc, setRecalc] = useState<{ running: boolean; done: number; total: number } | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [pageRows, setPageRows] = useState<LeadRow[]>([]);
@@ -289,6 +290,32 @@ export default function Dashboard() {
   };
   const refreshAll = () => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); };
 
+  // Recompute every lead's opportunity score with the new engine, chunk by chunk.
+  const runRecalc = async () => {
+    if (recalc?.running) return;
+    if (!confirm('Recalculate the opportunity score for ALL leads with the new ranking system? This updates every stored business.')) return;
+    setRecalc({ running: true, done: 0, total: 0 });
+    let after: string | null = null, done = 0, total = 0;
+    try {
+      for (;;) {
+        const res = await api.recalcScores(after);
+        if (!res || !res.ok) throw new Error('recalc failed');
+        done += res.processed;
+        if (res.total != null) total = res.total;
+        setRecalc({ running: true, done, total });
+        if (res.done || !res.lastId) break;
+        after = res.lastId;
+      }
+      setRecalc({ running: false, done, total });
+      setReloadKey((k) => k + 1); // reload the table with new scores
+      actions.refresh().catch(() => {});
+      setTimeout(() => setRecalc(null), 4000);
+    } catch {
+      setRecalc({ running: false, done, total });
+      setTimeout(() => setRecalc(null), 5000);
+    }
+  };
+
   // drag a folder ONTO another folder → nest it inside (or onto "All leads" → root)
   const isDescendant = (maybeChild: string, ancestor: string): boolean => {
     let cur = folders[maybeChild]; const guard = new Set<string>();
@@ -490,6 +517,9 @@ export default function Dashboard() {
             <option value="name_asc">Name A–Z</option>
           </select>
           <button className="btn" onClick={refreshAll}>⟳ Refresh</button>
+          <button className="btn" onClick={runRecalc} disabled={!!recalc?.running} title="Recompute opportunity scores for all leads with the new ranking">
+            {recalc?.running ? `⏳ ${recalc.total ? Math.round((recalc.done / recalc.total) * 100) : 0}%` : '★ Recalc scores'}
+          </button>
           <button className="btn" onClick={() => setDupesOpen(true)}>⧉ Duplicates</button>
           <button className="btn" onClick={() => setMapOpen(true)}>🗺 Map</button>
           <button className="btn" onClick={() => exportJsonScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export JSON</button>
@@ -501,6 +531,11 @@ export default function Dashboard() {
             <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
           ))}
           <div className="spacer" />
+          {recalc && (
+            <span className="recalc-status">
+              {recalc.running ? `Recalculating… ${recalc.done.toLocaleString()}${recalc.total ? ` / ${recalc.total.toLocaleString()}` : ''}` : `✓ Recalculated ${recalc.done.toLocaleString()} leads`}
+            </span>
+          )}
           {columnOrder.join() !== DEFAULT_COLS.join() && <button className="chipbtn reset-cols" title="Reset column order" onClick={resetColumns}>↺ Columns</button>}
           <span className="title">{title}</span>
         </div>

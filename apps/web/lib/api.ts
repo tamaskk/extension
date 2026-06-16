@@ -79,6 +79,9 @@ export const api = {
 
   sync: (bundle: unknown) => jsend('/api/sync', 'POST', bundle),
 
+  recalcScores: (after: string | null): Promise<{ ok: boolean; processed: number; lastId: string | null; done: boolean; total?: number }> =>
+    jsend('/api/recalc', 'POST', { after }),
+
   // Chunked sync — splits big bundles so no request exceeds the serverless body
   // limit (Vercel ~4.5MB). Returns aggregate counts.
   syncBundleChunked: async (

@@ -178,6 +178,7 @@ a.mlink { color: #93c5fd; text-decoration: none; }
 .col-h.col-dragging { opacity: .4; }
 .col-h.col-dragover { box-shadow: inset 3px 0 0 0 var(--accent); background: rgba(99,102,241,.08); }
 .reset-cols { margin-right: 8px; }
+.recalc-status { font-size: 12px; font-weight: 600; color: #a5b4fc; margin-right: 10px; }
 a.mlink:hover { text-decoration: underline; }
 .empty { padding: 40px; text-align: center; color: var(--muted); }
 .hidden { display: none; }

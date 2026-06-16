@@ -9,7 +9,7 @@ function escapeRegex(s: string) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'
 // Map a dashboard sort key → a real document field. leadTemperature is derived
 // from leadScore (COLD<40<WARM<70<HOT), so sorting by leadScore matches it.
 function sortField(key: string): string {
-  if (key === 'leadTemperature') return 'leadScore';
+  if (key === 'leadTemperature') return 'opportunityScore'; // temperature now follows opportunity
   return key; // name, category, address, websiteStatus, rating, reviewCount, opportunityScore, leadScore, checked, phone, email
 }
 

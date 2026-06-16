@@ -33,6 +33,7 @@ export interface ScoreInput {
   website?: string | null;
   websiteStatus?: WebsiteStatus;
   reviewCount?: number | null;
+  rating?: number | null;
   hasBookingHint?: boolean | null;
 }
 
@@ -44,35 +45,58 @@ export interface ScoreResult {
   topPitch: string;
 }
 
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+/**
+ * Opportunity Engine v2 — "how valuable is it to sell THIS business a website".
+ * The best lead is a clearly successful business (many reviews, high rating) that
+ * has NO real website. Such a place reaches ~100. A site-less place nobody reviews
+ * stays mid. A business that already has a real website is a low priority.
+ *
+ *   no website (base)           NO_WEBSITE 55 · social-only 48 · broken/expired 42
+ *   + review boost (≤ 30)       log scale, 10k+ reviews → full 30
+ *   + rating boost (≤ 15)       4.8★+ → full 15, ramps from 3.5★
+ *   → no website + 10k reviews + 4.8★ = 100
+ */
 export function score(b: ScoreInput): ScoreResult {
   const status = b.websiteStatus || classifyWebsite(b.website);
-  const lead: { rule: string; points: number }[] = [];
-  const opp: { rule: string; points: number }[] = [];
   const noSite = WEBSITELESS.has(status);
+  const reviews = Math.max(0, b.reviewCount ?? 0);
+  const rating = b.rating ?? 0;
+  const pitches: string[] = [];
 
+  let opp = 0;
   if (noSite) {
-    lead.push({ rule: 'no_website', points: 50 });
-    opp.push({ rule: status === 'FACEBOOK_ONLY' ? 'facebook_only' : status === 'INSTAGRAM_ONLY' ? 'instagram_only' : 'no_website', points: 50 });
+    const base = status === 'NO_WEBSITE' ? 55
+      : (status === 'FACEBOOK_ONLY' || status === 'INSTAGRAM_ONLY') ? 48
+      : 42; // broken / expired / parked / not working / under construction
+    const reviewBoost = 30 * clamp(Math.log10(reviews + 1) / 4, 0, 1); // 10k+ → 30
+    const ratingBoost = 15 * clamp((rating - 3.5) / (4.8 - 3.5), 0, 1); // 4.8★+ → 15
+    opp = base + reviewBoost + ratingBoost;
+    pitches.push(status === 'FACEBOOK_ONLY' ? OPPORTUNITY_PITCH.facebook_only
+      : status === 'INSTAGRAM_ONLY' ? OPPORTUNITY_PITCH.instagram_only
+      : OPPORTUNITY_PITCH.no_website);
+    if (b.hasBookingHint === false) pitches.push(OPPORTUNITY_PITCH.no_online_booking);
+  } else if (b.hasBookingHint === false) {
+    opp = 12; // already has a site — only a minor booking-integration upsell
+    pitches.push(OPPORTUNITY_PITCH.no_online_booking);
   }
-  if ((b.reviewCount ?? 999) < 50) {
-    lead.push({ rule: 'few_reviews', points: 15 });
-    opp.push({ rule: 'few_reviews', points: 12 });
-  }
-  if (b.hasBookingHint === false) {
-    lead.push({ rule: 'no_booking', points: 15 });
-    opp.push({ rule: 'no_online_booking', points: 15 });
-  }
+  if (reviews < 50) pitches.push(OPPORTUNITY_PITCH.few_reviews);
+  const opportunityScore = Math.round(clamp(opp, 0, 100));
 
-  const leadScore = Math.min(100, lead.reduce((s, c) => s + c.points, 0));
-  const oppScore = Math.min(100, opp.reduce((s, c) => s + c.points, 0));
-  const pitches = [...opp].sort((a, c) => c.points - a.points)
-    .map((c) => OPPORTUNITY_PITCH[c.rule]).filter(Boolean);
+  // Lead score — a simpler "needs help + worth it" signal (kept for the Lead-score sort).
+  let leadPts = 0;
+  if (noSite) leadPts += 50;
+  if (reviews < 50) leadPts += 15;
+  if (b.hasBookingHint === false) leadPts += 15;
+  if (rating >= 4.5) leadPts += 10;
+  const leadScore = Math.min(100, leadPts);
 
   return {
     websiteStatus: status,
     leadScore,
-    leadTemperature: temperatureFor(leadScore),
-    opportunityScore: oppScore,
+    leadTemperature: temperatureFor(opportunityScore), // temperature now follows opportunity
+    opportunityScore,
     topPitch: pitches[0] || '',
   };
 }
