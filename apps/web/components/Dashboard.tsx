@@ -9,6 +9,7 @@ import ImportModal from './ImportModal';
 import MapModal from './MapModal';
 import FolderInfoModal from './FolderInfoModal';
 import CategoryFilter from './CategoryFilter';
+import LeadDetailModal from './LeadDetailModal';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
 const cityFromFolderName = (name: string) => { const p = String(name || '').trim().split(/\s+/); return p.length > 1 ? p.slice(0, -1).join(' ') : (name || ''); };
@@ -106,6 +107,7 @@ export default function Dashboard() {
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; folderCount: number; projectCount: number } | null>(null);
+  const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [recalc, setRecalc] = useState<{ running: boolean; done: number; total: number } | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -433,7 +435,7 @@ export default function Dashboard() {
   const renderCell = (key: string, r: LeadRow) => {
     switch (key) {
       case 'checked': return <td key={key} className="cb"><input type="checkbox" className="rowcheck" checked={!!r.checked} onChange={(e) => setChecked(r, (e.target as HTMLInputElement).checked)} /></td>;
-      case 'name': return <td key={key} className="bizname" title={r.name}>{r.name}</td>;
+      case 'name': return <td key={key} className="bizcell"><span className="bizname" title={r.name}>{r.name}</span><span className="bizopen" title="Show all details" onClick={(e) => { e.stopPropagation(); setDetailRow(r); }}>↗</span></td>;
       case 'category': return <td key={key} className="muted">{r.category}</td>;
       case 'rating': return <td key={key}>{r.rating ?? '—'}</td>;
       case 'reviewCount': return <td key={key} className="muted">{r.reviewCount ?? '—'}</td>;
@@ -685,6 +687,8 @@ export default function Dashboard() {
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
 
       {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
+
+      {detailRow && <LeadDetailModal row={detailRow} registry={tagReg} onClose={() => setDetailRow(null)} />}
 
       {mapOpen && (
         <MapModal
