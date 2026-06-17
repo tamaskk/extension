@@ -13,11 +13,11 @@ const STATUS_LABEL: Record<string, string> = {
   BROKEN: 'Broken', DOMAIN_EXPIRED: 'Expired', DOMAIN_PARKED: 'Parked', UNDER_CONSTRUCTION: 'Under constr.', NOT_WORKING: 'Not working', REDIRECTS: 'Redirects',
 };
 
-type FieldDef = { key: keyof LeadRow; label: string; type: 'text' | 'number' | 'textarea' | 'select' | 'date'; options?: string[]; bool?: boolean; step?: number };
+type FieldDef = { key: keyof LeadRow; label: string; type: 'text' | 'number' | 'textarea' | 'select' | 'date' | 'datetime'; options?: string[]; bool?: boolean; step?: number };
 const FIELDS: FieldDef[] = [
   { key: 'name', label: 'Name', type: 'text' },
   { key: 'salesStatus', label: 'Sales status', type: 'select', options: ['', ...SALES_STATUSES] },
-  { key: 'salesDate', label: 'Follow-up date', type: 'date' },
+  { key: 'salesDate', label: 'Follow-up date', type: 'datetime' },
   { key: 'category', label: 'Category', type: 'text' },
   { key: 'opportunityScore', label: 'Opportunity', type: 'number' },
   { key: 'leadScore', label: 'Lead score', type: 'number' },
@@ -167,7 +167,7 @@ function EditableField({ def, value, onSave }: { def: FieldDef; value: unknown; 
               : def.type === 'textarea'
               ? <textarea ref={ref} value={v} onChange={(e) => setV(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Escape') setEditing(false); }} onBlur={() => commit(v)} rows={3} />
-              : <input ref={ref} type={def.type === 'number' ? 'number' : def.type === 'date' ? 'date' : 'text'} step={def.step} value={v}
+              : <input ref={ref} type={def.type === 'number' ? 'number' : def.type === 'date' ? 'date' : def.type === 'datetime' ? 'datetime-local' : 'text'} step={def.step} value={v}
                   onChange={(e) => setV(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') commit(v); else if (e.key === 'Escape') setEditing(false); }}
                   onBlur={() => commit(v)} />
@@ -191,7 +191,6 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
   const [wpData, setWpData] = useState<string>(() =>
     [row.name, row.category, row.address, row.phone, row.rating ? `★${row.rating} (${row.reviewCount ?? 0} reviews)` : '', row.website].filter(Boolean).join(' · '));
   const toggleAcc = (label: string) => setOpenAcc((s) => { const n = new Set(s); if (n.has(label)) n.delete(label); else n.add(label); return n; });
-  const [mtgTime, setMtgTime] = useState('10:00');
 
   const save = (field: string, value: unknown) => {
     setData((d) => {
@@ -241,11 +240,10 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
           {SALES_NEEDS_DATE.has(data.salesStatus || '') && (
             <div className="ld-sched">
               <div className="ld-k">📅 Schedule</div>
-              <input type="date" className="sales-date" value={data.salesDate || ''} onChange={(e) => save('salesDate', e.target.value)} />
-              <input type="time" className="sales-date" value={mtgTime} onChange={(e) => setMtgTime(e.target.value)} />
+              <input type="datetime-local" className="sales-date" value={data.salesDate || ''} onChange={(e) => save('salesDate', e.target.value)} />
               {data.salesDate
-                ? <a className="btn primary" href={googleCalendarUrl({ title: `${data.salesStatus} — ${data.name}`, dateYmd: data.salesDate, time: mtgTime, details: calDetails(data), location: data.address })} target="_blank" rel="noreferrer">📅 Add to Google Calendar</a>
-                : <span className="muted" style={{ fontSize: 12 }}>Pick a date first</span>}
+                ? <a className="btn primary" href={googleCalendarUrl({ title: `${data.salesStatus} — ${data.name}`, when: data.salesDate, details: calDetails(data), location: data.address })} target="_blank" rel="noreferrer">📅 Add to Google Calendar</a>
+                : <span className="muted" style={{ fontSize: 12 }}>Pick a date &amp; time first</span>}
             </div>
           )}
 

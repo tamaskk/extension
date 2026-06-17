@@ -3,17 +3,20 @@
 function ymd(d: Date) { const p = (n: number) => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`; }
 function stampLocal(d: Date) { const p = (n: number) => String(n).padStart(2, '0'); return `${ymd(d)}T${p(d.getHours())}${p(d.getMinutes())}00`; }
 
-export function googleCalendarUrl(opts: { title: string; dateYmd: string; time?: string; durationMin?: number; details?: string; location?: string }): string {
-  const { title, dateYmd, time, durationMin = 60, details, location } = opts;
-  if (!dateYmd) return '';
-  const [y, m, d] = dateYmd.split('-').map(Number);
+// `when` is either a date (YYYY-MM-DD → all-day) or a datetime (YYYY-MM-DDTHH:MM → timed).
+export function googleCalendarUrl(opts: { title: string; when: string; durationMin?: number; details?: string; location?: string }): string {
+  const { title, when, durationMin = 60, details, location } = opts;
+  if (!when) return '';
   let dates: string;
-  if (time && /^\d{1,2}:\d{2}$/.test(time)) {
-    const [hh, mm] = time.split(':').map(Number);
-    const start = new Date(y, m - 1, d, hh, mm);
+  if (when.includes('T')) {
+    const [datePart, timePart] = when.split('T');
+    const [y, m, d] = datePart.split('-').map(Number);
+    const [hh, mm] = timePart.split(':').map(Number);
+    const start = new Date(y, m - 1, d, hh, mm || 0);
     const end = new Date(start.getTime() + durationMin * 60000);
     dates = `${stampLocal(start)}/${stampLocal(end)}`;
   } else {
+    const [y, m, d] = when.split('-').map(Number);
     const start = new Date(y, m - 1, d);
     const end = new Date(start.getTime() + 86400000); // all-day → next day
     dates = `${ymd(start)}/${ymd(end)}`;
