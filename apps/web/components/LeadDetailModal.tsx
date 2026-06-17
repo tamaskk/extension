@@ -97,6 +97,7 @@ function EditableField({ def, value, onSave }: { def: FieldDef; value: unknown; 
 export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCreateTag, onClose }:
   { row: LeadRow; registry?: Record<string, string>; tagNames: string[]; onSaved: (field: string, value: unknown) => void; onCreateTag: (name: string, color: string) => void; onClose: () => void }) {
   const [data, setData] = useState<LeadRow>(() => ({ ...row }));
+  const [openAcc, setOpenAcc] = useState<Set<string>>(new Set());
 
   const save = (field: string, value: unknown) => {
     setData((d) => {
@@ -147,15 +148,19 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
             {FIELDS.map((def) => <EditableField key={def.key as string} def={def} value={data[def.key]} onSave={(v) => save(def.key as string, v)} />)}
           </div>
 
-          <div className="ld-selects">
-            {['Website prompt', 'AI Automation prompt', 'Website sales', 'AI Automation sales'].map((label) => (
-              <label key={label} className="ld-select">
-                <span className="ld-select-label">{label}</span>
-                <select defaultValue="">
-                  <option value="" disabled>—</option>
-                </select>
-              </label>
-            ))}
+          <div className="ld-accordions">
+            {['Website prompt', 'AI Automation prompt', 'Website sales', 'AI Automation sales'].map((label) => {
+              const open = openAcc.has(label);
+              return (
+                <div key={label} className={`ld-acc ${open ? 'open' : ''}`}>
+                  <button className="ld-acc-head" onClick={() => setOpenAcc((s) => { const n = new Set(s); if (n.has(label)) n.delete(label); else n.add(label); return n; })}>
+                    <span className="ld-acc-caret">{open ? '▾' : '▸'}</span>
+                    <span className="ld-acc-title">{label}</span>
+                  </button>
+                  {open && <div className="ld-acc-body" />}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
