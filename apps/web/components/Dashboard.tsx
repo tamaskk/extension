@@ -435,7 +435,7 @@ export default function Dashboard() {
   const renderCell = (key: string, r: LeadRow) => {
     switch (key) {
       case 'checked': return <td key={key} className="cb"><input type="checkbox" className="rowcheck" checked={!!r.checked} onChange={(e) => setChecked(r, (e.target as HTMLInputElement).checked)} /></td>;
-      case 'name': return <td key={key} className="bizcell"><span className="bizname" title={r.name}>{r.name}</span><span className="bizopen" title="Show all details" onClick={(e) => { e.stopPropagation(); setDetailRow(r); }}>↗</span></td>;
+      case 'name': return <td key={key}><div className="bizcell"><span className="bizname" title={r.name}>{r.name}</span><span className="bizopen" title="Show all details" onClick={(e) => { e.stopPropagation(); setDetailRow(r); }}>↗</span></div></td>;
       case 'category': return <td key={key} className="muted">{r.category}</td>;
       case 'rating': return <td key={key}>{r.rating ?? '—'}</td>;
       case 'reviewCount': return <td key={key} className="muted">{r.reviewCount ?? '—'}</td>;
