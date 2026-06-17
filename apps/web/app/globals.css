@@ -145,6 +145,21 @@ body.resizing { cursor: col-resize; user-select: none; }
 .ld-opp-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), #8b5cf6); }
 .ld-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
 @media (max-width: 620px) { .ld-grid { grid-template-columns: 1fr; } }
+
+/* editable detail fields */
+.ld-editable { display: flex; align-items: center; gap: 6px; }
+.ld-disp { min-width: 0; word-break: break-word; flex: 1; }
+.ld-pen { flex-shrink: 0; color: var(--muted); cursor: pointer; font-size: 12px; opacity: 0; padding: 0 2px; }
+.ld-row:hover .ld-pen { opacity: .6; }
+.ld-pen:hover { opacity: 1; color: #a5b4fc; }
+.ld-edit-box { flex: 1; display: flex; }
+.ld-edit-box input, .ld-edit-box select, .ld-edit-box textarea {
+  width: 100%; box-sizing: border-box; background: var(--panel2); border: 1px solid var(--accent);
+  color: var(--text); border-radius: 6px; padding: 4px 6px; font-size: 13px; outline: none; font-family: inherit;
+}
+.ld-edit-box textarea { resize: vertical; }
+.ld-tagsec { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
+.ld-tagsec .ld-k { width: 110px; flex-shrink: 0; }
 .table td.loc { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .muted { color: var(--muted); }
 

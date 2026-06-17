@@ -85,6 +85,21 @@ export async function PATCH(req: Request) {
     set.opportunityScore = v;
     set.leadTemperature = v >= 70 ? 'HOT' : v >= 40 ? 'WARM' : 'COLD'; // temperature follows opportunity
   }
+  // generic single-field edit { field, value } from the detail modal
+  if (typeof b.field === 'string') {
+    const f = b.field; const val = b.value;
+    const STR = new Set(['name', 'category', 'phone', 'email', 'website', 'address', 'mapsUrl', 'topPitch', 'placeId', 'cid']);
+    const NUM = new Set(['rating', 'reviewCount', 'lat', 'lng', 'leadScore']);
+    const WS = new Set(['HAS_WEBSITE', 'NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'DOMAIN_PARKED', 'UNDER_CONSTRUCTION', 'NOT_WORKING', 'REDIRECTS']);
+    const TEMP = new Set(['COLD', 'WARM', 'HOT']);
+    if (STR.has(f)) set[f] = val == null ? '' : String(val);
+    else if (NUM.has(f)) set[f] = (val === '' || val == null) ? null : (isNaN(Number(val)) ? undefined : Number(val));
+    else if (f === 'websiteStatus' && WS.has(val)) set.websiteStatus = val;
+    else if (f === 'leadTemperature' && TEMP.has(val)) set.leadTemperature = val;
+    else if (f === 'checked') set.checked = !!val;
+    else if (f === 'opportunityScore') { const v = Math.max(0, Math.min(100, Math.round(Number(val) || 0))); set.opportunityScore = v; set.leadTemperature = v >= 70 ? 'HOT' : v >= 40 ? 'WARM' : 'COLD'; }
+    if (set[f] === undefined) delete set[f];
+  }
   if (Object.keys(set).length) await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: set });
   return json({ ok: true });
 }

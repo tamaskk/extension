@@ -688,7 +688,16 @@ export default function Dashboard() {
 
       {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
 
-      {detailRow && <LeadDetailModal row={detailRow} registry={tagReg} onClose={() => setDetailRow(null)} />}
+      {detailRow && (
+        <LeadDetailModal
+          row={detailRow}
+          registry={tagReg}
+          tagNames={tagNames}
+          onCreateTag={createTag}
+          onSaved={(field, value) => setPageRows((rows) => rows.map((x) => (x._project === detailRow._project && x._key === detailRow._key ? { ...x, [field]: value } : x)))}
+          onClose={() => setDetailRow(null)}
+        />
+      )}
 
       {mapOpen && (
         <MapModal
