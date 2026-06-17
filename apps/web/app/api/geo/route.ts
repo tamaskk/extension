@@ -25,6 +25,8 @@ export async function GET(req: Request) {
     } else if (project) {
       match.project = project;
     }
+    const cats = u.getAll('cat').filter(Boolean);
+    if (cats.length) match.category = { $in: cats };
     if (filter === 'nowebsite') match.websiteStatus = { $in: NO_SITE };
     else if (filter === 'haswebsite') match.websiteStatus = 'HAS_WEBSITE';
     else if (filter === 'hot') match.leadTemperature = 'HOT';

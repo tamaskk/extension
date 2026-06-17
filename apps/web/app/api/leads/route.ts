@@ -39,6 +39,8 @@ export async function GET(req: Request) {
     else if (filter === 'haswebsite') match.websiteStatus = 'HAS_WEBSITE';
     else if (filter === 'hot') match.leadTemperature = 'HOT';
     else if (filter === 'email') match.email = { $nin: ['', null] };
+    const cats = u.getAll('cat').filter(Boolean);
+    if (cats.length) match.category = { $in: cats };
     if (search) {
       const rx = new RegExp(escapeRegex(search), 'i');
       match.$or = [{ name: rx }, { category: rx }, { address: rx }, { phone: rx }, { email: rx }];

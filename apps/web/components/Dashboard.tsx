@@ -8,6 +8,7 @@ import DuplicatesModal from './DuplicatesModal';
 import ImportModal from './ImportModal';
 import MapModal from './MapModal';
 import FolderInfoModal from './FolderInfoModal';
+import CategoryFilter from './CategoryFilter';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
 const cityFromFolderName = (name: string) => { const p = String(name || '').trim().split(/\s+/); return p.length > 1 ? p.slice(0, -1).join(' ') : (name || ''); };
@@ -90,6 +91,7 @@ export default function Dashboard() {
   const [activeProject, setActiveProject] = useState<string | null>(null);
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email'>('all');
+  const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [term, setTerm] = useState('');
   const [debTerm, setDebTerm] = useState('');
   const [sortKey, setSortKey] = useState('opportunityScore');
@@ -169,14 +171,17 @@ export default function Dashboard() {
   // debounce the search box
   useEffect(() => { const t = setTimeout(() => setDebTerm(term.trim()), 300); return () => clearTimeout(t); }, [term]);
   // any change that affects the result set goes back to page 1
-  useEffect(() => { setPage(1); }, [activeProject, activeFolder, filter, debTerm, sortKey, sortDir, pageSize]);
+  useEffect(() => { setPage(1); }, [activeProject, activeFolder, filter, debTerm, sortKey, sortDir, pageSize, selectedCats]);
+  // category options are scope-specific, so reset the picks when the scope changes
+  useEffect(() => { setSelectedCats([]); }, [activeProject, activeFolder]);
 
+  const catsKey = selectedCats.join('');
   // ----- server-side page fetch -----
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
     setLoading(true);
-    api.getLeads({ project: activeProject, folder: activeFolder, filter, search: debTerm, sort: sortKey, dir: sortDir, page, pageSize })
+    api.getLeads({ project: activeProject, folder: activeFolder, filter, search: debTerm, categories: selectedCats, sort: sortKey, dir: sortDir, page, pageSize })
       .then((res) => {
         if (cancelled) return;
         const rows = (res.rows || []).map((r: any) => ({ ...r, _project: r.project, _key: r.dedupKey })) as LeadRow[];
@@ -186,7 +191,8 @@ export default function Dashboard() {
       .catch(() => { if (!cancelled) { setPageRows([]); setTotal(0); } })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [hydrated, activeProject, activeFolder, filter, debTerm, sortKey, sortDir, page, pageSize, reloadKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, activeProject, activeFolder, filter, debTerm, catsKey, sortKey, sortDir, page, pageSize, reloadKey]);
 
   const summariesArr = useMemo(() => Object.values(summaries), [summaries]);
   const folderList = useMemo(() => Object.values(folders), [folders]);
@@ -600,6 +606,7 @@ export default function Dashboard() {
           {([['all', 'All'], ['nowebsite', 'No website'], ['haswebsite', 'Has website'], ['hot', '🔥 Hot'], ['email', 'Email found']] as const).map(([key, label]) => (
             <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
           ))}
+          <CategoryFilter project={activeProject} folder={activeFolder} value={selectedCats} onChange={setSelectedCats} />
           <div className="spacer" />
           {recalc && (
             <span className="recalc-status">
@@ -687,6 +694,7 @@ export default function Dashboard() {
           folder={activeFolder}
           filter={filter}
           search={debTerm}
+          categories={selectedCats}
         />
       )}
 
