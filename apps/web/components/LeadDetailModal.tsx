@@ -34,6 +34,92 @@ const FIELDS: FieldDef[] = [
   { key: 'cid', label: 'CID', type: 'text' },
 ];
 
+const WEBSITE_PROMPT_TEMPLATE = `"You are a world-class Full-Stack Engineer, UI/UX Designer, and SEO Architect. Your goal is to deliver a production-ready, high-performance restaurant website using Next.js 14+ (App Router) and Tailwind CSS.
+
+EXECUTION PROTOCOL:
+
+1. STEP 1: DEEP RESEARCH: Search for the restaurant [INSERT NAME/DATA], analyze its vibe, cuisine, and USP.
+2. STEP 2: TECHNICAL & DESIGN PLAN: Define the brand colors, typography, and SEO strategy.
+3. STEP 3: PRODUCTION-READY CODE: Generate the full, modular codebase.
+
+DETAILED SECTION REQUIREMENTS:
+
+1. NAVIGATION & BRANDING (Header)
+• Functionality: Sticky header with a backdrop blur effect (backdrop-blur-md).
+• Mobile Experience: A sleek slide-out drawer menu with social links and contact info.
+• Conversion: Prominent, high-contrast 'Book a Table' CTA button.
+• SEO: Use <nav> and proper aria-label attributes.
+
+2. IMMERSIVE HERO SECTION
+• Visuals: Use a full-screen or large-scale Unsplash image that reflects the restaurant's atmosphere (e.g., moody lighting for fine dining, bright/fresh for vegan).
+• Typography: A bold, SEO-optimized H1 containing the 'Cuisine' + 'Location'.
+• Copy: A compelling H2 sub-headline that highlights the unique value proposition.
+• Actions: Dual CTAs: Primary (Reservation) and Secondary (View Menu) with hover animations.
+
+3. THE 'LIVING' MENU (Core SEO Section)
+• Architecture: Use a tabbed interface or scroll-spy navigation for categories (e.g., Starters, Mains, Desserts, Signature Cocktails).
+• Item Details: Each item must include:
+  • Name: Clear and descriptive.
+  • Description: 2-3 sentences of mouth-watering copy optimized for AI search (mentioning ingredients, cooking techniques, and dietary tags like GF, Vegan, Keto).
+  • Price: Clearly formatted.
+  • Visual: Optional small thumbnail placeholder or high-quality Unsplash image for signature dishes.
+• Technical: Must be semantic HTML (not an image or PDF) for maximum indexability.
+
+4. BRAND STORY & PHILOSOPHY (About)
+• Content: Use the research data to write a 2-3 paragraph story. Focus on the 'Why' behind the restaurant (e.g., farm-to-table, heritage recipes, or innovative plant-based cooking).
+• Layout: A split-screen layout with text on one side and a high-quality 'behind-the-scenes' Unsplash image on the other.
+• SEO: Use keywords related to the restaurant's values and kitchen style.
+
+5. SOCIAL PROOF & COMMUNITY
+• Testimonials: A high-end slider or grid featuring 3-5 reviews. Include star ratings, guest names, and a link to the original source (Google/Yelp).
+• Instagram Integration: A visual grid of 4-6 Unsplash images simulating a live Instagram feed to show 'social vibe'.
+• Trust Signals: Icons for awards, certifications, or 'Featured In' logos.
+
+6. INTERACTIVE CONTACT & LOCATION
+• Location: A dedicated section with an embedded Google Maps iframe (placeholder) and a clear 'Get Directions' button.
+• Live Status: A dynamic 'Open Now' or 'Closed - Opens at [Time]' badge based on the current time.
+• Contact Info: Clickable phone numbers and email addresses using tel: and mailto: links.
+• Hours: A clean, structured table of opening hours for the entire week.
+
+7. FAQ & AI SEARCH SNIPPETS
+• Structure: An accordion-style UI using framer-motion for smooth transitions.
+• Content: 5+ questions specifically chosen to capture 'People Also Ask' traffic (e.g., "Does [Restaurant] have vegan options?", "Is there parking near [Restaurant]?", "Do I need a reservation for [Restaurant]?").
+• SEO: Wrap this section in FAQPage JSON-LD schema.
+
+8. FOOTER (The Safety Net)
+• Content: Logo, shortened About text, quick links, social icons, and a newsletter signup form.
+• Legal: Copyright, Privacy Policy, and Terms of Service links.
+• NAP: Consistent Name, Address, and Phone number for Local SEO.
+
+TECHNICAL CONSTRAINTS:
+• Language: English only.
+• Images: Only use direct URLs from Unsplash.
+• SEO: Complete JSON-LD Schema implementation for Restaurant, Menu, and FAQ.
+• Performance: 100/100 Lighthouse score target (semantic HTML, optimized assets).
+• Code Style: Modular components (e.g., Hero.tsx, Menu.tsx, Navbar.tsx) using TypeScript and Tailwind CSS.
+
+START BY PROVIDING THE RESEARCH SUMMARY, THEN THE PLAN, AND FINALLY THE CODE."`;
+const [WP_BEFORE, WP_AFTER] = WEBSITE_PROMPT_TEMPLATE.split('[INSERT NAME/DATA]');
+
+function Accordion({ title, open, onToggle, copyText, children }:
+  { title: string; open: boolean; onToggle: () => void; copyText?: string; children?: React.ReactNode }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try { await navigator.clipboard.writeText(copyText || ''); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* */ }
+  };
+  return (
+    <div className={`ld-acc ${open ? 'open' : ''}`}>
+      <div className="ld-acc-head" role="button" onClick={onToggle}>
+        <span className="ld-acc-caret">{open ? '▾' : '▸'}</span>
+        <span className="ld-acc-title">{title}</span>
+        {copyText != null && <button className="ld-acc-copy" onClick={copy} title="Copy the full prompt">{copied ? '✓ Copied' : '⧉ Copy'}</button>}
+      </div>
+      {open && <div className="ld-acc-body">{children}</div>}
+    </div>
+  );
+}
+
 function EditableField({ def, value, onSave }: { def: FieldDef; value: unknown; onSave: (v: unknown) => void }) {
   const [editing, setEditing] = useState(false);
   const [v, setV] = useState<string>('');
@@ -98,6 +184,9 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
   { row: LeadRow; registry?: Record<string, string>; tagNames: string[]; onSaved: (field: string, value: unknown) => void; onCreateTag: (name: string, color: string) => void; onClose: () => void }) {
   const [data, setData] = useState<LeadRow>(() => ({ ...row }));
   const [openAcc, setOpenAcc] = useState<Set<string>>(new Set());
+  const [wpData, setWpData] = useState<string>(() =>
+    [row.name, row.category, row.address, row.phone, row.rating ? `★${row.rating} (${row.reviewCount ?? 0} reviews)` : '', row.website].filter(Boolean).join(' · '));
+  const toggleAcc = (label: string) => setOpenAcc((s) => { const n = new Set(s); if (n.has(label)) n.delete(label); else n.add(label); return n; });
 
   const save = (field: string, value: unknown) => {
     setData((d) => {
@@ -149,18 +238,16 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
           </div>
 
           <div className="ld-accordions">
-            {['Website prompt', 'AI Automation prompt', 'Website sales', 'AI Automation sales'].map((label) => {
-              const open = openAcc.has(label);
-              return (
-                <div key={label} className={`ld-acc ${open ? 'open' : ''}`}>
-                  <button className="ld-acc-head" onClick={() => setOpenAcc((s) => { const n = new Set(s); if (n.has(label)) n.delete(label); else n.add(label); return n; })}>
-                    <span className="ld-acc-caret">{open ? '▾' : '▸'}</span>
-                    <span className="ld-acc-title">{label}</span>
-                  </button>
-                  {open && <div className="ld-acc-body" />}
-                </div>
-              );
-            })}
+            <Accordion title="Website prompt" open={openAcc.has('Website prompt')} onToggle={() => toggleAcc('Website prompt')} copyText={WP_BEFORE + wpData + WP_AFTER}>
+              <div className="wp-body">
+                <pre className="wp-text">{WP_BEFORE}</pre>
+                <textarea className="wp-textarea" value={wpData} onChange={(e) => setWpData(e.target.value)} placeholder="Paste the restaurant name / data here…" rows={3} />
+                <pre className="wp-text">{WP_AFTER}</pre>
+              </div>
+            </Accordion>
+            {['AI Automation prompt', 'Website sales', 'AI Automation sales'].map((label) => (
+              <Accordion key={label} title={label} open={openAcc.has(label)} onToggle={() => toggleAcc(label)} />
+            ))}
           </div>
         </div>
       </div>
