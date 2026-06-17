@@ -160,6 +160,14 @@ body.resizing { cursor: col-resize; user-select: none; }
 .ld-edit-box textarea { resize: vertical; }
 .ld-tagsec { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
 .ld-tagsec .ld-k { width: 110px; flex-shrink: 0; }
+
+/* bottom dropdowns */
+.ld-selects { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.ld-select { display: flex; flex-direction: column; gap: 4px; }
+.ld-select-label { font-size: 12px; color: var(--muted); }
+.ld-select select { width: 100%; box-sizing: border-box; background: var(--panel); border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none; }
+.ld-select select:focus { border-color: var(--accent); }
+@media (max-width: 620px) { .ld-selects { grid-template-columns: 1fr; } }
 .table td.loc { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .muted { color: var(--muted); }
 

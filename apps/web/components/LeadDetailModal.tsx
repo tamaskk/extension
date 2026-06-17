@@ -146,6 +146,17 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
           <div className="ld-grid">
             {FIELDS.map((def) => <EditableField key={def.key as string} def={def} value={data[def.key]} onSave={(v) => save(def.key as string, v)} />)}
           </div>
+
+          <div className="ld-selects">
+            {['Website prompt', 'AI Automation prompt', 'Website sales', 'AI Automation sales'].map((label) => (
+              <label key={label} className="ld-select">
+                <span className="ld-select-label">{label}</span>
+                <select defaultValue="">
+                  <option value="" disabled>—</option>
+                </select>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
     </div>
