@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { LeadRow } from '@/lib/types';
+import { SALES_STATUSES } from '@/lib/types';
 import { api } from '@/lib/api';
 import TagsCell from './TagsCell';
 
@@ -11,9 +12,11 @@ const STATUS_LABEL: Record<string, string> = {
   BROKEN: 'Broken', DOMAIN_EXPIRED: 'Expired', DOMAIN_PARKED: 'Parked', UNDER_CONSTRUCTION: 'Under constr.', NOT_WORKING: 'Not working', REDIRECTS: 'Redirects',
 };
 
-type FieldDef = { key: keyof LeadRow; label: string; type: 'text' | 'number' | 'textarea' | 'select'; options?: string[]; bool?: boolean; step?: number };
+type FieldDef = { key: keyof LeadRow; label: string; type: 'text' | 'number' | 'textarea' | 'select' | 'date'; options?: string[]; bool?: boolean; step?: number };
 const FIELDS: FieldDef[] = [
   { key: 'name', label: 'Name', type: 'text' },
+  { key: 'salesStatus', label: 'Sales status', type: 'select', options: ['', ...SALES_STATUSES] },
+  { key: 'salesDate', label: 'Follow-up date', type: 'date' },
   { key: 'category', label: 'Category', type: 'text' },
   { key: 'opportunityScore', label: 'Opportunity', type: 'number' },
   { key: 'leadScore', label: 'Lead score', type: 'number' },
@@ -158,12 +161,12 @@ function EditableField({ def, value, onSave }: { def: FieldDef; value: unknown; 
           <span className="ld-edit-box">
             {def.type === 'select'
               ? <select ref={ref} value={v} onChange={(e) => commit(e.target.value)} onBlur={() => setEditing(false)}>
-                  {(def.options || []).map((o) => <option key={o} value={o}>{def.key === 'websiteStatus' ? (STATUS_LABEL[o] || o) : o}</option>)}
+                  {(def.options || []).map((o) => <option key={o} value={o}>{o === '' ? '—' : def.key === 'websiteStatus' ? (STATUS_LABEL[o] || o) : o}</option>)}
                 </select>
               : def.type === 'textarea'
               ? <textarea ref={ref} value={v} onChange={(e) => setV(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Escape') setEditing(false); }} onBlur={() => commit(v)} rows={3} />
-              : <input ref={ref} type={def.type === 'number' ? 'number' : 'text'} step={def.step} value={v}
+              : <input ref={ref} type={def.type === 'number' ? 'number' : def.type === 'date' ? 'date' : 'text'} step={def.step} value={v}
                   onChange={(e) => setV(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') commit(v); else if (e.key === 'Escape') setEditing(false); }}
                   onBlur={() => commit(v)} />

@@ -42,6 +42,9 @@ const LeadSchema = new Schema({
   topPitch: String,
   checked: { type: Boolean, default: false },
   tags: { type: [String], default: [] },
+  salesStatus: { type: String, default: '' }, // sales pipeline stage
+  salesDate: { type: String, default: '' },   // date for callback / follow-up / meeting stages
+
   hasBookingHint: Schema.Types.Mixed,
   scrapedAt: String,
 }, { versionKey: false });
