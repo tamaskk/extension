@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { LeadRow } from '@/lib/types';
 import { SALES_STATUSES, SALES_NEEDS_DATE } from '@/lib/types';
-import { googleCalendarUrl, calDetails } from '@/lib/gcal';
+import { googleCalendarUrl } from '@/lib/gcal';
 import { api } from '@/lib/api';
 import TagsCell from './TagsCell';
 
@@ -242,7 +242,7 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
               <div className="ld-k">📅 Schedule</div>
               <input type="datetime-local" className="sales-date" value={data.salesDate || ''} onChange={(e) => save('salesDate', e.target.value)} />
               {data.salesDate
-                ? <a className="btn primary" href={googleCalendarUrl({ title: `${data.salesStatus} — ${data.name}`, when: data.salesDate, details: calDetails(data), location: data.address })} target="_blank" rel="noreferrer">📅 Add to Google Calendar</a>
+                ? <a className="btn primary" href={googleCalendarUrl({ title: `${data.salesStatus} — ${data.name}`, when: data.salesDate, location: data.address })} target="_blank" rel="noreferrer">📅 Add to Google Calendar</a>
                 : <span className="muted" style={{ fontSize: 12 }}>Pick a date &amp; time first</span>}
             </div>
           )}
