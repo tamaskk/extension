@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { LeadRow } from '@/lib/types';
-import { SALES_STATUSES } from '@/lib/types';
+import { SALES_STATUSES, SALES_NEEDS_DATE } from '@/lib/types';
+import { googleCalendarUrl, calDetails } from '@/lib/gcal';
 import { api } from '@/lib/api';
 import TagsCell from './TagsCell';
 
@@ -190,6 +191,7 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
   const [wpData, setWpData] = useState<string>(() =>
     [row.name, row.category, row.address, row.phone, row.rating ? `★${row.rating} (${row.reviewCount ?? 0} reviews)` : '', row.website].filter(Boolean).join(' · '));
   const toggleAcc = (label: string) => setOpenAcc((s) => { const n = new Set(s); if (n.has(label)) n.delete(label); else n.add(label); return n; });
+  const [mtgTime, setMtgTime] = useState('10:00');
 
   const save = (field: string, value: unknown) => {
     setData((d) => {
@@ -235,6 +237,17 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
             <div className="ld-k">Tags</div>
             <TagsCell tags={data.tags || []} registry={registry || {}} allNames={tagNames} onAdd={addTag} onRemove={removeTag} onCreate={onCreateTag} />
           </div>
+
+          {SALES_NEEDS_DATE.has(data.salesStatus || '') && (
+            <div className="ld-sched">
+              <div className="ld-k">📅 Schedule</div>
+              <input type="date" className="sales-date" value={data.salesDate || ''} onChange={(e) => save('salesDate', e.target.value)} />
+              <input type="time" className="sales-date" value={mtgTime} onChange={(e) => setMtgTime(e.target.value)} />
+              {data.salesDate
+                ? <a className="btn primary" href={googleCalendarUrl({ title: `${data.salesStatus} — ${data.name}`, dateYmd: data.salesDate, time: mtgTime, details: calDetails(data), location: data.address })} target="_blank" rel="noreferrer">📅 Add to Google Calendar</a>
+                : <span className="muted" style={{ fontSize: 12 }}>Pick a date first</span>}
+            </div>
+          )}
 
           <div className="ld-grid">
             {FIELDS.map((def) => <EditableField key={def.key as string} def={def} value={data[def.key]} onSave={(v) => save(def.key as string, v)} />)}

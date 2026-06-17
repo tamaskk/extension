@@ -210,6 +210,12 @@ body.resizing { cursor: col-resize; user-select: none; }
 .sales-cell { display: flex; align-items: center; gap: 6px; }
 .sales-date { background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 2px 6px; font-size: 11px; outline: none; color-scheme: dark; }
 .sales-date:focus { border-color: var(--accent); }
+.cal-btn { flex-shrink: 0; text-decoration: none; font-size: 13px; cursor: pointer; opacity: .8; }
+.cal-btn:hover { opacity: 1; }
+.ld-sched { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.ld-sched .ld-k { width: auto; }
+.ld-sched .sales-date { font-size: 13px; padding: 6px 8px; }
+.ld-sched .btn { text-decoration: none; }
 
 /* editable website-status chip + its link */
 .status-cell { display: flex; align-items: center; gap: 6px; }
