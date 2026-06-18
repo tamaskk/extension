@@ -556,6 +556,16 @@ export default function Dashboard() {
           <input className="side-filter" type="search" placeholder="Filter folders & projects…" value={sideFilter} onChange={(e) => setSideFilter(e.target.value)} />
           {sideFilter && <span className="side-filter-x" title="Clear" onClick={() => setSideFilter('')}>✕</span>}
         </div>
+        {filtered && filtered.showProject.size > 0 && (() => {
+          const projs = [...filtered.showProject];
+          const allSel = projs.every((q) => selected.has(q));
+          return (
+            <label className="side-selectall">
+              <input type="checkbox" checked={allSel} onChange={() => setSelected((prev) => { const n = new Set(prev); if (allSel) projs.forEach((q) => n.delete(q)); else projs.forEach((q) => n.add(q)); return n; })} />
+              Select all {projs.length} filtered project{projs.length === 1 ? '' : 's'}
+            </label>
+          );
+        })()}
 
         {selected.size > 0 && (
           <div className="bulkbar">
