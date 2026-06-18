@@ -264,6 +264,11 @@ a.mlink { color: #93c5fd; text-decoration: none; }
 .col-h.col-dragover { box-shadow: inset 3px 0 0 0 var(--accent); background: rgba(99,102,241,.08); }
 .reset-cols { margin-right: 8px; }
 .recalc-status { font-size: 12px; font-weight: 600; color: #a5b4fc; margin-right: 10px; }
+.rowsel-bar { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.3); border-radius: 8px; padding: 4px 10px; }
+.rowsel-bar .chipbtn.danger { color: #fda4af; border-color: rgba(244,63,94,.4); }
+.rowsel-bar .chipbtn.danger:hover { background: rgba(244,63,94,.15); }
+.rowsel-clear { color: #93c5fd; cursor: pointer; font-size: 11px; }
+.rowsel-clear:hover { text-decoration: underline; }
 
 /* category multi-select */
 .catfilter { position: relative; }

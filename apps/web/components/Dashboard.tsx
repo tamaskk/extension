@@ -389,6 +389,18 @@ export default function Dashboard() {
   };
   const refreshAll = () => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); };
 
+  // delete the rows ticked with the left-most (selection) checkbox
+  const deleteSelectedRows = async () => {
+    if (!rowSel.size) return;
+    if (!confirm(`Delete ${rowSel.size} selected lead(s)? This removes them from the database.`)) return;
+    const items = [...rowSel].map((id) => { const i = id.indexOf('|'); return { query: id.slice(0, i), key: id.slice(i + 1) }; });
+    setPageRows((rows) => rows.filter((r) => !rowSel.has(`${r._project}|${r._key}`)));
+    setRowSel(new Set());
+    await api.deleteRecords(items).catch(() => {});
+    actions.refresh().catch(() => {}); // refresh sidebar counts
+    setReloadKey((k) => k + 1);        // refresh table total / page
+  };
+
   // Recompute every lead's opportunity score with the new engine, chunk by chunk.
   const runRecalc = async () => {
     if (recalc?.running) return;
@@ -651,6 +663,13 @@ export default function Dashboard() {
             <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
           ))}
           <CategoryFilter project={activeProject} folder={activeFolder} value={selectedCats} onChange={setSelectedCats} />
+          {rowSel.size > 0 && (
+            <span className="rowsel-bar">
+              <b>{rowSel.size}</b>&nbsp;selected
+              <button className="chipbtn danger" onClick={deleteSelectedRows}>🗑 Delete</button>
+              <span className="rowsel-clear" onClick={() => setRowSel(new Set())}>clear</span>
+            </span>
+          )}
           <div className="spacer" />
           {recalc && (
             <span className="recalc-status">
