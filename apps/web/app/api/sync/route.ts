@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const folderOps = Object.values(folders).map((f: any) => ({
       updateOne: {
         filter: { folderId: f.id },
-        update: { $set: { folderId: f.id, name: f.name, createdAt: f.createdAt, collapsed: !!f.collapsed, parentId: f.parentId || null } },
+        update: { $set: { folderId: f.id, name: f.name, createdAt: f.createdAt, collapsed: !!f.collapsed, parentId: f.parentId || null, icon: f.icon || '' } },
         upsert: true,
       },
     }));

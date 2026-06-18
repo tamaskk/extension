@@ -68,6 +68,7 @@ export interface Folder {
   collapsed: boolean;
   order?: number;
   parentId?: string | null; // null = root; otherwise nested under this folder
+  icon?: string; // optional emoji icon
 }
 
 /** A Lead decorated with its origin, for cross-project (All leads / duplicates) views. */

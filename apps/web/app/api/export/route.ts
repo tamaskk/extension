@@ -47,7 +47,7 @@ export async function POST(req: Request) {
   for (const id of [...folderIds]) { let cur = byId[id]; while (cur && cur.parentId) { folderIds.add(cur.parentId); cur = byId[cur.parentId]; } }
 
   const outFolders: Record<string, unknown> = {};
-  for (const f of folders) if (folderIds.has(f.folderId)) outFolders[f.folderId] = { id: f.folderId, name: f.name, createdAt: f.createdAt, collapsed: f.collapsed, parentId: f.parentId || null };
+  for (const f of folders) if (folderIds.has(f.folderId)) outFolders[f.folderId] = { id: f.folderId, name: f.name, createdAt: f.createdAt, collapsed: f.collapsed, parentId: f.parentId || null, icon: f.icon || '' };
 
   return json({ gridleads: 1, exportedAt: new Date().toISOString(), folders: outFolders, projects: outProjects });
 }

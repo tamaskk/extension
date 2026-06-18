@@ -51,10 +51,16 @@ body.resizing { cursor: col-resize; user-select: none; }
 .folder.dragover, .navitem.all.dragover { box-shadow: inset 0 0 0 2px var(--accent); background: rgba(99,102,241,.14); border-radius: 8px; }
 .caret { width: 10px; color: var(--muted); font-size: 10px; flex-shrink: 0; }
 .fname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fedit, .fdel, .fexport, .fadd, .finfo { color: var(--muted); opacity: 0; font-size: 12px; padding: 0 2px; cursor: pointer; }
-.folder:hover .fedit, .folder:hover .fdel, .folder:hover .fexport, .folder:hover .fadd, .folder:hover .finfo { opacity: .6; }
-.fedit:hover, .fexport:hover, .fadd:hover, .finfo:hover { color: #a5b4fc; opacity: 1; }
+.fedit, .fdel, .fexport, .fadd, .finfo, .ficon { color: var(--muted); opacity: 0; font-size: 12px; padding: 0 2px; cursor: pointer; }
+.folder:hover .fedit, .folder:hover .fdel, .folder:hover .fexport, .folder:hover .fadd, .folder:hover .finfo, .folder:hover .ficon { opacity: .6; }
+.fedit:hover, .fexport:hover, .fadd:hover, .finfo:hover, .ficon:hover { color: #a5b4fc; opacity: 1; }
 .fdel:hover { color: var(--hot); opacity: 1; }
+.iconpick-trigger { display: inline-flex; }
+.iconpick-pop { position: fixed; z-index: 1000; width: 234px; max-height: 280px; overflow-y: auto; background: var(--panel2, #14161c); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.5); padding: 8px; }
+.iconpick-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.iconpick-i { display: flex; align-items: center; justify-content: center; height: 28px; border-radius: 6px; cursor: pointer; font-size: 17px; }
+.iconpick-i:hover { background: rgba(99,102,241,.25); }
+.iconpick-i.clear { border: 1px dashed var(--line); }
 
 /* folder city-coverage modal */
 .fi-country { background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13px; font-weight: 600; outline: none; cursor: pointer; }

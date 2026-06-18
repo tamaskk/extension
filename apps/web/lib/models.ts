@@ -8,6 +8,7 @@ const FolderSchema = new Schema({
   collapsed: { type: Boolean, default: true },
   order: { type: Number, default: 0 }, // manual drag-and-drop ordering
   parentId: { type: String, default: null, index: true }, // null = root; otherwise nested under this folder
+  icon: { type: String, default: '' }, // optional emoji icon (business-type)
 }, { versionKey: false });
 
 // ── Project (one Google Maps search) ─────────────────────────────────────

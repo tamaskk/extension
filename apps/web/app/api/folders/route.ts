@@ -7,7 +7,7 @@ export function OPTIONS() { return new Response(null, { headers: CORS }); }
 export async function GET() {
   await dbConnect();
   const folders = await Folder.find().sort({ order: 1, createdAt: 1 }).lean();
-  return json((folders as any[]).map((f) => ({ id: f.folderId, name: f.name, createdAt: f.createdAt, collapsed: !!f.collapsed, order: f.order ?? 0, parentId: f.parentId || null })));
+  return json((folders as any[]).map((f) => ({ id: f.folderId, name: f.name, createdAt: f.createdAt, collapsed: !!f.collapsed, order: f.order ?? 0, parentId: f.parentId || null, icon: f.icon || '' })));
 }
 
 export async function POST(req: Request) {
@@ -28,14 +28,18 @@ export async function PATCH(req: Request) {
     if (ops.length) await Folder.bulkWrite(ops);
     return json({ ok: true });
   }
-  if (Array.isArray(b.ids)) { // bulk move into a parent (or root)
-    await Folder.updateMany({ folderId: { $in: b.ids } }, { $set: { parentId: b.parentId || null } });
+  if (Array.isArray(b.ids)) { // bulk edit: move into a parent and/or set an icon
+    const bset: Record<string, unknown> = {};
+    if (Object.prototype.hasOwnProperty.call(b, 'parentId')) bset.parentId = b.parentId || null;
+    if (typeof b.icon === 'string') bset.icon = b.icon;
+    if (Object.keys(bset).length) await Folder.updateMany({ folderId: { $in: b.ids } }, { $set: bset });
     return json({ ok: true });
   }
   const set: Record<string, unknown> = {};
   if (typeof b.name === 'string') set.name = b.name;
   if (typeof b.collapsed === 'boolean') set.collapsed = b.collapsed;
   if (Object.prototype.hasOwnProperty.call(b, 'parentId')) set.parentId = b.parentId || null;
+  if (typeof b.icon === 'string') set.icon = b.icon;
   if (Object.keys(set).length) await Folder.updateOne({ folderId: b.id }, { $set: set });
   return json({ ok: true });
 }

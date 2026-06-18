@@ -29,6 +29,8 @@ interface GridState {
   setFolderCollapsed(id: string, collapsed: boolean): void;
   moveFolder(id: string, parentId: string | null): void;
   moveFolders(ids: string[], parentId: string | null): void;
+  setFolderIcon(id: string, icon: string): void;
+  setFoldersIcon(ids: string[], icon: string): void;
   reorderFolders(ids: string[]): void;
 
   renameProject(query: string, name: string): void;
@@ -94,6 +96,14 @@ export const useGrid = create<GridState>()((set, get) => ({
   moveFolders: (ids, parentId) => {
     set((s) => { const folders = { ...s.folders }; for (const id of ids) if (folders[id]) folders[id] = { ...folders[id], parentId: parentId || null }; return { folders }; });
     api.moveFolders(ids, parentId).catch(swallow);
+  },
+  setFolderIcon: (id, icon) => {
+    set((s) => { const f = s.folders[id]; return f ? { folders: { ...s.folders, [id]: { ...f, icon } } } : {}; });
+    api.setFolderIcon(id, icon).catch(swallow);
+  },
+  setFoldersIcon: (ids, icon) => {
+    set((s) => { const folders = { ...s.folders }; for (const id of ids) if (folders[id]) folders[id] = { ...folders[id], icon }; return { folders }; });
+    api.setFoldersIcon(ids, icon).catch(swallow);
   },
 
   reorderFolders: (ids) => {

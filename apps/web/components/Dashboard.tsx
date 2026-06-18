@@ -11,6 +11,7 @@ import MapModal from './MapModal';
 import FolderInfoModal from './FolderInfoModal';
 import CategoryFilter from './CategoryFilter';
 import LeadDetailModal from './LeadDetailModal';
+import IconPicker from './IconPicker';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
 const cityFromFolderName = (name: string) => { const p = String(name || '').trim().split(/\s+/); return p.length > 1 ? p.slice(0, -1).join(' ') : (name || ''); };
@@ -527,9 +528,10 @@ export default function Dashboard() {
         >
           <input type="checkbox" className="folder-check" checked={selFolders.has(f.id)} onChange={() => {}} onClick={(e) => { e.stopPropagation(); toggleFolderSelect(f.id, !selFolders.has(f.id), e.shiftKey); }} />
           <span className="caret" onClick={(e) => { e.stopPropagation(); actions.setFolderCollapsed(f.id, !f.collapsed); }}>{(kids.length || projs.length) ? (open ? '▾' : '▸') : '·'}</span>
-          <span className="fname" title={f.name}>📁 {f.name}</span>
+          <span className="fname" title={f.name}>{f.icon || '📁'} {f.name}</span>
           <span className="ni-right">
             <span className="badge">{tree.totalOf[f.id] ?? 0}</span>
+            <IconPicker trigger={<span className="ficon" title="Change folder icon">🎨</span>} onPick={(ic) => actions.setFolderIcon(f.id, ic)} />
             <span className="finfo" title="City coverage — which cities are missing?" onClick={(e) => { e.stopPropagation(); openFolderInfo(f); }}>ⓘ</span>
             <span className="fadd" title="New sub-folder" onClick={(e) => { e.stopPropagation(); const n = prompt(`New folder inside "${f.name}":`); if (n && n.trim()) { actions.createFolder(n.trim(), f.id); if (f.collapsed) actions.setFolderCollapsed(f.id, false); } }}>＋</span>
             <span className="fexport" title="Export folder (JSON)" onClick={(e) => { e.stopPropagation(); exportJsonScope({ folderId: f.id }, f.name); }}>⤓</span>
@@ -608,7 +610,8 @@ export default function Dashboard() {
               </select>
             </div>
             <div className="bulk-row">
-              <span className="bulk-hint">Tip: drag any selected folder to move them all.</span>
+              <IconPicker trigger={<button className="mini">🎨 Icon</button>} onPick={(ic) => { actions.setFoldersIcon([...selFolders], ic); }} />
+              <span className="bulk-hint">drag to move all</span>
               <button className="mini danger" onClick={deleteSelectedFolders}>Delete</button>
             </div>
           </div>
