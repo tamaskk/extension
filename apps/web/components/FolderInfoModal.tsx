@@ -1,9 +1,9 @@
 'use client';
 
-// The reference list of US cities we expect a "USA Restaurants" style folder to
-// cover. Folder/sub-folder names look like "<City> Restaurants" — we cut the last
-// word to get the city, then report which of these are still missing.
-const MASTER_CITIES = [
+// Reference city lists per country. Folder/sub-folder names look like
+// "<City> Restaurants" — we cut the last word to get the city, then report which
+// of these are still missing. The right list is chosen from the folder name.
+const US_CITIES = [
   'NewYork City', 'Los Angeles', 'Houston', 'Miami', 'Chichago', 'San Antonio', 'San Diego', 'Dallas',
   'Fort Worth', 'Jacksonville', 'Austin', 'San Jose', 'Charlotte', 'Columbus', 'Indianapolis', 'San Francisco',
   'Seattle', 'Denver', 'Nashville', 'Oklahoma City', 'Washington', 'El Paso', 'Las Vegas', 'Boston', 'Portland',
@@ -14,12 +14,26 @@ const MASTER_CITIES = [
   'Savannah', 'Charleston', 'Key West', 'Sedona', 'Asheville', 'Branson', 'Gatlinburg', 'Monterey', 'Napa',
   'Sonoma', 'Santa Fe',
 ];
+// from countries/hungary.json (the "city" of each entry)
+const HU_CITIES = [
+  'Budapest', 'Kecskemét', 'Pécs', 'Békéscsaba', 'Miskolc', 'Szeged', 'Székesfehérvár', 'Győr', 'Debrecen', 'Eger',
+  'Szolnok', 'Tatabánya', 'Salgótarján', 'Kaposvár', 'Nyíregyháza', 'Szekszárd', 'Szombathely', 'Veszprém',
+  'Zalaegerszeg', 'Érd', 'Sopron', 'Nagykanizsa', 'Dunaújváros', 'Hódmezővásárhely', 'Dunakeszi', 'Szigetszentmiklós',
+  'Cegléd', 'Baja', 'Mosónmagyaróvár', 'Vác', 'Gödöllő', 'Esztergom', 'Gyöngyös', 'Kazinbarcika', 'Orosháza', 'Ajka',
+  'Pápa', 'Kiskunfélegyháza', 'Hajdúböszörmény', 'Gyula', 'Keszthely', 'Balatonalmádi', 'Balatonboglár',
+  'Balatonföldvár', 'Balatonfüred', 'Balatonkenese', 'Balatonlelle', 'Badacsonytomaj', 'Fonyód', 'Siófok', 'Zamárdi',
+  'Hévíz', 'Tapolca', 'Sümeg', 'Zalakaros', 'Marcali',
+];
+function referenceCitiesFor(folderName: string): string[] {
+  return /hungary|magyar|hungar/i.test(folderName) ? HU_CITIES : US_CITIES;
+}
 
-// loose normalize so "St. Louis" == "st louis", "NewYork City" == "newyork city"
-const norm = (s: string) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+// loose, accent-insensitive normalize so "St. Louis" == "st louis", "Pécs" == "pecs"
+const norm = (s: string) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 
 export default function FolderInfoModal({ name, cities, folderCount, projectCount, onClose }:
   { name: string; cities: string[]; folderCount: number; projectCount: number; onClose: () => void }) {
+  const MASTER_CITIES = referenceCitiesFor(name);
   const present = new Set(cities.map(norm).filter(Boolean));
   const missing = MASTER_CITIES.filter((c) => !present.has(norm(c)));
   const covered = MASTER_CITIES.filter((c) => present.has(norm(c)));
