@@ -2,8 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+// Country flags (the countries we scrape) — handy for top-level country folders.
+export const FLAG_ICONS = [
+  '🇦🇹', '🇧🇪', '🇨🇦', '🇫🇷', '🇬🇷', '🇭🇰', '🇭🇺', '🇮🇹', '🇳🇱', '🇵🇹', '🇪🇸', '🇨🇭', '🇹🇼', '🇬🇧', '🇺🇸', '🇦🇪',
+];
 // Business-type icons (Google Maps categories): food, drink, trades, services…
 export const BUSINESS_ICONS = [
+  ...FLAG_ICONS,
   '🍽️', '🍔', '🍕', '🍣', '🌮', '🥗', '🍜', '🍱', '☕', '🥐', '🍰', '🧁', '🍩', '🍦', '🥖',
   '🍺', '🍷', '🍸', '🍹', '🥂', '🛒', '🏪', '🏨', '🛏️', '🏠', '🏢',
   '💇', '💈', '💅', '🧖', '💆', '👗', '👟', '👓', '💍', '⌚', '📷', '💐', '📚', '🎵', '🎬', '🎮',
