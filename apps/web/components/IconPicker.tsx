@@ -17,6 +17,28 @@ export const BUSINESS_ICONS = [
   '💪', '🧘', '⚽', '🎾', '⚖️', '💼', '🏦', '🖥️', '📱', '🔑', '✂️', '🪡', '🎂', '🍫', '🧴', '🛠️', '🔭',
 ];
 
+// human label per icon — shown as a tooltip on hover
+export const ICON_LABELS: Record<string, string> = {
+  '🇦🇹': 'Austria', '🇧🇪': 'Belgium', '🇨🇦': 'Canada', '🇫🇷': 'France', '🇬🇷': 'Greece', '🇭🇰': 'Hong Kong',
+  '🇭🇺': 'Hungary', '🇮🇹': 'Italy', '🇳🇱': 'Netherlands', '🇵🇹': 'Portugal', '🇪🇸': 'Spain', '🇨🇭': 'Switzerland',
+  '🇹🇼': 'Taiwan', '🇬🇧': 'United Kingdom', '🇺🇸': 'United States', '🇦🇪': 'United Arab Emirates',
+  '🍽️': 'Restaurant', '🍔': 'Fast food', '🍕': 'Pizzeria', '🍣': 'Sushi', '🌮': 'Mexican', '🥗': 'Healthy / salad',
+  '🍜': 'Noodles / ramen', '🍱': 'Asian / bento', '☕': 'Café', '🥐': 'Bakery', '🍰': 'Dessert / cake', '🧁': 'Cupcakes',
+  '🍩': 'Donuts', '🍦': 'Ice cream', '🥖': 'Bakery / bread', '🍺': 'Bar / pub', '🍷': 'Wine bar', '🍸': 'Cocktail bar',
+  '🍹': 'Cocktails', '🥂': 'Lounge', '🛒': 'Grocery store', '🏪': 'Convenience store', '🏨': 'Hotel', '🛏️': 'Accommodation',
+  '🏠': 'Real estate', '🏢': 'Office / company', '💇': 'Hair salon', '💈': 'Barber', '💅': 'Nail salon', '🧖': 'Spa',
+  '💆': 'Massage', '👗': 'Clothing', '👟': 'Shoe store', '👓': 'Optician', '💍': 'Jewelry', '⌚': 'Watches',
+  '📷': 'Photographer', '💐': 'Florist', '📚': 'Bookstore', '🎵': 'Music', '🎬': 'Cinema', '🎮': 'Gaming',
+  '🔧': 'Mechanic', '🚰': 'Plumber', '🔌': 'Electrician', '🔨': 'Construction', '🪚': 'Carpentry', '🧱': 'Masonry',
+  '🪜': 'Handyman', '🧹': 'Cleaning', '🧽': 'Cleaning service', '🌳': 'Landscaping', '🚜': 'Agriculture', '🎨': 'Painter / art',
+  '🚗': 'Car dealer', '🏍️': 'Motorcycle', '🚲': 'Bicycle shop', '⛽': 'Gas station', '🚚': 'Moving / delivery',
+  '🏥': 'Clinic', '🦷': 'Dentist', '💊': 'Pharmacy', '🩺': 'Doctor', '🐕': 'Veterinary', '🐾': 'Pet services',
+  '💪': 'Gym / fitness', '🧘': 'Yoga / wellness', '⚽': 'Sports', '🎾': 'Tennis / sports club', '⚖️': 'Lawyer',
+  '💼': 'Business services', '🏦': 'Bank / finance', '🖥️': 'IT / computer', '📱': 'Phone repair', '🔑': 'Locksmith',
+  '✂️': 'Tailor', '🪡': 'Sewing / alterations', '🎂': 'Cake shop', '🍫': 'Chocolate / sweets', '🧴': 'Cosmetics',
+  '🛠️': 'Repair / handyman', '🔭': 'Other',
+};
+
 export default function IconPicker({ trigger, onPick }: { trigger: React.ReactNode; onPick: (icon: string) => void }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -52,7 +74,7 @@ export default function IconPicker({ trigger, onPick }: { trigger: React.ReactNo
           <div className="iconpick-grid">
             <span className="iconpick-i clear" title="Default folder icon" onClick={() => { onPick(''); setOpen(false); }}>📁</span>
             {[...new Set(BUSINESS_ICONS)].map((ic) => (
-              <span key={ic} className="iconpick-i" onClick={() => { onPick(ic); setOpen(false); }}>{ic}</span>
+              <span key={ic} className="iconpick-i" title={ICON_LABELS[ic] || ''} onClick={() => { onPick(ic); setOpen(false); }}>{ic}</span>
             ))}
           </div>
         </div>
