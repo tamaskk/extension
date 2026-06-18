@@ -285,7 +285,16 @@ export default function Dashboard() {
     };
     tree.roots.forEach((f) => visit(f, false));
     tree.ungrouped.forEach((p) => { if (p.name.toLowerCase().includes(sideQuery) || p.query.toLowerCase().includes(sideQuery)) showProject.add(p.query); });
-    return { showFolder, showProject };
+    // visible project order in RENDER order (folders force-expanded) — for shift-range select
+    const order: string[] = [];
+    const collect = (f: typeof folderList[number]) => {
+      if (!showFolder.has(f.id)) return;
+      (tree.childrenOf[f.id] || []).forEach(collect);
+      (tree.projsOf[f.id] || []).forEach((p) => { if (showProject.has(p.query)) order.push(p.query); });
+    };
+    tree.roots.forEach(collect);
+    tree.ungrouped.forEach((p) => { if (showProject.has(p.query)) order.push(p.query); });
+    return { showFolder, showProject, order };
   }, [sideQuery, tree]);
 
   // ----- widgets (full scope, from summaries) -----
@@ -310,10 +319,11 @@ export default function Dashboard() {
   // ----- selection (sidebar projects) -----
   const toggleSelect = (q: string, checked: boolean, shift: boolean) => {
     const next = new Set(selected);
+    const order = filtered ? filtered.order : tree.order; // shift-range over what's actually visible
     if (shift && lastChecked.current) {
-      const a = tree.order.indexOf(lastChecked.current);
-      const b = tree.order.indexOf(q);
-      if (a !== -1 && b !== -1) { const lo = Math.min(a, b), hi = Math.max(a, b); for (let i = lo; i <= hi; i++) { if (checked) next.add(tree.order[i]); else next.delete(tree.order[i]); } }
+      const a = order.indexOf(lastChecked.current);
+      const b = order.indexOf(q);
+      if (a !== -1 && b !== -1) { const lo = Math.min(a, b), hi = Math.max(a, b); for (let i = lo; i <= hi; i++) { if (checked) next.add(order[i]); else next.delete(order[i]); } }
     } else if (checked) next.add(q); else next.delete(q);
     lastChecked.current = q;
     setSelected(next);
