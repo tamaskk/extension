@@ -15,8 +15,8 @@ function detectCountry(folderName: string): string {
 
 type Ref = { mode: 'country' | 'state'; name: string };
 
-export default function FolderInfoModal({ name, cities, folderCount, projectCount, onClose }:
-  { name: string; cities: string[]; folderCount: number; projectCount: number; onClose: () => void }) {
+export default function FolderInfoModal({ name, cities, names, folderCount, projectCount, onClose }:
+  { name: string; cities: string[]; names?: string[]; folderCount: number; projectCount: number; onClose: () => void }) {
   const LS_KEY = 'gridleads_folder_ref:' + name;
   const [ref, setRef] = useState<Ref>(() => {
     try { const s = localStorage.getItem(LS_KEY); if (s) { const p = JSON.parse(s); if (p && (p.mode === 'country' || p.mode === 'state') && p.name) return p; } } catch { /* */ }
@@ -36,9 +36,13 @@ export default function FolderInfoModal({ name, cities, folderCount, projectCoun
   const loadingState = ref.mode === 'state' && !states;
   const statePlaces = ref.mode === 'state' ? (states?.places[ref.name] || []) : [];
   const refCities = ref.mode === 'country' ? (COUNTRY_CITIES[ref.name] || []) : statePlaces.map(([n]) => n);
-  const present = new Set(cities.map(norm).filter(Boolean));
-  const missing = refCities.filter((c) => !present.has(norm(c)));
-  const covered = refCities.filter((c) => present.has(norm(c)));
+  // a reference place is "present" if it appears as a whole, space-bounded token
+  // sequence in any folder/project name — so "Abbeville city" matches the project
+  // "plumbers near Abbeville city alamaba".
+  const haystacks = [...new Set([...(names || []), ...cities])].map((s) => ' ' + norm(s) + ' ').filter((s) => s.trim());
+  const isPresent = (place: string) => { const p = ' ' + norm(place) + ' '; return p.trim().length > 1 ? haystacks.some((h) => h.includes(p)) : false; };
+  const missing = refCities.filter((c) => !isPresent(c));
+  const covered = refCities.filter((c) => isPresent(c));
   const masterSet = new Set(refCities.map(norm));
   const extra = [...new Set(cities.filter((c) => c && !masterSet.has(norm(c))))].sort((a, b) => a.localeCompare(b));
 

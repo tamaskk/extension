@@ -120,7 +120,7 @@ export default function Dashboard() {
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
-  const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; folderCount: number; projectCount: number } | null>(null);
+  const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [recalc, setRecalc] = useState<{ running: boolean; done: number; total: number } | null>(null);
   const [page, setPage] = useState(1);
@@ -466,8 +466,13 @@ export default function Dashboard() {
     const ids = tree.descOf[f.id] ? [...tree.descOf[f.id]] : [f.id];
     const childIds = ids.filter((id) => id !== f.id);
     const cities = childIds.map((id) => cityFromFolderName(folders[id]?.name || '')).filter(Boolean);
+    // every folder + project name inside (so place detection works when the
+    // children are projects like "plumbers near Abbeville city alamaba")
+    const names: string[] = [];
+    childIds.forEach((id) => { const n = folders[id]?.name; if (n) names.push(n); });
+    ids.forEach((id) => (tree.projsOf[id] || []).forEach((p) => { if (p.name) names.push(p.name); if (p.query) names.push(p.query); }));
     const projectCount = ids.reduce((s, id) => s + (tree.projsOf[id]?.length || 0), 0);
-    setInfoFolder({ name: f.name, cities, folderCount: childIds.length, projectCount });
+    setInfoFolder({ name: f.name, cities, names, folderCount: childIds.length, projectCount });
   };
   const deleteSelectedFolders = () => {
     if (!confirm(`Delete ${selFolders.size} selected folder(s)? Sub-folders move up to their parent and projects go back to ungrouped (leads kept).`)) return;
@@ -750,7 +755,7 @@ export default function Dashboard() {
 
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
 
-      {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
+      {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} names={infoFolder.names} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
 
       {detailRow && (
         <LeadDetailModal
