@@ -24,12 +24,15 @@ async function getFolders() { const o = await chrome.storage.local.get(FKEY); re
 async function setFolders(f) { await chrome.storage.local.set({ [FKEY]: f }); }
 function newId(prefix) { return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
-async function ensureProject(query) {
+async function ensureProject(query, population) {
   const p = await getProjects();
+  let changed = false;
   if (!p[query]) {
     p[query] = { query, name: query || 'Untitled search', createdAt: new Date().toISOString(), records: {} };
-    await setProjects(p);
+    changed = true;
   }
+  if (population != null && population !== '' && p[query].population !== population) { p[query].population = population; changed = true; }
+  if (changed) await setProjects(p);
 }
 
 async function addRecords(query, records) {
@@ -139,7 +142,7 @@ async function syncProjectsToDb(queries) {
   for (const q of queries) {
     const p = projects[q];
     if (!p) continue;
-    const meta = { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId || null };
+    const meta = { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId || null, population: p.population };
     const entries = Object.entries(p.records || {});
     if (!entries.length) {
       await postSync({ gridleads: 1, folders: sentFolders ? {} : folders, projects: { [q]: { ...meta, records: {} } } });
@@ -196,12 +199,20 @@ function buildSearchUrl(query) {
   return 'https://www.google.com/maps/search/' + encodeURIComponent(query).replace(/%20/g, '+');
 }
 function batchId() { return 'b_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-function buildItems(prefix, middles, suffix) {
+function buildItems(prefix, middles, suffix, populations) {
   const seen = new Set(); const items = [];
-  for (const m of (middles || []).map((x) => (x || '').trim()).filter(Boolean)) {
+  (middles || []).forEach((raw, idx) => {
+    const m = (raw || '').trim();
+    if (!m) return;
     const q = [(prefix || '').trim(), m, (suffix || '').trim()].filter(Boolean).join(' ').trim();
-    if (q && !seen.has(q)) { seen.add(q); items.push({ query: q, area: m, url: buildSearchUrl(q) }); }
-  }
+    if (q && !seen.has(q)) {
+      seen.add(q);
+      const it = { query: q, area: m, url: buildSearchUrl(q) };
+      const pop = populations && populations[idx];
+      if (pop != null && pop !== '') it.population = pop;
+      items.push(it);
+    }
+  });
   return items;
 }
 async function getBatch() {
@@ -285,7 +296,7 @@ async function driveCurrent() {
   if (b.tabId != null) tabQuery[b.tabId] = it.query;
   seenUrls.clear();
   sessionFound = 0;
-  await ensureProject(it.query);
+  await ensureProject(it.query, it.population);
   await refreshBadge();
   b.stage = 'navigating'; b.ts = tsNow(); await setBatch(b);
   // Bring the driven Maps tab to the FRONT so it actually scrapes (Chrome
@@ -385,7 +396,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       // the dashboard batch modal. They run one after another in the queue.
       case 'batchStart':
       case 'batchEnqueue': {
-        const items = buildItems(msg.prefix, msg.middles, msg.suffix);
+        const items = buildItems(msg.prefix, msg.middles, msg.suffix, msg.populations);
         if (!items.length) { sendResponse({ ok: false, error: 'no-items' }); break; }
         const label = msg.label || [
           (msg.prefix || '').trim(),

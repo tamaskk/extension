@@ -31,11 +31,9 @@ export async function POST(req: Request) {
     const incoming: { project: string; dedupKey: string; fields: Record<string, unknown> }[] = [];
     for (const p of Object.values(projects) as any[]) {
       if (!p || !p.query) continue;
-      await Project.updateOne(
-        { query: p.query },
-        { $set: { query: p.query, name: p.name || p.query, createdAt: p.createdAt || new Date().toISOString(), folderId: p.folderId || null } },
-        { upsert: true },
-      );
+      const pset: Record<string, unknown> = { query: p.query, name: p.name || p.query, createdAt: p.createdAt || new Date().toISOString(), folderId: p.folderId || null };
+      if (p.population != null && p.population !== '' && !isNaN(Number(p.population))) pset.population = Number(p.population);
+      await Project.updateOne({ query: p.query }, { $set: pset }, { upsert: true });
       projectCount++;
       for (const [k, r] of Object.entries(p.records || {}) as [string, any][]) {
         const { _id, ...rest } = r || {};

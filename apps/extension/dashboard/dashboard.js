@@ -299,7 +299,7 @@ async function syncBundle(opts) {
     if (Object.keys(folders).length) { await postSync({ gridleads: 1, folders, projects: {} }); doneReqs++; render(); }
     let sentFolders = Object.keys(folders).length > 0;
     for (const p of projects) {
-      const meta = { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId };
+      const meta = { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId, population: p.population };
       const entries = Object.entries(p.records || {});
       if (!entries.length) {
         await postSync({ gridleads: 1, folders: sentFolders ? {} : folders, projects: { [p.query]: { ...meta, records: {} } } });
@@ -779,10 +779,12 @@ async function renderQueue(force) {
   });
 }
 
-// Country / State segmented switch (top of the batch modal). Persisted; used later.
+// Country / State segmented switch (top of the batch modal). Persisted.
 let bdGeo = 'country';
+let bdStatePop = null; // { [placeName]: population } from the last loaded state file
 function applyBdGeo(geo) {
   bdGeo = geo === 'state' ? 'state' : 'country';
+  if (bdGeo !== 'state') bdStatePop = null;
   document.querySelectorAll('#bd_geo .seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.geo === bdGeo));
 }
 chrome.storage.local.get('gridleads_batch_geo', (o) => applyBdGeo(o.gridleads_batch_geo || 'country'));
@@ -810,25 +812,49 @@ $('batchOverlay').addEventListener('click', (e) => { if (e.target === $('batchOv
 $('bd_add').addEventListener('click', async () => {
   const middles = bdMiddles();
   if (!middles.length) { $('bd_preview').textContent = 'Enter at least one comma-separated value.'; return; }
-  const res = await msg({ type: 'batchEnqueue', prefix: $('bd_prefix').value, middles, suffix: $('bd_suffix').value });
-  if (res && res.ok) { $('bd_middle').value = ''; bdPreview(); renderQueue(); }
+  const payload = { type: 'batchEnqueue', prefix: $('bd_prefix').value, middles, suffix: $('bd_suffix').value };
+  // in State mode, attach each placeName's population (aligned to middles)
+  if (bdGeo === 'state' && bdStatePop) payload.populations = middles.map((m) => (bdStatePop[m] != null ? bdStatePop[m] : ''));
+  const res = await msg(payload);
+  if (res && res.ok) { $('bd_middle').value = ''; bdStatePop = null; bdPreview(); renderQueue(); }
   else if (res && res.error === 'no-tab') { alert('No Google Maps tab found — open google.com/maps in a tab first.'); }
   else { $('bd_preview').textContent = 'Could not add this batch.'; }
 });
-// Load many batches from a JSON file: [{ city, areas:[...] }]. You only fill the
-// Prefix (e.g. "restaurants near"); each city becomes one batch, areas = searches.
+// Load from a JSON file.
+//  • Country: [{ city, areas:[...] }] → one batch per city (you set the Prefix).
+//  • State:   [{ state, places:[{placeName, population}] }] → fills the form
+//             (prefix empty, middle = placeNames, suffix = file name) + keeps the
+//             population per place so it gets saved on each project in the DB.
 $('bd_loadJson').addEventListener('click', () => $('bd_file').click());
 $('bd_file').addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   e.target.value = ''; // allow re-picking the same file
   if (!file) return;
-  const prefix = $('bd_prefix').value.trim();
-  if (!prefix) { $('bd_preview').textContent = '⚠ Fill the Prefix first (e.g. "restaurants near").'; return; }
   let data;
   try { data = JSON.parse(await file.text()); }
   catch { $('bd_preview').textContent = '⚠ Invalid JSON file.'; return; }
-  if (!Array.isArray(data)) { $('bd_preview').textContent = '⚠ JSON must be an array of { city, areas }.'; return; }
+  if (!Array.isArray(data)) { $('bd_preview').textContent = '⚠ JSON must be an array.'; return; }
 
+  if (bdGeo === 'state') {
+    const suffix = file.name.replace(/\.json$/i, '').trim(); // file name without .json
+    const places = [];
+    for (const entry of data) for (const p of (entry && entry.places) || []) {
+      const nm = String((p && p.placeName) || '').trim();
+      if (nm) places.push({ name: nm, pop: p && p.population });
+    }
+    if (!places.length) { $('bd_preview').textContent = '⚠ No { placeName } entries found in this state file.'; return; }
+    bdStatePop = {}; places.forEach((p) => { bdStatePop[p.name] = p.pop; });
+    $('bd_prefix').value = '';                              // first row empty
+    $('bd_middle').value = places.map((p) => p.name).join(', '); // placeNames
+    $('bd_suffix').value = suffix;                          // file name without .json
+    bdPreview(); bdSave();
+    $('bd_preview').innerHTML = `✓ Loaded <b>${places.length}</b> places from <b>${esc(suffix)}</b> (with population) — review & click “Add to queue”.`;
+    return;
+  }
+
+  // Country mode — multi-batch enqueue, one per city.
+  const prefix = $('bd_prefix').value.trim();
+  if (!prefix) { $('bd_preview').textContent = '⚠ Fill the Prefix first (e.g. "restaurants near").'; return; }
   let batches = 0, searches = 0;
   for (const entry of data) {
     const city = (entry && (entry.city || entry.suffix) || '').trim();

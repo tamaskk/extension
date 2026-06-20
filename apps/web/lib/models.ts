@@ -17,6 +17,7 @@ const ProjectSchema = new Schema({
   name: String,
   createdAt: String,
   folderId: { type: String, default: null, index: true },
+  population: { type: Number, default: null }, // for State-mode projects: the place's population
 }, { versionKey: false });
 
 // ── Lead (a scraped business) — separate collection, scales past 16MB/project
