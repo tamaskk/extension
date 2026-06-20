@@ -63,8 +63,12 @@ body.resizing { cursor: col-resize; user-select: none; }
 .iconpick-i.clear { border: 1px dashed var(--line); }
 
 /* folder city-coverage modal */
-.fi-country { background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13px; font-weight: 600; outline: none; cursor: pointer; }
+.fi-country { background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13px; font-weight: 600; outline: none; cursor: pointer; max-width: 200px; }
 .fi-country:focus { border-color: var(--accent); }
+.fi-mode { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 2px; gap: 2px; }
+.fi-mode-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 6px; }
+.fi-mode-btn:hover { color: var(--text); }
+.fi-mode-btn.active { background: var(--accent); color: #fff; }
 .fi-stats { display: flex; gap: 10px; margin-bottom: 16px; }
 .fi-stat { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
 .fi-num { font-size: 24px; font-weight: 800; color: #a5b4fc; }
