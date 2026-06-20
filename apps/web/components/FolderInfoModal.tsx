@@ -22,19 +22,20 @@ export default function FolderInfoModal({ name, cities, folderCount, projectCoun
     try { const s = localStorage.getItem(LS_KEY); if (s) { const p = JSON.parse(s); if (p && (p.mode === 'country' || p.mode === 'state') && p.name) return p; } } catch { /* */ }
     return { mode: 'country', name: detectCountry(name) };
   });
-  const [states, setStates] = useState<{ cities: Record<string, string[]>; names: string[] } | null>(null);
+  const [states, setStates] = useState<{ places: Record<string, [string, number][]>; names: string[] } | null>(null);
 
   // lazy-load the (large) US-states dataset only when State mode is used
   useEffect(() => {
     if (ref.mode !== 'state' || states) return;
     let cancelled = false;
-    import('@/lib/states').then((m) => { if (!cancelled) setStates({ cities: m.STATE_CITIES, names: m.STATE_NAMES }); }).catch(() => {});
+    import('@/lib/states').then((m) => { if (!cancelled) setStates({ places: m.STATE_PLACES, names: m.STATE_NAMES }); }).catch(() => {});
     return () => { cancelled = true; };
   }, [ref.mode, states]);
   useEffect(() => { try { localStorage.setItem(LS_KEY, JSON.stringify(ref)); } catch { /* */ } }, [LS_KEY, ref]);
 
   const loadingState = ref.mode === 'state' && !states;
-  const refCities = ref.mode === 'country' ? (COUNTRY_CITIES[ref.name] || []) : (states?.cities[ref.name] || []);
+  const statePlaces = ref.mode === 'state' ? (states?.places[ref.name] || []) : [];
+  const refCities = ref.mode === 'country' ? (COUNTRY_CITIES[ref.name] || []) : statePlaces.map(([n]) => n);
   const present = new Set(cities.map(norm).filter(Boolean));
   const missing = refCities.filter((c) => !present.has(norm(c)));
   const covered = refCities.filter((c) => present.has(norm(c)));
@@ -48,11 +49,29 @@ export default function FolderInfoModal({ name, cities, folderCount, projectCoun
   };
   // once states load with no selection yet, default to a detected or first state
   useEffect(() => {
-    if (ref.mode === 'state' && states && !states.cities[ref.name]) {
+    if (ref.mode === 'state' && states && !states.places[ref.name]) {
       const det = states.names.find((s) => name.toLowerCase().includes(s.toLowerCase())) || states.names[0];
       setRef({ mode: 'state', name: det });
     }
   }, [states, ref.mode, ref.name, name]);
+
+  // download the MISSING places as a batch-loadable JSON (state keeps population)
+  const downloadMissing = () => {
+    let content: string, filename: string;
+    if (ref.mode === 'state') {
+      const popOf = (nm: string) => { const pl = statePlaces.find(([n]) => n === nm); return pl ? pl[1] : 0; };
+      const places = missing.map((nm) => ({ placeName: nm, population: String(popOf(nm)) }));
+      content = JSON.stringify([{ state: ref.name, places }], null, 2);
+      filename = `${ref.name}.json`; // file name becomes the suffix in State batch mode
+    } else {
+      content = JSON.stringify([{ city: ref.name, areas: missing }], null, 2);
+      filename = `${ref.name}-missing.json`;
+    }
+    const blob = new Blob([content], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
   return (
     <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -72,7 +91,7 @@ export default function FolderInfoModal({ name, cities, folderCount, projectCoun
                   {COUNTRY_NAMES.map((c) => <option key={c} value={c}>{c} ({COUNTRY_CITIES[c].length})</option>)}
                 </select>
               : <select className="fi-country" value={ref.name} disabled={!states} onChange={(e) => setRef({ mode: 'state', name: e.target.value })}>
-                  {!states ? <option>Loading…</option> : states.names.map((s) => <option key={s} value={s}>{s} ({states.cities[s].length})</option>)}
+                  {!states ? <option>Loading…</option> : states.names.map((s) => <option key={s} value={s}>{s} ({states.places[s].length})</option>)}
                 </select>}
             <button className="btn" onClick={onClose}>✕ Close</button>
           </div>
@@ -84,7 +103,10 @@ export default function FolderInfoModal({ name, cities, folderCount, projectCoun
           </div>
           {!loadingState && <>
             <div className="fi-sec">
-              <div className="fi-h">❌ Missing ({missing.length})</div>
+              <div className="fi-h fi-h-row">
+                <span>❌ Missing ({missing.length})</span>
+                {missing.length > 0 && <button className="btn fi-dl" onClick={downloadMissing} title="Download a batch-loadable JSON of the missing ones">⤓ Download JSON</button>}
+              </div>
               {missing.length ? <div className="fi-chips">{missing.map((c) => <span key={c} className="chip red">{c}</span>)}</div>
                 : <div className="muted">All {ref.name} places are covered 🎉</div>}
             </div>
