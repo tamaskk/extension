@@ -97,7 +97,7 @@ async function refreshQueue() {
     if (st.active) {
       const cur = q[0];
       const more = q.length > 1 ? ` · ${q.length - 1} more queued` : '';
-      const synced = st.mode === 'stream' ? `\n☁ DB stream: ${st.streamSynced || 0} batch(es) synced & freed` : '';
+      const synced = st.mode === 'stream' ? `\n☁ DB stream: ${st.streamSynced || 0} synced & freed` : '';
       $('qsInfo').textContent = `▶ Batch 1/${q.length}: ${cur.label}\n${cur.doneInBatch}/${cur.count} done · now: ${cur.currentQuery || '…'}${more}${synced}`;
       $('qsStart').classList.add('hidden');
       $('qsStop').classList.remove('hidden');

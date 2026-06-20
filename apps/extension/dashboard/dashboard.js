@@ -812,7 +812,9 @@ $('batchOverlay').addEventListener('click', (e) => { if (e.target === $('batchOv
 $('bd_add').addEventListener('click', async () => {
   const middles = bdMiddles();
   if (!middles.length) { $('bd_preview').textContent = 'Enter at least one comma-separated value.'; return; }
-  const payload = { type: 'batchEnqueue', prefix: $('bd_prefix').value, middles, suffix: $('bd_suffix').value };
+  const noun = bdGeo === 'state' ? 'places' : 'areas';
+  const label = `${$('bd_prefix').value.trim()} {${middles.length} ${noun}} ${$('bd_suffix').value.trim()}`.trim();
+  const payload = { type: 'batchEnqueue', prefix: $('bd_prefix').value, middles, suffix: $('bd_suffix').value, label };
   // in State mode, attach each placeName's population (aligned to middles)
   if (bdGeo === 'state' && bdStatePop) payload.populations = middles.map((m) => (bdStatePop[m] != null ? bdStatePop[m] : ''));
   const res = await msg(payload);

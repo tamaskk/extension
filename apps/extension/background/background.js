@@ -167,30 +167,32 @@ async function deleteLocalProjects(queries) {
   if (changed) { await setProjects(projects); await refreshBadge(); }
 }
 
-// Stream mode: after a batch finishes, sync ITS projects to the DB, then delete
-// the PREVIOUS synced batch's projects from the browser (keeps storage bounded).
-async function streamSyncBatch(completed) {
-  const queries = [...new Set((completed.items || []).map((it) => it.query))];
-  try { await syncProjectsToDb(queries); }
-  catch (e) { console.warn('[GridLeads] batch DB sync failed, keeping local copy:', e && e.message); return; }
+// Stream mode: as soon as a single search (project) finishes, push it to the DB,
+// then delete the PREVIOUS synced project from the browser. Works for any batch
+// size — incl. one giant State batch — so storage stays bounded and the DB fills
+// up incrementally instead of only at the very end.
+async function streamSyncItem(query) {
+  if (!query) return;
+  try { await syncProjectsToDb([query]); }
+  catch (e) { console.warn('[GridLeads] DB sync failed, keeping local copy:', e && e.message); return; }
   const b = await getBatch();
-  if (!b) return; // queue already finished — leave the last batch locally
-  await deleteLocalProjects(b.pendingDeleteQueries || []);
-  b.pendingDeleteQueries = queries; // becomes the "previous" to delete after the next batch syncs
+  if (!b) return; // queue already finished — leave the last project locally
+  await deleteLocalProjects((b.pendingDeleteQueries || []).filter((q) => q !== query));
+  b.pendingDeleteQueries = [query]; // prune this one once the next project syncs
   b.streamSynced = (b.streamSynced || 0) + 1;
   await setBatch(b);
 }
 
-// Advance past the current item; if the batch just completed, in stream mode
-// sync it to the DB + prune the previous one. Returns true if the queue continues.
+// Advance past the current item; in stream mode sync the just-finished project to
+// the DB + prune the previous one. Returns true if the queue continues.
 async function finishItemAndMaybeBatch(b) {
-  b.itemIndex += 1;
   const cur = b.queue[0];
-  let completed = null;
-  if (cur && b.itemIndex >= cur.items.length) { completed = cur; b.queue.shift(); b.itemIndex = 0; }
+  const justDone = cur && cur.items[b.itemIndex] ? cur.items[b.itemIndex].query : null;
+  b.itemIndex += 1;
+  if (cur && b.itemIndex >= cur.items.length) { b.queue.shift(); b.itemIndex = 0; }
   b.stage = 'init'; b.ts = tsNow();
   await setBatch(b);
-  if (completed && b.mode === 'stream') await streamSyncBatch(completed);
+  if (b.mode === 'stream') await streamSyncItem(justDone);
   if (!b.queue.length) { await finishBatch(); return false; }
   return true;
 }

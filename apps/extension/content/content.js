@@ -58,13 +58,14 @@
       if (!banner) {
         banner = document.createElement('div');
         banner.id = 'gridleads-batch-banner';
-        banner.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483647;background:linear-gradient(90deg,#6366f1,#8b5cf6);color:#fff;font:600 13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;padding:8px 18px;border-radius:0 0 12px 12px;box-shadow:0 4px 16px rgba(0,0,0,.35);max-width:92vw;text-align:center;pointer-events:none;';
+        banner.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483647;background:linear-gradient(90deg,#6366f1,#8b5cf6);color:#fff;font:600 13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;padding:8px 18px;border-radius:0 0 12px 12px;box-shadow:0 4px 16px rgba(0,0,0,.35);max-width:560px;max-height:64px;overflow:hidden;text-align:center;pointer-events:none;';
         document.documentElement.appendChild(banner);
       }
-      const next = st.next ? ` &nbsp;·&nbsp; next: <b>${escHtml(st.next)}</b>` : ' &nbsp;·&nbsp; last one';
+      const clip = (s, n) => { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; };
+      const next = st.next ? ` &nbsp;·&nbsp; next: <b>${escHtml(clip(st.next, 48))}</b>` : ' &nbsp;·&nbsp; last one';
       const batchesLeft = (st.queuedBatches || 0) + 1; // current + the ones still queued
-      const batchInfo = `📦 <b>${batchesLeft}</b> batch${batchesLeft === 1 ? '' : 'es'} left${st.batchLabel ? ` &nbsp;·&nbsp; <b>${escHtml(st.batchLabel)}</b>` : ''}`;
-      banner.innerHTML = `${batchInfo}<br>⚡ search <b>${st.index + 1}/${st.total}</b> &nbsp;·&nbsp; now: <b>${escHtml(st.current)}</b>${next}`;
+      const batchInfo = `📦 <b>${batchesLeft}</b> batch${batchesLeft === 1 ? '' : 'es'} left${st.batchLabel ? ` &nbsp;·&nbsp; <b>${escHtml(clip(st.batchLabel, 60))}</b>` : ''}`;
+      banner.innerHTML = `${batchInfo}<br>⚡ search <b>${st.index + 1}/${st.total}</b> &nbsp;·&nbsp; now: <b>${escHtml(clip(st.current, 48))}</b>${next}`;
     } else if (banner) {
       banner.remove();
       banner = null;
