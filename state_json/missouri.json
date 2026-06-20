@@ -1,0 +1,3747 @@
+[
+  {
+    "state": "Missouri",
+    "places": [
+      {
+        "placeName": "Adrian city",
+        "population": "1798"
+      },
+      {
+        "placeName": "Advance city",
+        "population": "1323"
+      },
+      {
+        "placeName": "Agency village",
+        "population": "651"
+      },
+      {
+        "placeName": "Airport Drive village",
+        "population": "822"
+      },
+      {
+        "placeName": "Alba city",
+        "population": "589"
+      },
+      {
+        "placeName": "Albany city",
+        "population": "1730"
+      },
+      {
+        "placeName": "Aldrich village",
+        "population": "69"
+      },
+      {
+        "placeName": "Alexandria city",
+        "population": "102"
+      },
+      {
+        "placeName": "Allendale village",
+        "population": "48"
+      },
+      {
+        "placeName": "Allenville village",
+        "population": "94"
+      },
+      {
+        "placeName": "Alma city",
+        "population": "392"
+      },
+      {
+        "placeName": "Altamont village",
+        "population": "172"
+      },
+      {
+        "placeName": "Altenburg city",
+        "population": "324"
+      },
+      {
+        "placeName": "Alton city",
+        "population": "702"
+      },
+      {
+        "placeName": "Amazonia village",
+        "population": "244"
+      },
+      {
+        "placeName": "Amity town",
+        "population": "25"
+      },
+      {
+        "placeName": "Amoret city",
+        "population": "134"
+      },
+      {
+        "placeName": "Amsterdam city",
+        "population": "225"
+      },
+      {
+        "placeName": "Anderson city",
+        "population": "2073"
+      },
+      {
+        "placeName": "Annada village",
+        "population": "13"
+      },
+      {
+        "placeName": "Annapolis city",
+        "population": "239"
+      },
+      {
+        "placeName": "Anniston town",
+        "population": "179"
+      },
+      {
+        "placeName": "Appleton City city",
+        "population": "1096"
+      },
+      {
+        "placeName": "Arbela town",
+        "population": "23"
+      },
+      {
+        "placeName": "Arbyrd city",
+        "population": "387"
+      },
+      {
+        "placeName": "Arcadia city",
+        "population": "605"
+      },
+      {
+        "placeName": "Archie city",
+        "population": "1305"
+      },
+      {
+        "placeName": "Arcola village",
+        "population": "39"
+      },
+      {
+        "placeName": "Argyle town",
+        "population": "145"
+      },
+      {
+        "placeName": "Arkoe town",
+        "population": "52"
+      },
+      {
+        "placeName": "Armstrong city",
+        "population": "241"
+      },
+      {
+        "placeName": "Arnold city",
+        "population": "20994"
+      },
+      {
+        "placeName": "Arrow Point village",
+        "population": "80"
+      },
+      {
+        "placeName": "Arrow Rock town",
+        "population": "57"
+      },
+      {
+        "placeName": "Asbury city",
+        "population": "195"
+      },
+      {
+        "placeName": "Ash Grove city",
+        "population": "1532"
+      },
+      {
+        "placeName": "Ashland city",
+        "population": "5221"
+      },
+      {
+        "placeName": "Atlanta city",
+        "population": "370"
+      },
+      {
+        "placeName": "Augusta town",
+        "population": "265"
+      },
+      {
+        "placeName": "Aullville village",
+        "population": "81"
+      },
+      {
+        "placeName": "Aurora city",
+        "population": "7686"
+      },
+      {
+        "placeName": "Auxvasse city",
+        "population": "1029"
+      },
+      {
+        "placeName": "Ava city",
+        "population": "3231"
+      },
+      {
+        "placeName": "Avilla town",
+        "population": "102"
+      },
+      {
+        "placeName": "Avondale city",
+        "population": "430"
+      },
+      {
+        "placeName": "Bagnell town",
+        "population": "43"
+      },
+      {
+        "placeName": "Bakersfield village",
+        "population": "191"
+      },
+      {
+        "placeName": "Baldwin Park village",
+        "population": "82"
+      },
+      {
+        "placeName": "Ballwin city",
+        "population": "30901"
+      },
+      {
+        "placeName": "Baring city",
+        "population": "121"
+      },
+      {
+        "placeName": "Barnard city",
+        "population": "185"
+      },
+      {
+        "placeName": "Barnett city",
+        "population": "165"
+      },
+      {
+        "placeName": "Bates City city",
+        "population": "227"
+      },
+      {
+        "placeName": "Battlefield city",
+        "population": "6361"
+      },
+      {
+        "placeName": "Bella Villa city",
+        "population": "723"
+      },
+      {
+        "placeName": "Bell City city",
+        "population": "453"
+      },
+      {
+        "placeName": "Belle city",
+        "population": "1379"
+      },
+      {
+        "placeName": "Bellefontaine Neighbors city",
+        "population": "10368"
+      },
+      {
+        "placeName": "Bellerive Acres city",
+        "population": "181"
+      },
+      {
+        "placeName": "Bellflower city",
+        "population": "337"
+      },
+      {
+        "placeName": "Bel-Nor village",
+        "population": "1351"
+      },
+      {
+        "placeName": "Bel-Ridge village",
+        "population": "2070"
+      },
+      {
+        "placeName": "Belton city",
+        "population": "26193"
+      },
+      {
+        "placeName": "Benton city",
+        "population": "919"
+      },
+      {
+        "placeName": "Benton City village",
+        "population": "107"
+      },
+      {
+        "placeName": "Berger city",
+        "population": "271"
+      },
+      {
+        "placeName": "Berkeley city",
+        "population": "8026"
+      },
+      {
+        "placeName": "Bernie city",
+        "population": "1828"
+      },
+      {
+        "placeName": "Bertrand city",
+        "population": "698"
+      },
+      {
+        "placeName": "Bethany city",
+        "population": "2956"
+      },
+      {
+        "placeName": "Bethel village",
+        "population": "126"
+      },
+      {
+        "placeName": "Beverly Hills city",
+        "population": "456"
+      },
+      {
+        "placeName": "Bevier city",
+        "population": "625"
+      },
+      {
+        "placeName": "Bigelow village",
+        "population": "4"
+      },
+      {
+        "placeName": "Big Lake village",
+        "population": "71"
+      },
+      {
+        "placeName": "Billings city",
+        "population": "1182"
+      },
+      {
+        "placeName": "Birch Tree city",
+        "population": "561"
+      },
+      {
+        "placeName": "Birmingham village",
+        "population": "187"
+      },
+      {
+        "placeName": "Bismarck city",
+        "population": "1224"
+      },
+      {
+        "placeName": "Blackburn city",
+        "population": "225"
+      },
+      {
+        "placeName": "Black Jack city",
+        "population": "6547"
+      },
+      {
+        "placeName": "Blackwater city",
+        "population": "192"
+      },
+      {
+        "placeName": "Blairstown city",
+        "population": "98"
+      },
+      {
+        "placeName": "Bland city",
+        "population": "505"
+      },
+      {
+        "placeName": "Blodgett city",
+        "population": "222"
+      },
+      {
+        "placeName": "Bloomfield city",
+        "population": "1734"
+      },
+      {
+        "placeName": "Bloomsdale city",
+        "population": "683"
+      },
+      {
+        "placeName": "Blue Eye town",
+        "population": "310"
+      },
+      {
+        "placeName": "Blue Springs city",
+        "population": "61632"
+      },
+      {
+        "placeName": "Blythedale village",
+        "population": "212"
+      },
+      {
+        "placeName": "Bogard city",
+        "population": "162"
+      },
+      {
+        "placeName": "Bolckow city",
+        "population": "164"
+      },
+      {
+        "placeName": "Bolivar city",
+        "population": "11994"
+      },
+      {
+        "placeName": "Bonne Terre city",
+        "population": "6636"
+      },
+      {
+        "placeName": "Boonville city",
+        "population": "7867"
+      },
+      {
+        "placeName": "Bosworth city",
+        "population": "208"
+      },
+      {
+        "placeName": "Bourbon city",
+        "population": "1544"
+      },
+      {
+        "placeName": "Bowling Green city",
+        "population": "4472"
+      },
+      {
+        "placeName": "Bragg City town",
+        "population": "63"
+      },
+      {
+        "placeName": "Brandsville city",
+        "population": "129"
+      },
+      {
+        "placeName": "Branson city",
+        "population": "12921"
+      },
+      {
+        "placeName": "Branson West city",
+        "population": "485"
+      },
+      {
+        "placeName": "Brashear city",
+        "population": "240"
+      },
+      {
+        "placeName": "Braymer city",
+        "population": "756"
+      },
+      {
+        "placeName": "Breckenridge city",
+        "population": "250"
+      },
+      {
+        "placeName": "Breckenridge Hills city",
+        "population": "4350"
+      },
+      {
+        "placeName": "Brentwood city",
+        "population": "8079"
+      },
+      {
+        "placeName": "Bridgeton city",
+        "population": "11277"
+      },
+      {
+        "placeName": "Brimson village",
+        "population": "48"
+      },
+      {
+        "placeName": "Bronaugh city",
+        "population": "164"
+      },
+      {
+        "placeName": "Brookfield city",
+        "population": "4083"
+      },
+      {
+        "placeName": "Brooklyn Heights town",
+        "population": "100"
+      },
+      {
+        "placeName": "Browning city",
+        "population": "216"
+      },
+      {
+        "placeName": "Brownington town",
+        "population": "70"
+      },
+      {
+        "placeName": "Brumley town",
+        "population": "72"
+      },
+      {
+        "placeName": "Brunswick city",
+        "population": "798"
+      },
+      {
+        "placeName": "Bucklin city",
+        "population": "410"
+      },
+      {
+        "placeName": "Buckner city",
+        "population": "2891"
+      },
+      {
+        "placeName": "Buffalo city",
+        "population": "3550"
+      },
+      {
+        "placeName": "Bull Creek village",
+        "population": "405"
+      },
+      {
+        "placeName": "Bunceton city",
+        "population": "338"
+      },
+      {
+        "placeName": "Bunker city",
+        "population": "297"
+      },
+      {
+        "placeName": "Burlington Junction city",
+        "population": "483"
+      },
+      {
+        "placeName": "Butler city",
+        "population": "4317"
+      },
+      {
+        "placeName": "Butterfield city",
+        "population": "420"
+      },
+      {
+        "placeName": "Byrnes Mill city",
+        "population": "3183"
+      },
+      {
+        "placeName": "Cabool city",
+        "population": "2089"
+      },
+      {
+        "placeName": "Cainsville city",
+        "population": "285"
+      },
+      {
+        "placeName": "Cairo village",
+        "population": "203"
+      },
+      {
+        "placeName": "Caledonia village",
+        "population": "134"
+      },
+      {
+        "placeName": "Calhoun city",
+        "population": "406"
+      },
+      {
+        "placeName": "California city",
+        "population": "4523"
+      },
+      {
+        "placeName": "Callao city",
+        "population": "245"
+      },
+      {
+        "placeName": "Calverton Park city",
+        "population": "1134"
+      },
+      {
+        "placeName": "Camden city",
+        "population": "183"
+      },
+      {
+        "placeName": "Camden Point city",
+        "population": "474"
+      },
+      {
+        "placeName": "Camdenton city",
+        "population": "4050"
+      },
+      {
+        "placeName": "Cameron city",
+        "population": "7341"
+      },
+      {
+        "placeName": "Campbell city",
+        "population": "1489"
+      },
+      {
+        "placeName": "Canalou city",
+        "population": "145"
+      },
+      {
+        "placeName": "Canton city",
+        "population": "2763"
+      },
+      {
+        "placeName": "Cape Girardeau city",
+        "population": "40977"
+      },
+      {
+        "placeName": "Cardwell city",
+        "population": "529"
+      },
+      {
+        "placeName": "Carl Junction city",
+        "population": "8484"
+      },
+      {
+        "placeName": "Carrollton city",
+        "population": "3499"
+      },
+      {
+        "placeName": "Carterville city",
+        "population": "1869"
+      },
+      {
+        "placeName": "Carthage city",
+        "population": "15895"
+      },
+      {
+        "placeName": "Caruthersville city",
+        "population": "5211"
+      },
+      {
+        "placeName": "Carytown city",
+        "population": "293"
+      },
+      {
+        "placeName": "Cassville city",
+        "population": "3301"
+      },
+      {
+        "placeName": "Catron town",
+        "population": "37"
+      },
+      {
+        "placeName": "Cedar Hill Lakes village",
+        "population": "203"
+      },
+      {
+        "placeName": "Center city",
+        "population": "542"
+      },
+      {
+        "placeName": "Centertown town",
+        "population": "292"
+      },
+      {
+        "placeName": "Centerview city",
+        "population": "198"
+      },
+      {
+        "placeName": "Centerville city",
+        "population": "165"
+      },
+      {
+        "placeName": "Centralia city",
+        "population": "4767"
+      },
+      {
+        "placeName": "Chaffee city",
+        "population": "3017"
+      },
+      {
+        "placeName": "Chain of Rocks village",
+        "population": "104"
+      },
+      {
+        "placeName": "Chain-O-Lakes village",
+        "population": "107"
+      },
+      {
+        "placeName": "Chamois city",
+        "population": "387"
+      },
+      {
+        "placeName": "Champ village",
+        "population": "9"
+      },
+      {
+        "placeName": "Charlack city",
+        "population": "1275"
+      },
+      {
+        "placeName": "Charleston city",
+        "population": "4731"
+      },
+      {
+        "placeName": "Charmwood town",
+        "population": "16"
+      },
+      {
+        "placeName": "Chesterfield city",
+        "population": "49309"
+      },
+      {
+        "placeName": "Chilhowee town",
+        "population": "295"
+      },
+      {
+        "placeName": "Chillicothe city",
+        "population": "9114"
+      },
+      {
+        "placeName": "Chula city",
+        "population": "203"
+      },
+      {
+        "placeName": "Clarence city",
+        "population": "720"
+      },
+      {
+        "placeName": "Clark city",
+        "population": "237"
+      },
+      {
+        "placeName": "Clarksburg city",
+        "population": "257"
+      },
+      {
+        "placeName": "Clarksdale city",
+        "population": "244"
+      },
+      {
+        "placeName": "Clarkson Valley city",
+        "population": "2540"
+      },
+      {
+        "placeName": "Clarksville city",
+        "population": "377"
+      },
+      {
+        "placeName": "Clarkton city",
+        "population": "944"
+      },
+      {
+        "placeName": "Claycomo village",
+        "population": "1362"
+      },
+      {
+        "placeName": "Clayton city",
+        "population": "17807"
+      },
+      {
+        "placeName": "Clearmont city",
+        "population": "147"
+      },
+      {
+        "placeName": "Cleveland city",
+        "population": "649"
+      },
+      {
+        "placeName": "Clever city",
+        "population": "3143"
+      },
+      {
+        "placeName": "Cliff Village village",
+        "population": "43"
+      },
+      {
+        "placeName": "Clifton Hill city",
+        "population": "84"
+      },
+      {
+        "placeName": "Clinton city",
+        "population": "9504"
+      },
+      {
+        "placeName": "Clyde village",
+        "population": "52"
+      },
+      {
+        "placeName": "Cobalt village",
+        "population": "264"
+      },
+      {
+        "placeName": "Coffey city",
+        "population": "153"
+      },
+      {
+        "placeName": "Cole Camp city",
+        "population": "1169"
+      },
+      {
+        "placeName": "Collins village",
+        "population": "134"
+      },
+      {
+        "placeName": "Columbia city",
+        "population": "130851"
+      },
+      {
+        "placeName": "Commerce village",
+        "population": "42"
+      },
+      {
+        "placeName": "Conception Junction town",
+        "population": "166"
+      },
+      {
+        "placeName": "Concordia city",
+        "population": "2338"
+      },
+      {
+        "placeName": "Coney Island village",
+        "population": "46"
+      },
+      {
+        "placeName": "Conway city",
+        "population": "738"
+      },
+      {
+        "placeName": "Cool Valley city",
+        "population": "1005"
+      },
+      {
+        "placeName": "Cooter city",
+        "population": "319"
+      },
+      {
+        "placeName": "Corder city",
+        "population": "433"
+      },
+      {
+        "placeName": "Cosby village",
+        "population": "114"
+      },
+      {
+        "placeName": "Cottleville city",
+        "population": "6717"
+      },
+      {
+        "placeName": "Country Club village",
+        "population": "2512"
+      },
+      {
+        "placeName": "Country Club Hills city",
+        "population": "998"
+      },
+      {
+        "placeName": "Country Life Acres village",
+        "population": "71"
+      },
+      {
+        "placeName": "Cowgill city",
+        "population": "172"
+      },
+      {
+        "placeName": "Craig city",
+        "population": "103"
+      },
+      {
+        "placeName": "Crane city",
+        "population": "1509"
+      },
+      {
+        "placeName": "Creighton city",
+        "population": "340"
+      },
+      {
+        "placeName": "Crestwood city",
+        "population": "12207"
+      },
+      {
+        "placeName": "Creve Coeur city",
+        "population": "18480"
+      },
+      {
+        "placeName": "Crocker city",
+        "population": "919"
+      },
+      {
+        "placeName": "Cross Timbers city",
+        "population": "135"
+      },
+      {
+        "placeName": "Crystal City city",
+        "population": "4694"
+      },
+      {
+        "placeName": "Crystal Lake Park city",
+        "population": "501"
+      },
+      {
+        "placeName": "Crystal Lakes city",
+        "population": "395"
+      },
+      {
+        "placeName": "Cuba city",
+        "population": "3288"
+      },
+      {
+        "placeName": "Curryville city",
+        "population": "201"
+      },
+      {
+        "placeName": "Dadeville village",
+        "population": "233"
+      },
+      {
+        "placeName": "Dalton town",
+        "population": "8"
+      },
+      {
+        "placeName": "Dardenne Prairie city",
+        "population": "15032"
+      },
+      {
+        "placeName": "Darlington village",
+        "population": "68"
+      },
+      {
+        "placeName": "Dearborn city",
+        "population": "518"
+      },
+      {
+        "placeName": "Deepwater city",
+        "population": "382"
+      },
+      {
+        "placeName": "Deerfield village",
+        "population": "41"
+      },
+      {
+        "placeName": "De Kalb town",
+        "population": "243"
+      },
+      {
+        "placeName": "Dellwood city",
+        "population": "4825"
+      },
+      {
+        "placeName": "Delta city",
+        "population": "382"
+      },
+      {
+        "placeName": "Dennis Acres village",
+        "population": "55"
+      },
+      {
+        "placeName": "Denver village",
+        "population": "32"
+      },
+      {
+        "placeName": "Des Arc village",
+        "population": "121"
+      },
+      {
+        "placeName": "Desloge city",
+        "population": "4819"
+      },
+      {
+        "placeName": "De Soto city",
+        "population": "6527"
+      },
+      {
+        "placeName": "Des Peres city",
+        "population": "9102"
+      },
+      {
+        "placeName": "De Witt city",
+        "population": "83"
+      },
+      {
+        "placeName": "Dexter city",
+        "population": "7851"
+      },
+      {
+        "placeName": "Diamond town",
+        "population": "906"
+      },
+      {
+        "placeName": "Diehlstadt village",
+        "population": "156"
+      },
+      {
+        "placeName": "Diggins village",
+        "population": "319"
+      },
+      {
+        "placeName": "Dixon city",
+        "population": "1222"
+      },
+      {
+        "placeName": "Doniphan city",
+        "population": "1784"
+      },
+      {
+        "placeName": "Doolittle city",
+        "population": "565"
+      },
+      {
+        "placeName": "Dover town",
+        "population": "86"
+      },
+      {
+        "placeName": "Downing city",
+        "population": "308"
+      },
+      {
+        "placeName": "Drexel city",
+        "population": "982"
+      },
+      {
+        "placeName": "Dudley city",
+        "population": "101"
+      },
+      {
+        "placeName": "Duenweg city",
+        "population": "2100"
+      },
+      {
+        "placeName": "Duquesne village",
+        "population": "2345"
+      },
+      {
+        "placeName": "Eagleville town",
+        "population": "283"
+      },
+      {
+        "placeName": "East Lynne city",
+        "population": "312"
+      },
+      {
+        "placeName": "Easton city",
+        "population": "226"
+      },
+      {
+        "placeName": "East Prairie city",
+        "population": "2841"
+      },
+      {
+        "placeName": "Edgar Springs city",
+        "population": "196"
+      },
+      {
+        "placeName": "Edgerton city",
+        "population": "607"
+      },
+      {
+        "placeName": "Edina city",
+        "population": "1014"
+      },
+      {
+        "placeName": "Edmundson city",
+        "population": "842"
+      },
+      {
+        "placeName": "Eldon city",
+        "population": "4785"
+      },
+      {
+        "placeName": "El Dorado Springs city",
+        "population": "3642"
+      },
+      {
+        "placeName": "Ellington city",
+        "population": "777"
+      },
+      {
+        "placeName": "Ellisville city",
+        "population": "10315"
+      },
+      {
+        "placeName": "Ellsinore city",
+        "population": "421"
+      },
+      {
+        "placeName": "Elmer city",
+        "population": "51"
+      },
+      {
+        "placeName": "Elmira village",
+        "population": "40"
+      },
+      {
+        "placeName": "Elmo city",
+        "population": "105"
+      },
+      {
+        "placeName": "Elsberry city",
+        "population": "2108"
+      },
+      {
+        "placeName": "Emerald Beach village",
+        "population": "226"
+      },
+      {
+        "placeName": "Eminence city",
+        "population": "532"
+      },
+      {
+        "placeName": "Emma city",
+        "population": "201"
+      },
+      {
+        "placeName": "Eolia village",
+        "population": "482"
+      },
+      {
+        "placeName": "Essex city",
+        "population": "390"
+      },
+      {
+        "placeName": "Ethel town",
+        "population": "47"
+      },
+      {
+        "placeName": "Eureka city",
+        "population": "13422"
+      },
+      {
+        "placeName": "Evergreen village",
+        "population": "21"
+      },
+      {
+        "placeName": "Everton city",
+        "population": "282"
+      },
+      {
+        "placeName": "Ewing city",
+        "population": "394"
+      },
+      {
+        "placeName": "Excelsior Estates village",
+        "population": "233"
+      },
+      {
+        "placeName": "Excelsior Springs city",
+        "population": "10819"
+      },
+      {
+        "placeName": "Exeter city",
+        "population": "765"
+      },
+      {
+        "placeName": "Fairfax city",
+        "population": "627"
+      },
+      {
+        "placeName": "Fair Grove city",
+        "population": "1645"
+      },
+      {
+        "placeName": "Fair Play city",
+        "population": "452"
+      },
+      {
+        "placeName": "Fairview town",
+        "population": "432"
+      },
+      {
+        "placeName": "Farber city",
+        "population": "254"
+      },
+      {
+        "placeName": "Farley village",
+        "population": "259"
+      },
+      {
+        "placeName": "Farmington city",
+        "population": "19226"
+      },
+      {
+        "placeName": "Fayette city",
+        "population": "2848"
+      },
+      {
+        "placeName": "Fenton city",
+        "population": "4060"
+      },
+      {
+        "placeName": "Ferguson city",
+        "population": "17953"
+      },
+      {
+        "placeName": "Ferrelview village",
+        "population": "656"
+      },
+      {
+        "placeName": "Festus city",
+        "population": "14066"
+      },
+      {
+        "placeName": "Fidelity town",
+        "population": "235"
+      },
+      {
+        "placeName": "Fillmore city",
+        "population": "180"
+      },
+      {
+        "placeName": "Fisk city",
+        "population": "309"
+      },
+      {
+        "placeName": "Fleming city",
+        "population": "115"
+      },
+      {
+        "placeName": "Flemington village",
+        "population": "115"
+      },
+      {
+        "placeName": "Flint Hill city",
+        "population": "566"
+      },
+      {
+        "placeName": "Flordell Hills city",
+        "population": "702"
+      },
+      {
+        "placeName": "Florissant city",
+        "population": "51124"
+      },
+      {
+        "placeName": "Foley city",
+        "population": "97"
+      },
+      {
+        "placeName": "Fordland city",
+        "population": "824"
+      },
+      {
+        "placeName": "Forest City city",
+        "population": "245"
+      },
+      {
+        "placeName": "Foristell city",
+        "population": "919"
+      },
+      {
+        "placeName": "Forsyth city",
+        "population": "2752"
+      },
+      {
+        "placeName": "Fortescue town",
+        "population": "21"
+      },
+      {
+        "placeName": "Foster village",
+        "population": "80"
+      },
+      {
+        "placeName": "Fountain N' Lakes village",
+        "population": "181"
+      },
+      {
+        "placeName": "Frankford city",
+        "population": "337"
+      },
+      {
+        "placeName": "Franklin city",
+        "population": "67"
+      },
+      {
+        "placeName": "Fredericktown city",
+        "population": "4584"
+      },
+      {
+        "placeName": "Freeburg village",
+        "population": "407"
+      },
+      {
+        "placeName": "Freeman city",
+        "population": "508"
+      },
+      {
+        "placeName": "Freistatt village",
+        "population": "182"
+      },
+      {
+        "placeName": "Fremont Hills city",
+        "population": "1098"
+      },
+      {
+        "placeName": "Friedenswald village",
+        "population": "3"
+      },
+      {
+        "placeName": "Frohna city",
+        "population": "242"
+      },
+      {
+        "placeName": "Frontenac city",
+        "population": "3790"
+      },
+      {
+        "placeName": "Fulton city",
+        "population": "12853"
+      },
+      {
+        "placeName": "Gainesville city",
+        "population": "784"
+      },
+      {
+        "placeName": "Galena city",
+        "population": "474"
+      },
+      {
+        "placeName": "Gallatin city",
+        "population": "1848"
+      },
+      {
+        "placeName": "Galt city",
+        "population": "167"
+      },
+      {
+        "placeName": "Garden City city",
+        "population": "1617"
+      },
+      {
+        "placeName": "Gasconade city",
+        "population": "168"
+      },
+      {
+        "placeName": "Gentry village",
+        "population": "59"
+      },
+      {
+        "placeName": "Gerald city",
+        "population": "1350"
+      },
+      {
+        "placeName": "Gerster town",
+        "population": "16"
+      },
+      {
+        "placeName": "Gibbs village",
+        "population": "71"
+      },
+      {
+        "placeName": "Gideon city",
+        "population": "709"
+      },
+      {
+        "placeName": "Gilliam city",
+        "population": "182"
+      },
+      {
+        "placeName": "Gilman City city",
+        "population": "337"
+      },
+      {
+        "placeName": "Ginger Blue village",
+        "population": "34"
+      },
+      {
+        "placeName": "Gladstone city",
+        "population": "27497"
+      },
+      {
+        "placeName": "Glasgow city",
+        "population": "1080"
+      },
+      {
+        "placeName": "Glenaire city",
+        "population": "535"
+      },
+      {
+        "placeName": "Glen Allen town",
+        "population": "66"
+      },
+      {
+        "placeName": "Glendale city",
+        "population": "6060"
+      },
+      {
+        "placeName": "Glenwood village",
+        "population": "185"
+      },
+      {
+        "placeName": "Golden City city",
+        "population": "659"
+      },
+      {
+        "placeName": "Goodman city",
+        "population": "1320"
+      },
+      {
+        "placeName": "Gordonville village",
+        "population": "626"
+      },
+      {
+        "placeName": "Gower city",
+        "population": "1514"
+      },
+      {
+        "placeName": "Graham town",
+        "population": "138"
+      },
+      {
+        "placeName": "Grain Valley city",
+        "population": "16908"
+      },
+      {
+        "placeName": "Granby city",
+        "population": "2113"
+      },
+      {
+        "placeName": "Grand Falls Plaza town",
+        "population": "108"
+      },
+      {
+        "placeName": "Grandin city",
+        "population": "233"
+      },
+      {
+        "placeName": "Grand Pass village",
+        "population": "50"
+      },
+      {
+        "placeName": "Grandview city",
+        "population": "26653"
+      },
+      {
+        "placeName": "Granger village",
+        "population": "22"
+      },
+      {
+        "placeName": "Grant City town",
+        "population": "794"
+      },
+      {
+        "placeName": "Grantwood Village town",
+        "population": "925"
+      },
+      {
+        "placeName": "Gravois Mills town",
+        "population": "139"
+      },
+      {
+        "placeName": "Green Castle city",
+        "population": "211"
+      },
+      {
+        "placeName": "Green City city",
+        "population": "570"
+      },
+      {
+        "placeName": "Greendale city",
+        "population": "634"
+      },
+      {
+        "placeName": "Greenfield city",
+        "population": "1242"
+      },
+      {
+        "placeName": "Green Park city",
+        "population": "2670"
+      },
+      {
+        "placeName": "Green Ridge city",
+        "population": "601"
+      },
+      {
+        "placeName": "Greentop city",
+        "population": "391"
+      },
+      {
+        "placeName": "Greenville city",
+        "population": "440"
+      },
+      {
+        "placeName": "Greenwood city",
+        "population": "6315"
+      },
+      {
+        "placeName": "Guilford town",
+        "population": "57"
+      },
+      {
+        "placeName": "Gunn City village",
+        "population": "78"
+      },
+      {
+        "placeName": "Hale city",
+        "population": "375"
+      },
+      {
+        "placeName": "Halfway village",
+        "population": "152"
+      },
+      {
+        "placeName": "Hallsville city",
+        "population": "1742"
+      },
+      {
+        "placeName": "Halltown village",
+        "population": "105"
+      },
+      {
+        "placeName": "Hamilton city",
+        "population": "1726"
+      },
+      {
+        "placeName": "Hanley Hills village",
+        "population": "1963"
+      },
+      {
+        "placeName": "Hannibal city",
+        "population": "16804"
+      },
+      {
+        "placeName": "Hardin city",
+        "population": "560"
+      },
+      {
+        "placeName": "Harris town",
+        "population": "59"
+      },
+      {
+        "placeName": "Harrisburg town",
+        "population": "289"
+      },
+      {
+        "placeName": "Harrisonville city",
+        "population": "10040"
+      },
+      {
+        "placeName": "Hartsburg town",
+        "population": "137"
+      },
+      {
+        "placeName": "Hartville city",
+        "population": "627"
+      },
+      {
+        "placeName": "Harwood village",
+        "population": "30"
+      },
+      {
+        "placeName": "Hawk Point city",
+        "population": "772"
+      },
+      {
+        "placeName": "Hayti city",
+        "population": "2277"
+      },
+      {
+        "placeName": "Hayti Heights city",
+        "population": "466"
+      },
+      {
+        "placeName": "Haywood City village",
+        "population": "137"
+      },
+      {
+        "placeName": "Hazelwood city",
+        "population": "24849"
+      },
+      {
+        "placeName": "Henrietta city",
+        "population": "273"
+      },
+      {
+        "placeName": "Herculaneum city",
+        "population": "5402"
+      },
+      {
+        "placeName": "Hermann city",
+        "population": "2221"
+      },
+      {
+        "placeName": "Hermitage city",
+        "population": "658"
+      },
+      {
+        "placeName": "Higbee city",
+        "population": "442"
+      },
+      {
+        "placeName": "Higginsville city",
+        "population": "4770"
+      },
+      {
+        "placeName": "High Hill city",
+        "population": "186"
+      },
+      {
+        "placeName": "Highlandville city",
+        "population": "974"
+      },
+      {
+        "placeName": "Hillsboro city",
+        "population": "3493"
+      },
+      {
+        "placeName": "Hillsdale village",
+        "population": "1180"
+      },
+      {
+        "placeName": "Holcomb city",
+        "population": "589"
+      },
+      {
+        "placeName": "Holden city",
+        "population": "2347"
+      },
+      {
+        "placeName": "Holland town",
+        "population": "181"
+      },
+      {
+        "placeName": "Holliday village",
+        "population": "119"
+      },
+      {
+        "placeName": "Hollister city",
+        "population": "4690"
+      },
+      {
+        "placeName": "Holt city",
+        "population": "482"
+      },
+      {
+        "placeName": "Holts Summit city",
+        "population": "4773"
+      },
+      {
+        "placeName": "Homestead village",
+        "population": "190"
+      },
+      {
+        "placeName": "Homestown city",
+        "population": "67"
+      },
+      {
+        "placeName": "Hopkins city",
+        "population": "437"
+      },
+      {
+        "placeName": "Hornersville city",
+        "population": "500"
+      },
+      {
+        "placeName": "Houston city",
+        "population": "2281"
+      },
+      {
+        "placeName": "Houstonia city",
+        "population": "201"
+      },
+      {
+        "placeName": "Houston Lake city",
+        "population": "227"
+      },
+      {
+        "placeName": "Howardville city",
+        "population": "250"
+      },
+      {
+        "placeName": "Hughesville village",
+        "population": "151"
+      },
+      {
+        "placeName": "Humansville city",
+        "population": "942"
+      },
+      {
+        "placeName": "Hume town",
+        "population": "290"
+      },
+      {
+        "placeName": "Humphreys village",
+        "population": "88"
+      },
+      {
+        "placeName": "Hunnewell city",
+        "population": "133"
+      },
+      {
+        "placeName": "Huntleigh city",
+        "population": "352"
+      },
+      {
+        "placeName": "Huntsdale town",
+        "population": "30"
+      },
+      {
+        "placeName": "Huntsville city",
+        "population": "1362"
+      },
+      {
+        "placeName": "Hurdland city",
+        "population": "153"
+      },
+      {
+        "placeName": "Hurley city",
+        "population": "178"
+      },
+      {
+        "placeName": "Iatan village",
+        "population": "44"
+      },
+      {
+        "placeName": "Iberia city",
+        "population": "722"
+      },
+      {
+        "placeName": "Independence city",
+        "population": "121675"
+      },
+      {
+        "placeName": "Indian Point village",
+        "population": "580"
+      },
+      {
+        "placeName": "Innsbrook village",
+        "population": "653"
+      },
+      {
+        "placeName": "Ionia town",
+        "population": "79"
+      },
+      {
+        "placeName": "Irena village",
+        "population": "13"
+      },
+      {
+        "placeName": "Irondale city",
+        "population": "371"
+      },
+      {
+        "placeName": "Iron Mountain Lake city",
+        "population": "647"
+      },
+      {
+        "placeName": "Ironton city",
+        "population": "1408"
+      },
+      {
+        "placeName": "Jackson city",
+        "population": "16033"
+      },
+      {
+        "placeName": "Jacksonville village",
+        "population": "123"
+      },
+      {
+        "placeName": "Jameson town",
+        "population": "71"
+      },
+      {
+        "placeName": "Jamesport city",
+        "population": "570"
+      },
+      {
+        "placeName": "Jamestown town",
+        "population": "332"
+      },
+      {
+        "placeName": "Jane town",
+        "population": "405"
+      },
+      {
+        "placeName": "Jasper city",
+        "population": "870"
+      },
+      {
+        "placeName": "Jefferson City city",
+        "population": "42489"
+      },
+      {
+        "placeName": "Jennings city",
+        "population": "13093"
+      },
+      {
+        "placeName": "Jerico Springs village",
+        "population": "168"
+      },
+      {
+        "placeName": "Jonesburg city",
+        "population": "864"
+      },
+      {
+        "placeName": "Joplin city",
+        "population": "53930"
+      },
+      {
+        "placeName": "Josephville village",
+        "population": "529"
+      },
+      {
+        "placeName": "Junction City village",
+        "population": "287"
+      },
+      {
+        "placeName": "Kahoka city",
+        "population": "1962"
+      },
+      {
+        "placeName": "Kansas City city",
+        "population": "521220"
+      },
+      {
+        "placeName": "Kearney city",
+        "population": "11296"
+      },
+      {
+        "placeName": "Kelso village",
+        "population": "551"
+      },
+      {
+        "placeName": "Kennett city",
+        "population": "10118"
+      },
+      {
+        "placeName": "Keytesville city",
+        "population": "446"
+      },
+      {
+        "placeName": "Kidder city",
+        "population": "284"
+      },
+      {
+        "placeName": "Kimberling City city",
+        "population": "2345"
+      },
+      {
+        "placeName": "Kimmswick city",
+        "population": "133"
+      },
+      {
+        "placeName": "King City city",
+        "population": "845"
+      },
+      {
+        "placeName": "Kingdom City village",
+        "population": "135"
+      },
+      {
+        "placeName": "Kingston city",
+        "population": "294"
+      },
+      {
+        "placeName": "Kingsville city",
+        "population": "251"
+      },
+      {
+        "placeName": "Kinloch city",
+        "population": "261"
+      },
+      {
+        "placeName": "Kirbyville village",
+        "population": "205"
+      },
+      {
+        "placeName": "Kirksville city",
+        "population": "17863"
+      },
+      {
+        "placeName": "Kirkwood city",
+        "population": "29331"
+      },
+      {
+        "placeName": "Knob Noster city",
+        "population": "2997"
+      },
+      {
+        "placeName": "Knox City city",
+        "population": "186"
+      },
+      {
+        "placeName": "Koshkonong town",
+        "population": "198"
+      },
+      {
+        "placeName": "La Belle city",
+        "population": "654"
+      },
+      {
+        "placeName": "Laclede city",
+        "population": "300"
+      },
+      {
+        "placeName": "Laddonia city",
+        "population": "508"
+      },
+      {
+        "placeName": "Ladue city",
+        "population": "8934"
+      },
+      {
+        "placeName": "La Grange city",
+        "population": "806"
+      },
+      {
+        "placeName": "Lake Annette city",
+        "population": "112"
+      },
+      {
+        "placeName": "Lake Lafayette city",
+        "population": "315"
+      },
+      {
+        "placeName": "Lake Lotawana city",
+        "population": "2756"
+      },
+      {
+        "placeName": "Lake Ozark city",
+        "population": "2247"
+      },
+      {
+        "placeName": "Lake St. Louis city",
+        "population": "19129"
+      },
+      {
+        "placeName": "Lakeshire city",
+        "population": "1510"
+      },
+      {
+        "placeName": "Lake Tapawingo city",
+        "population": "782"
+      },
+      {
+        "placeName": "Lake Tekakwitha village",
+        "population": "233"
+      },
+      {
+        "placeName": "Lake Waukomis city",
+        "population": "941"
+      },
+      {
+        "placeName": "Lake Winnebago city",
+        "population": "1869"
+      },
+      {
+        "placeName": "Lamar city",
+        "population": "4337"
+      },
+      {
+        "placeName": "Lamar Heights city",
+        "population": "171"
+      },
+      {
+        "placeName": "La Monte city",
+        "population": "1018"
+      },
+      {
+        "placeName": "Lanagan town",
+        "population": "379"
+      },
+      {
+        "placeName": "Lancaster city",
+        "population": "691"
+      },
+      {
+        "placeName": "La Plata city",
+        "population": "1251"
+      },
+      {
+        "placeName": "Laredo city",
+        "population": "154"
+      },
+      {
+        "placeName": "La Russell city",
+        "population": "140"
+      },
+      {
+        "placeName": "Lathrop city",
+        "population": "2253"
+      },
+      {
+        "placeName": "Laurie city",
+        "population": "1087"
+      },
+      {
+        "placeName": "Lawson city",
+        "population": "2541"
+      },
+      {
+        "placeName": "Leadington city",
+        "population": "785"
+      },
+      {
+        "placeName": "Leadwood city",
+        "population": "1158"
+      },
+      {
+        "placeName": "Leasburg village",
+        "population": "318"
+      },
+      {
+        "placeName": "Leawood village",
+        "population": "643"
+      },
+      {
+        "placeName": "Lebanon city",
+        "population": "15663"
+      },
+      {
+        "placeName": "Lee's Summit city",
+        "population": "107514"
+      },
+      {
+        "placeName": "Leeton city",
+        "population": "565"
+      },
+      {
+        "placeName": "Leonard village",
+        "population": "55"
+      },
+      {
+        "placeName": "Leslie village",
+        "population": "156"
+      },
+      {
+        "placeName": "Levasy city",
+        "population": "72"
+      },
+      {
+        "placeName": "Lewis and Clark Village town",
+        "population": "92"
+      },
+      {
+        "placeName": "Lewistown town",
+        "population": "512"
+      },
+      {
+        "placeName": "Lexington city",
+        "population": "4568"
+      },
+      {
+        "placeName": "Liberal city",
+        "population": "638"
+      },
+      {
+        "placeName": "Liberty city",
+        "population": "31319"
+      },
+      {
+        "placeName": "Licking city",
+        "population": "2958"
+      },
+      {
+        "placeName": "Lilbourn city",
+        "population": "906"
+      },
+      {
+        "placeName": "Lincoln city",
+        "population": "1197"
+      },
+      {
+        "placeName": "Linn city",
+        "population": "1453"
+      },
+      {
+        "placeName": "Linn Creek city",
+        "population": "223"
+      },
+      {
+        "placeName": "Linneus city",
+        "population": "277"
+      },
+      {
+        "placeName": "Livonia village",
+        "population": "54"
+      },
+      {
+        "placeName": "Loch Lloyd village",
+        "population": "1090"
+      },
+      {
+        "placeName": "Lock Springs village",
+        "population": "40"
+      },
+      {
+        "placeName": "Lockwood city",
+        "population": "863"
+      },
+      {
+        "placeName": "Lohman city",
+        "population": "177"
+      },
+      {
+        "placeName": "Loma Linda town",
+        "population": "1009"
+      },
+      {
+        "placeName": "Lone Jack city",
+        "population": "1896"
+      },
+      {
+        "placeName": "Longtown town",
+        "population": "92"
+      },
+      {
+        "placeName": "Louisburg village",
+        "population": "140"
+      },
+      {
+        "placeName": "Louisiana city",
+        "population": "3208"
+      },
+      {
+        "placeName": "Lowry City city",
+        "population": "657"
+      },
+      {
+        "placeName": "Lucerne village",
+        "population": "55"
+      },
+      {
+        "placeName": "Ludlow town",
+        "population": "112"
+      },
+      {
+        "placeName": "Lupus town",
+        "population": "31"
+      },
+      {
+        "placeName": "Luray village",
+        "population": "69"
+      },
+      {
+        "placeName": "McBaine town",
+        "population": "16"
+      },
+      {
+        "placeName": "McCord Bend village",
+        "population": "225"
+      },
+      {
+        "placeName": "McFall city",
+        "population": "120"
+      },
+      {
+        "placeName": "McKittrick town",
+        "population": "80"
+      },
+      {
+        "placeName": "Macon city",
+        "population": "5532"
+      },
+      {
+        "placeName": "Madison city",
+        "population": "535"
+      },
+      {
+        "placeName": "Maitland city",
+        "population": "276"
+      },
+      {
+        "placeName": "Malden city",
+        "population": "3493"
+      },
+      {
+        "placeName": "Malta Bend town",
+        "population": "190"
+      },
+      {
+        "placeName": "Manchester city",
+        "population": "18069"
+      },
+      {
+        "placeName": "Mansfield city",
+        "population": "1317"
+      },
+      {
+        "placeName": "Maplewood city",
+        "population": "8033"
+      },
+      {
+        "placeName": "Marble Hill city",
+        "population": "1380"
+      },
+      {
+        "placeName": "Marceline city",
+        "population": "2116"
+      },
+      {
+        "placeName": "Marionville city",
+        "population": "2108"
+      },
+      {
+        "placeName": "Marlborough village",
+        "population": "2185"
+      },
+      {
+        "placeName": "Marquand city",
+        "population": "190"
+      },
+      {
+        "placeName": "Marshall city",
+        "population": "13766"
+      },
+      {
+        "placeName": "Marshfield city",
+        "population": "8078"
+      },
+      {
+        "placeName": "Marston city",
+        "population": "362"
+      },
+      {
+        "placeName": "Marthasville city",
+        "population": "1302"
+      },
+      {
+        "placeName": "Martinsburg town",
+        "population": "256"
+      },
+      {
+        "placeName": "Maryland Heights city",
+        "population": "27559"
+      },
+      {
+        "placeName": "Maryville city",
+        "population": "10092"
+      },
+      {
+        "placeName": "Matthews city",
+        "population": "493"
+      },
+      {
+        "placeName": "Maysville city",
+        "population": "1071"
+      },
+      {
+        "placeName": "Mayview city",
+        "population": "218"
+      },
+      {
+        "placeName": "Meadville city",
+        "population": "413"
+      },
+      {
+        "placeName": "Memphis city",
+        "population": "1762"
+      },
+      {
+        "placeName": "Mendon city",
+        "population": "164"
+      },
+      {
+        "placeName": "Mercer town",
+        "population": "254"
+      },
+      {
+        "placeName": "Merriam Woods city",
+        "population": "2084"
+      },
+      {
+        "placeName": "Merwin village",
+        "population": "70"
+      },
+      {
+        "placeName": "Meta city",
+        "population": "182"
+      },
+      {
+        "placeName": "Metz town",
+        "population": "17"
+      },
+      {
+        "placeName": "Mexico city",
+        "population": "11558"
+      },
+      {
+        "placeName": "Miami city",
+        "population": "143"
+      },
+      {
+        "placeName": "Middletown town",
+        "population": "169"
+      },
+      {
+        "placeName": "Milan city",
+        "population": "1742"
+      },
+      {
+        "placeName": "Milford village",
+        "population": "27"
+      },
+      {
+        "placeName": "Millard village",
+        "population": "78"
+      },
+      {
+        "placeName": "Miller city",
+        "population": "715"
+      },
+      {
+        "placeName": "Mill Spring village",
+        "population": "159"
+      },
+      {
+        "placeName": "Milo village",
+        "population": "62"
+      },
+      {
+        "placeName": "Mindenmines city",
+        "population": "276"
+      },
+      {
+        "placeName": "Miner city",
+        "population": "894"
+      },
+      {
+        "placeName": "Mineral Point town",
+        "population": "235"
+      },
+      {
+        "placeName": "Miramiguoa Park village",
+        "population": "122"
+      },
+      {
+        "placeName": "Missouri City city",
+        "population": "219"
+      },
+      {
+        "placeName": "Moberly city",
+        "population": "13719"
+      },
+      {
+        "placeName": "Mokane city",
+        "population": "188"
+      },
+      {
+        "placeName": "Moline Acres city",
+        "population": "2093"
+      },
+      {
+        "placeName": "Monett city",
+        "population": "10248"
+      },
+      {
+        "placeName": "Monroe City city",
+        "population": "2714"
+      },
+      {
+        "placeName": "Montgomery City city",
+        "population": "2782"
+      },
+      {
+        "placeName": "Monticello village",
+        "population": "105"
+      },
+      {
+        "placeName": "Montrose city",
+        "population": "392"
+      },
+      {
+        "placeName": "Mooresville village",
+        "population": "105"
+      },
+      {
+        "placeName": "Morehouse city",
+        "population": "681"
+      },
+      {
+        "placeName": "Morley city",
+        "population": "668"
+      },
+      {
+        "placeName": "Morrison city",
+        "population": "94"
+      },
+      {
+        "placeName": "Morrisville town",
+        "population": "398"
+      },
+      {
+        "placeName": "Mosby city",
+        "population": "101"
+      },
+      {
+        "placeName": "Moscow Mills city",
+        "population": "4388"
+      },
+      {
+        "placeName": "Mound City city",
+        "population": "999"
+      },
+      {
+        "placeName": "Moundville town",
+        "population": "77"
+      },
+      {
+        "placeName": "Mountain Grove city",
+        "population": "4754"
+      },
+      {
+        "placeName": "Mountain View city",
+        "population": "2661"
+      },
+      {
+        "placeName": "Mount Leonard town",
+        "population": "65"
+      },
+      {
+        "placeName": "Mount Moriah town",
+        "population": "76"
+      },
+      {
+        "placeName": "Mount Vernon city",
+        "population": "4835"
+      },
+      {
+        "placeName": "Napoleon city",
+        "population": "210"
+      },
+      {
+        "placeName": "Naylor city",
+        "population": "435"
+      },
+      {
+        "placeName": "Neck City city",
+        "population": "234"
+      },
+      {
+        "placeName": "Neelyville city",
+        "population": "312"
+      },
+      {
+        "placeName": "Nelson city",
+        "population": "149"
+      },
+      {
+        "placeName": "Neosho city",
+        "population": "14078"
+      },
+      {
+        "placeName": "Nevada city",
+        "population": "8404"
+      },
+      {
+        "placeName": "Newark village",
+        "population": "58"
+      },
+      {
+        "placeName": "New Bloomfield city",
+        "population": "747"
+      },
+      {
+        "placeName": "Newburg city",
+        "population": "331"
+      },
+      {
+        "placeName": "New Cambria city",
+        "population": "150"
+      },
+      {
+        "placeName": "New Florence city",
+        "population": "650"
+      },
+      {
+        "placeName": "New Franklin city",
+        "population": "1026"
+      },
+      {
+        "placeName": "New Hampton city",
+        "population": "228"
+      },
+      {
+        "placeName": "New Haven city",
+        "population": "2397"
+      },
+      {
+        "placeName": "New London city",
+        "population": "981"
+      },
+      {
+        "placeName": "New Madrid city",
+        "population": "2586"
+      },
+      {
+        "placeName": "New Melle city",
+        "population": "550"
+      },
+      {
+        "placeName": "Newtonia town",
+        "population": "215"
+      },
+      {
+        "placeName": "Newtown town",
+        "population": "110"
+      },
+      {
+        "placeName": "Niangua city",
+        "population": "425"
+      },
+      {
+        "placeName": "Nixa city",
+        "population": "26597"
+      },
+      {
+        "placeName": "Noel city",
+        "population": "2181"
+      },
+      {
+        "placeName": "Norborne city",
+        "population": "632"
+      },
+      {
+        "placeName": "Normandy city",
+        "population": "4380"
+      },
+      {
+        "placeName": "North Kansas City city",
+        "population": "5613"
+      },
+      {
+        "placeName": "North Lilbourn village",
+        "population": "22"
+      },
+      {
+        "placeName": "Northmoor city",
+        "population": "294"
+      },
+      {
+        "placeName": "Northwoods city",
+        "population": "3579"
+      },
+      {
+        "placeName": "Norwood city",
+        "population": "621"
+      },
+      {
+        "placeName": "Norwood Court town",
+        "population": "877"
+      },
+      {
+        "placeName": "Novelty village",
+        "population": "113"
+      },
+      {
+        "placeName": "Novinger city",
+        "population": "386"
+      },
+      {
+        "placeName": "Oak Grove city",
+        "population": "9370"
+      },
+      {
+        "placeName": "Oak Grove Village village",
+        "population": "407"
+      },
+      {
+        "placeName": "Oakland city",
+        "population": "1372"
+      },
+      {
+        "placeName": "Oak Ridge town",
+        "population": "239"
+      },
+      {
+        "placeName": "Oaks village",
+        "population": "125"
+      },
+      {
+        "placeName": "Oakview village",
+        "population": "364"
+      },
+      {
+        "placeName": "Oakwood village",
+        "population": "199"
+      },
+      {
+        "placeName": "Oakwood Park village",
+        "population": "197"
+      },
+      {
+        "placeName": "Odessa city",
+        "population": "5721"
+      },
+      {
+        "placeName": "O'Fallon city",
+        "population": "96101"
+      },
+      {
+        "placeName": "Old Appleton town",
+        "population": "75"
+      },
+      {
+        "placeName": "Old Monroe city",
+        "population": "281"
+      },
+      {
+        "placeName": "Olean town",
+        "population": "121"
+      },
+      {
+        "placeName": "Olivette city",
+        "population": "8937"
+      },
+      {
+        "placeName": "Olympian Village city",
+        "population": "710"
+      },
+      {
+        "placeName": "Oran city",
+        "population": "1195"
+      },
+      {
+        "placeName": "Oregon city",
+        "population": "827"
+      },
+      {
+        "placeName": "Oronogo city",
+        "population": "3204"
+      },
+      {
+        "placeName": "Orrick city",
+        "population": "740"
+      },
+      {
+        "placeName": "Osage Beach city",
+        "population": "5079"
+      },
+      {
+        "placeName": "Osborn city",
+        "population": "369"
+      },
+      {
+        "placeName": "Osceola city",
+        "population": "1012"
+      },
+      {
+        "placeName": "Osgood village",
+        "population": "23"
+      },
+      {
+        "placeName": "Otterville city",
+        "population": "450"
+      },
+      {
+        "placeName": "Overland city",
+        "population": "15474"
+      },
+      {
+        "placeName": "Owensville city",
+        "population": "2802"
+      },
+      {
+        "placeName": "Ozark city",
+        "population": "23544"
+      },
+      {
+        "placeName": "Pacific city",
+        "population": "7824"
+      },
+      {
+        "placeName": "Pagedale city",
+        "population": "2511"
+      },
+      {
+        "placeName": "Palmyra city",
+        "population": "3649"
+      },
+      {
+        "placeName": "Paris city",
+        "population": "1178"
+      },
+      {
+        "placeName": "Parkdale village",
+        "population": "156"
+      },
+      {
+        "placeName": "Park Hills city",
+        "population": "8753"
+      },
+      {
+        "placeName": "Parkville city",
+        "population": "9093"
+      },
+      {
+        "placeName": "Parkway village",
+        "population": "636"
+      },
+      {
+        "placeName": "Parma city",
+        "population": "506"
+      },
+      {
+        "placeName": "Parnell city",
+        "population": "129"
+      },
+      {
+        "placeName": "Pasadena Hills city",
+        "population": "881"
+      },
+      {
+        "placeName": "Pasadena Park village",
+        "population": "426"
+      },
+      {
+        "placeName": "Pascola village",
+        "population": "82"
+      },
+      {
+        "placeName": "Passaic town",
+        "population": "29"
+      },
+      {
+        "placeName": "Pattonsburg city",
+        "population": "341"
+      },
+      {
+        "placeName": "Paynesville village",
+        "population": "65"
+      },
+      {
+        "placeName": "Peaceful Village village",
+        "population": "97"
+      },
+      {
+        "placeName": "Peculiar city",
+        "population": "6365"
+      },
+      {
+        "placeName": "Pendleton village",
+        "population": "30"
+      },
+      {
+        "placeName": "Penermon village",
+        "population": "49"
+      },
+      {
+        "placeName": "Perry city",
+        "population": "686"
+      },
+      {
+        "placeName": "Perryville city",
+        "population": "8593"
+      },
+      {
+        "placeName": "Pevely city",
+        "population": "6239"
+      },
+      {
+        "placeName": "Phillipsburg village",
+        "population": "166"
+      },
+      {
+        "placeName": "Pickering city",
+        "population": "140"
+      },
+      {
+        "placeName": "Piedmont city",
+        "population": "1862"
+      },
+      {
+        "placeName": "Pierce City city",
+        "population": "1275"
+      },
+      {
+        "placeName": "Pierpont village",
+        "population": "68"
+      },
+      {
+        "placeName": "Pilot Grove city",
+        "population": "693"
+      },
+      {
+        "placeName": "Pilot Knob city",
+        "population": "701"
+      },
+      {
+        "placeName": "Pine Lawn city",
+        "population": "2682"
+      },
+      {
+        "placeName": "Pineville city",
+        "population": "836"
+      },
+      {
+        "placeName": "Plato village",
+        "population": "91"
+      },
+      {
+        "placeName": "Platte City city",
+        "population": "4911"
+      },
+      {
+        "placeName": "Platte Woods city",
+        "population": "395"
+      },
+      {
+        "placeName": "Plattsburg city",
+        "population": "2239"
+      },
+      {
+        "placeName": "Pleasant Hill city",
+        "population": "8956"
+      },
+      {
+        "placeName": "Pleasant Hope city",
+        "population": "694"
+      },
+      {
+        "placeName": "Pleasant Valley city",
+        "population": "2747"
+      },
+      {
+        "placeName": "Pocahontas town",
+        "population": "97"
+      },
+      {
+        "placeName": "Pollock village",
+        "population": "45"
+      },
+      {
+        "placeName": "Polo city",
+        "population": "508"
+      },
+      {
+        "placeName": "Poplar Bluff city",
+        "population": "16295"
+      },
+      {
+        "placeName": "Portage Des Sioux city",
+        "population": "321"
+      },
+      {
+        "placeName": "Portageville city",
+        "population": "2702"
+      },
+      {
+        "placeName": "Potosi city",
+        "population": "2568"
+      },
+      {
+        "placeName": "Powersville village",
+        "population": "42"
+      },
+      {
+        "placeName": "Prairie Home city",
+        "population": "268"
+      },
+      {
+        "placeName": "Prathersville village",
+        "population": "147"
+      },
+      {
+        "placeName": "Preston village",
+        "population": "181"
+      },
+      {
+        "placeName": "Princeton city",
+        "population": "970"
+      },
+      {
+        "placeName": "Purcell city",
+        "population": "320"
+      },
+      {
+        "placeName": "Purdin city",
+        "population": "138"
+      },
+      {
+        "placeName": "Purdy city",
+        "population": "1062"
+      },
+      {
+        "placeName": "Puxico city",
+        "population": "867"
+      },
+      {
+        "placeName": "Queen City city",
+        "population": "572"
+      },
+      {
+        "placeName": "Qulin city",
+        "population": "466"
+      },
+      {
+        "placeName": "Randolph village",
+        "population": "58"
+      },
+      {
+        "placeName": "Ravenwood town",
+        "population": "409"
+      },
+      {
+        "placeName": "Raymondville town",
+        "population": "371"
+      },
+      {
+        "placeName": "Raymore city",
+        "population": "26633"
+      },
+      {
+        "placeName": "Raytown city",
+        "population": "29154"
+      },
+      {
+        "placeName": "Rea city",
+        "population": "45"
+      },
+      {
+        "placeName": "Redings Mill village",
+        "population": "159"
+      },
+      {
+        "placeName": "Reeds town",
+        "population": "91"
+      },
+      {
+        "placeName": "Reeds Spring city",
+        "population": "1223"
+      },
+      {
+        "placeName": "Renick village",
+        "population": "150"
+      },
+      {
+        "placeName": "Rensselaer village",
+        "population": "249"
+      },
+      {
+        "placeName": "Republic city",
+        "population": "22404"
+      },
+      {
+        "placeName": "Revere town",
+        "population": "73"
+      },
+      {
+        "placeName": "Rhineland town",
+        "population": "138"
+      },
+      {
+        "placeName": "Richards town",
+        "population": "45"
+      },
+      {
+        "placeName": "Rich Hill city",
+        "population": "1264"
+      },
+      {
+        "placeName": "Richland city",
+        "population": "1737"
+      },
+      {
+        "placeName": "Richmond city",
+        "population": "5968"
+      },
+      {
+        "placeName": "Richmond Heights city",
+        "population": "9093"
+      },
+      {
+        "placeName": "Ridgely village",
+        "population": "103"
+      },
+      {
+        "placeName": "Ridgeway city",
+        "population": "378"
+      },
+      {
+        "placeName": "Risco city",
+        "population": "261"
+      },
+      {
+        "placeName": "Ritchey town",
+        "population": "72"
+      },
+      {
+        "placeName": "River Bend village",
+        "population": "5"
+      },
+      {
+        "placeName": "Riverside city",
+        "population": "4581"
+      },
+      {
+        "placeName": "Riverview village",
+        "population": "2330"
+      },
+      {
+        "placeName": "Riverview Estates village",
+        "population": "76"
+      },
+      {
+        "placeName": "Rives town",
+        "population": "40"
+      },
+      {
+        "placeName": "Rocheport city",
+        "population": "211"
+      },
+      {
+        "placeName": "Rockaway Beach city",
+        "population": "816"
+      },
+      {
+        "placeName": "Rock Hill city",
+        "population": "4668"
+      },
+      {
+        "placeName": "Rock Port city",
+        "population": "1246"
+      },
+      {
+        "placeName": "Rockville city",
+        "population": "141"
+      },
+      {
+        "placeName": "Rogersville city",
+        "population": "5754"
+      },
+      {
+        "placeName": "Rolla city",
+        "population": "20588"
+      },
+      {
+        "placeName": "Roscoe village",
+        "population": "93"
+      },
+      {
+        "placeName": "Rosebud city",
+        "population": "396"
+      },
+      {
+        "placeName": "Rosendale city",
+        "population": "124"
+      },
+      {
+        "placeName": "Rothville village",
+        "population": "62"
+      },
+      {
+        "placeName": "Rush Hill village",
+        "population": "104"
+      },
+      {
+        "placeName": "Rushville village",
+        "population": "221"
+      },
+      {
+        "placeName": "Russellville city",
+        "population": "806"
+      },
+      {
+        "placeName": "Rutledge town",
+        "population": "85"
+      },
+      {
+        "placeName": "Saddlebrooke village",
+        "population": "315"
+      },
+      {
+        "placeName": "Saginaw village",
+        "population": "333"
+      },
+      {
+        "placeName": "St. Ann city",
+        "population": "12617"
+      },
+      {
+        "placeName": "St. Charles city",
+        "population": "72561"
+      },
+      {
+        "placeName": "St. Clair city",
+        "population": "4813"
+      },
+      {
+        "placeName": "St. Cloud village",
+        "population": "39"
+      },
+      {
+        "placeName": "Ste. Genevieve city",
+        "population": "5065"
+      },
+      {
+        "placeName": "St. Elizabeth village",
+        "population": "435"
+      },
+      {
+        "placeName": "St. James city",
+        "population": "3925"
+      },
+      {
+        "placeName": "St. John city",
+        "population": "6441"
+      },
+      {
+        "placeName": "St. Joseph city",
+        "population": "71001"
+      },
+      {
+        "placeName": "St. Louis city",
+        "population": "278144"
+      },
+      {
+        "placeName": "St. Martins city",
+        "population": "1242"
+      },
+      {
+        "placeName": "St. Mary city",
+        "population": "312"
+      },
+      {
+        "placeName": "St. Paul city",
+        "population": "3849"
+      },
+      {
+        "placeName": "St. Peters city",
+        "population": "61479"
+      },
+      {
+        "placeName": "St. Robert city",
+        "population": "5602"
+      },
+      {
+        "placeName": "St. Thomas town",
+        "population": "231"
+      },
+      {
+        "placeName": "Salem city",
+        "population": "4674"
+      },
+      {
+        "placeName": "Salisbury city",
+        "population": "1564"
+      },
+      {
+        "placeName": "Sarcoxie city",
+        "population": "1429"
+      },
+      {
+        "placeName": "Savannah city",
+        "population": "5107"
+      },
+      {
+        "placeName": "Schell City city",
+        "population": "230"
+      },
+      {
+        "placeName": "Scotsdale town",
+        "population": "198"
+      },
+      {
+        "placeName": "Scott City city",
+        "population": "4593"
+      },
+      {
+        "placeName": "Sedalia city",
+        "population": "22621"
+      },
+      {
+        "placeName": "Sedgewickville village",
+        "population": "192"
+      },
+      {
+        "placeName": "Seligman city",
+        "population": "951"
+      },
+      {
+        "placeName": "Senath city",
+        "population": "1504"
+      },
+      {
+        "placeName": "Seneca city",
+        "population": "2343"
+      },
+      {
+        "placeName": "Seymour city",
+        "population": "1960"
+      },
+      {
+        "placeName": "Shelbina city",
+        "population": "1550"
+      },
+      {
+        "placeName": "Shelbyville city",
+        "population": "497"
+      },
+      {
+        "placeName": "Sheldon city",
+        "population": "438"
+      },
+      {
+        "placeName": "Sheridan town",
+        "population": "142"
+      },
+      {
+        "placeName": "Shoal Creek Drive village",
+        "population": "381"
+      },
+      {
+        "placeName": "Shoal Creek Estates village",
+        "population": "108"
+      },
+      {
+        "placeName": "Shrewsbury city",
+        "population": "6231"
+      },
+      {
+        "placeName": "Sibley village",
+        "population": "324"
+      },
+      {
+        "placeName": "Sikeston city",
+        "population": "15983"
+      },
+      {
+        "placeName": "Silex city",
+        "population": "266"
+      },
+      {
+        "placeName": "Skidmore city",
+        "population": "226"
+      },
+      {
+        "placeName": "Slater city",
+        "population": "1824"
+      },
+      {
+        "placeName": "Smithton city",
+        "population": "508"
+      },
+      {
+        "placeName": "Smithville city",
+        "population": "11160"
+      },
+      {
+        "placeName": "South Gifford village",
+        "population": "23"
+      },
+      {
+        "placeName": "South Gorin town",
+        "population": "63"
+      },
+      {
+        "placeName": "South Greenfield village",
+        "population": "123"
+      },
+      {
+        "placeName": "South Lineville town",
+        "population": "14"
+      },
+      {
+        "placeName": "Southwest City town",
+        "population": "969"
+      },
+      {
+        "placeName": "Sparta city",
+        "population": "1953"
+      },
+      {
+        "placeName": "Spickard city",
+        "population": "220"
+      },
+      {
+        "placeName": "Springfield city",
+        "population": "169847"
+      },
+      {
+        "placeName": "Stanberry city",
+        "population": "1168"
+      },
+      {
+        "placeName": "Stark City town",
+        "population": "131"
+      },
+      {
+        "placeName": "Steele city",
+        "population": "1692"
+      },
+      {
+        "placeName": "Steelville city",
+        "population": "1447"
+      },
+      {
+        "placeName": "Stella town",
+        "population": "170"
+      },
+      {
+        "placeName": "Stewartsville city",
+        "population": "723"
+      },
+      {
+        "placeName": "Stockton city",
+        "population": "1825"
+      },
+      {
+        "placeName": "Stotesbury town",
+        "population": "11"
+      },
+      {
+        "placeName": "Stotts City city",
+        "population": "175"
+      },
+      {
+        "placeName": "Stoutland city",
+        "population": "207"
+      },
+      {
+        "placeName": "Stoutsville village",
+        "population": "39"
+      },
+      {
+        "placeName": "Stover city",
+        "population": "1064"
+      },
+      {
+        "placeName": "Strafford city",
+        "population": "2789"
+      },
+      {
+        "placeName": "Strasburg city",
+        "population": "123"
+      },
+      {
+        "placeName": "Sturgeon city",
+        "population": "957"
+      },
+      {
+        "placeName": "Sugar Creek city",
+        "population": "3209"
+      },
+      {
+        "placeName": "Sullivan city",
+        "population": "6942"
+      },
+      {
+        "placeName": "Summersville city",
+        "population": "474"
+      },
+      {
+        "placeName": "Sumner town",
+        "population": "81"
+      },
+      {
+        "placeName": "Sunrise Beach village",
+        "population": "533"
+      },
+      {
+        "placeName": "Sunset Hills city",
+        "population": "9075"
+      },
+      {
+        "placeName": "Sweet Springs city",
+        "population": "1323"
+      },
+      {
+        "placeName": "Sycamore Hills village",
+        "population": "546"
+      },
+      {
+        "placeName": "Syracuse city",
+        "population": "162"
+      },
+      {
+        "placeName": "Tallapoosa city",
+        "population": "72"
+      },
+      {
+        "placeName": "Taneyville village",
+        "population": "270"
+      },
+      {
+        "placeName": "Taos city",
+        "population": "1175"
+      },
+      {
+        "placeName": "Tarkio city",
+        "population": "1478"
+      },
+      {
+        "placeName": "Thayer city",
+        "population": "1898"
+      },
+      {
+        "placeName": "Theodosia village",
+        "population": "207"
+      },
+      {
+        "placeName": "Three Creeks village",
+        "population": "6"
+      },
+      {
+        "placeName": "Tightwad village",
+        "population": "58"
+      },
+      {
+        "placeName": "Tina village",
+        "population": "138"
+      },
+      {
+        "placeName": "Tindall town",
+        "population": "49"
+      },
+      {
+        "placeName": "Tipton city",
+        "population": "2766"
+      },
+      {
+        "placeName": "Town and Country city",
+        "population": "11619"
+      },
+      {
+        "placeName": "Tracy city",
+        "population": "345"
+      },
+      {
+        "placeName": "Trenton city",
+        "population": "5557"
+      },
+      {
+        "placeName": "Trimble city",
+        "population": "659"
+      },
+      {
+        "placeName": "Triplett city",
+        "population": "39"
+      },
+      {
+        "placeName": "Troy city",
+        "population": "15201"
+      },
+      {
+        "placeName": "Truesdale city",
+        "population": "1054"
+      },
+      {
+        "placeName": "Truxton village",
+        "population": "71"
+      },
+      {
+        "placeName": "Turney village",
+        "population": "125"
+      },
+      {
+        "placeName": "Tuscumbia town",
+        "population": "192"
+      },
+      {
+        "placeName": "Twin Oaks village",
+        "population": "583"
+      },
+      {
+        "placeName": "Umber View Heights village",
+        "population": "43"
+      },
+      {
+        "placeName": "Union city",
+        "population": "13445"
+      },
+      {
+        "placeName": "Union Star town",
+        "population": "372"
+      },
+      {
+        "placeName": "Unionville city",
+        "population": "1663"
+      },
+      {
+        "placeName": "Unity Village village",
+        "population": "62"
+      },
+      {
+        "placeName": "University City city",
+        "population": "34657"
+      },
+      {
+        "placeName": "Uplands Park village",
+        "population": "305"
+      },
+      {
+        "placeName": "Urbana city",
+        "population": "411"
+      },
+      {
+        "placeName": "Urich city",
+        "population": "478"
+      },
+      {
+        "placeName": "Utica village",
+        "population": "221"
+      },
+      {
+        "placeName": "Valley Park city",
+        "population": "6767"
+      },
+      {
+        "placeName": "Van Buren town",
+        "population": "792"
+      },
+      {
+        "placeName": "Vandalia city",
+        "population": "3029"
+      },
+      {
+        "placeName": "Vandiver village",
+        "population": "64"
+      },
+      {
+        "placeName": "Vanduser village",
+        "population": "186"
+      },
+      {
+        "placeName": "Velda City city",
+        "population": "1309"
+      },
+      {
+        "placeName": "Velda Village Hills city",
+        "population": "851"
+      },
+      {
+        "placeName": "Verona town",
+        "population": "520"
+      },
+      {
+        "placeName": "Versailles city",
+        "population": "2713"
+      },
+      {
+        "placeName": "Viburnum city",
+        "population": "652"
+      },
+      {
+        "placeName": "Vienna city",
+        "population": "572"
+      },
+      {
+        "placeName": "Village of Four Seasons village",
+        "population": "2473"
+      },
+      {
+        "placeName": "Vinita Park city",
+        "population": "1923"
+      },
+      {
+        "placeName": "Vista village",
+        "population": "37"
+      },
+      {
+        "placeName": "Waco city",
+        "population": "75"
+      },
+      {
+        "placeName": "Walker city",
+        "population": "199"
+      },
+      {
+        "placeName": "Walnut Grove city",
+        "population": "636"
+      },
+      {
+        "placeName": "Wardell town",
+        "population": "283"
+      },
+      {
+        "placeName": "Wardsville village",
+        "population": "1667"
+      },
+      {
+        "placeName": "Warrensburg city",
+        "population": "20283"
+      },
+      {
+        "placeName": "Warrenton city",
+        "population": "9667"
+      },
+      {
+        "placeName": "Warsaw city",
+        "population": "2338"
+      },
+      {
+        "placeName": "Warson Woods city",
+        "population": "1990"
+      },
+      {
+        "placeName": "Washburn city",
+        "population": "408"
+      },
+      {
+        "placeName": "Washington city",
+        "population": "15906"
+      },
+      {
+        "placeName": "Watson village",
+        "population": "58"
+      },
+      {
+        "placeName": "Waverly city",
+        "population": "819"
+      },
+      {
+        "placeName": "Wayland city",
+        "population": "399"
+      },
+      {
+        "placeName": "Waynesville city",
+        "population": "5558"
+      },
+      {
+        "placeName": "Weatherby town",
+        "population": "77"
+      },
+      {
+        "placeName": "Weatherby Lake city",
+        "population": "2139"
+      },
+      {
+        "placeName": "Weaubleau city",
+        "population": "415"
+      },
+      {
+        "placeName": "Webb City city",
+        "population": "13459"
+      },
+      {
+        "placeName": "Webster Groves city",
+        "population": "23450"
+      },
+      {
+        "placeName": "Weldon Spring city",
+        "population": "5301"
+      },
+      {
+        "placeName": "Weldon Spring Heights town",
+        "population": "91"
+      },
+      {
+        "placeName": "Wellington city",
+        "population": "761"
+      },
+      {
+        "placeName": "Wellston city",
+        "population": "1580"
+      },
+      {
+        "placeName": "Wellsville city",
+        "population": "1012"
+      },
+      {
+        "placeName": "Wentworth village",
+        "population": "104"
+      },
+      {
+        "placeName": "Wentzville city",
+        "population": "49495"
+      },
+      {
+        "placeName": "West Alton city",
+        "population": "354"
+      },
+      {
+        "placeName": "Westboro city",
+        "population": "113"
+      },
+      {
+        "placeName": "West Line village",
+        "population": "124"
+      },
+      {
+        "placeName": "Weston city",
+        "population": "1855"
+      },
+      {
+        "placeName": "Westphalia city",
+        "population": "404"
+      },
+      {
+        "placeName": "West Plains city",
+        "population": "12780"
+      },
+      {
+        "placeName": "West Sullivan town",
+        "population": "281"
+      },
+      {
+        "placeName": "Westwood village",
+        "population": "308"
+      },
+      {
+        "placeName": "Wheatland city",
+        "population": "304"
+      },
+      {
+        "placeName": "Wheaton city",
+        "population": "693"
+      },
+      {
+        "placeName": "Wheeling city",
+        "population": "230"
+      },
+      {
+        "placeName": "Whiteside village",
+        "population": "63"
+      },
+      {
+        "placeName": "Whitewater town",
+        "population": "86"
+      },
+      {
+        "placeName": "Wilbur Park village",
+        "population": "425"
+      },
+      {
+        "placeName": "Wildwood city",
+        "population": "34955"
+      },
+      {
+        "placeName": "Willard city",
+        "population": "6904"
+      },
+      {
+        "placeName": "Williamsville city",
+        "population": "274"
+      },
+      {
+        "placeName": "Willow Springs city",
+        "population": "2211"
+      },
+      {
+        "placeName": "Wilson City village",
+        "population": "75"
+      },
+      {
+        "placeName": "Winchester city",
+        "population": "1400"
+      },
+      {
+        "placeName": "Windsor city",
+        "population": "2869"
+      },
+      {
+        "placeName": "Windsor Place village",
+        "population": "361"
+      },
+      {
+        "placeName": "Winfield city",
+        "population": "1660"
+      },
+      {
+        "placeName": "Winona city",
+        "population": "987"
+      },
+      {
+        "placeName": "Winston village",
+        "population": "232"
+      },
+      {
+        "placeName": "Wood Heights city",
+        "population": "745"
+      },
+      {
+        "placeName": "Woodson Terrace city",
+        "population": "3902"
+      },
+      {
+        "placeName": "Wooldridge village",
+        "population": "27"
+      },
+      {
+        "placeName": "Worth village",
+        "population": "62"
+      },
+      {
+        "placeName": "Worthington village",
+        "population": "57"
+      },
+      {
+        "placeName": "Wright City city",
+        "population": "5854"
+      },
+      {
+        "placeName": "Wyaconda city",
+        "population": "204"
+      },
+      {
+        "placeName": "Wyatt city",
+        "population": "212"
+      }
+    ]
+  }
+]

@@ -1,0 +1,1651 @@
+[
+  {
+    "state": "Florida",
+    "places": [
+      {
+        "placeName": "Alachua city",
+        "population": "10612"
+      },
+      {
+        "placeName": "Alford town",
+        "population": "521"
+      },
+      {
+        "placeName": "Altamonte Springs city",
+        "population": "48000"
+      },
+      {
+        "placeName": "Altha town",
+        "population": "492"
+      },
+      {
+        "placeName": "Anna Maria city",
+        "population": "1023"
+      },
+      {
+        "placeName": "Apalachicola city",
+        "population": "2473"
+      },
+      {
+        "placeName": "Apopka city",
+        "population": "65552"
+      },
+      {
+        "placeName": "Arcadia city",
+        "population": "8046"
+      },
+      {
+        "placeName": "Archer city",
+        "population": "1159"
+      },
+      {
+        "placeName": "Astatula town",
+        "population": "2314"
+      },
+      {
+        "placeName": "Atlantic Beach city",
+        "population": "13245"
+      },
+      {
+        "placeName": "Atlantis city",
+        "population": "2140"
+      },
+      {
+        "placeName": "Auburndale city",
+        "population": "21369"
+      },
+      {
+        "placeName": "Aventura city",
+        "population": "39880"
+      },
+      {
+        "placeName": "Avon Park city",
+        "population": "10514"
+      },
+      {
+        "placeName": "Baldwin town",
+        "population": "1394"
+      },
+      {
+        "placeName": "Bal Harbour village",
+        "population": "3036"
+      },
+      {
+        "placeName": "Bartow city",
+        "population": "23617"
+      },
+      {
+        "placeName": "Bascom town",
+        "population": "92"
+      },
+      {
+        "placeName": "Bay Harbor Islands town",
+        "population": "6021"
+      },
+      {
+        "placeName": "Bay Lake city",
+        "population": "19"
+      },
+      {
+        "placeName": "Bell town",
+        "population": "579"
+      },
+      {
+        "placeName": "Belleair town",
+        "population": "4631"
+      },
+      {
+        "placeName": "Belleair Beach city",
+        "population": "1581"
+      },
+      {
+        "placeName": "Belleair Bluffs city",
+        "population": "2242"
+      },
+      {
+        "placeName": "Belleair Shore town",
+        "population": "72"
+      },
+      {
+        "placeName": "Belle Glade city",
+        "population": "17241"
+      },
+      {
+        "placeName": "Belle Isle city",
+        "population": "7688"
+      },
+      {
+        "placeName": "Belleview city",
+        "population": "6512"
+      },
+      {
+        "placeName": "Beverly Beach town",
+        "population": "521"
+      },
+      {
+        "placeName": "Biscayne Park village",
+        "population": "3062"
+      },
+      {
+        "placeName": "Blountstown city",
+        "population": "2272"
+      },
+      {
+        "placeName": "Boca Raton city",
+        "population": "101582"
+      },
+      {
+        "placeName": "Bonifay city",
+        "population": "2839"
+      },
+      {
+        "placeName": "Bonita Springs city",
+        "population": "57634"
+      },
+      {
+        "placeName": "Bowling Green city",
+        "population": "2448"
+      },
+      {
+        "placeName": "Boynton Beach city",
+        "population": "82396"
+      },
+      {
+        "placeName": "Bradenton city",
+        "population": "58014"
+      },
+      {
+        "placeName": "Bradenton Beach city",
+        "population": "921"
+      },
+      {
+        "placeName": "Branford town",
+        "population": "780"
+      },
+      {
+        "placeName": "Briny Breezes town",
+        "population": "533"
+      },
+      {
+        "placeName": "Bristol city",
+        "population": "936"
+      },
+      {
+        "placeName": "Bronson town",
+        "population": "1292"
+      },
+      {
+        "placeName": "Brooker town",
+        "population": "339"
+      },
+      {
+        "placeName": "Brooksville city",
+        "population": "10145"
+      },
+      {
+        "placeName": "Bunnell city",
+        "population": "4298"
+      },
+      {
+        "placeName": "Bushnell city",
+        "population": "3157"
+      },
+      {
+        "placeName": "Callahan town",
+        "population": "1830"
+      },
+      {
+        "placeName": "Callaway city",
+        "population": "14369"
+      },
+      {
+        "placeName": "Campbellton town",
+        "population": "200"
+      },
+      {
+        "placeName": "Cape Canaveral city",
+        "population": "9962"
+      },
+      {
+        "placeName": "Cape Coral city",
+        "population": "236264"
+      },
+      {
+        "placeName": "Carrabelle city",
+        "population": "2572"
+      },
+      {
+        "placeName": "Caryville town",
+        "population": "323"
+      },
+      {
+        "placeName": "Casselberry city",
+        "population": "31872"
+      },
+      {
+        "placeName": "Cedar Key city",
+        "population": "744"
+      },
+      {
+        "placeName": "Center Hill city",
+        "population": "1081"
+      },
+      {
+        "placeName": "Century town",
+        "population": "1799"
+      },
+      {
+        "placeName": "Chattahoochee city",
+        "population": "3011"
+      },
+      {
+        "placeName": "Chiefland city",
+        "population": "2456"
+      },
+      {
+        "placeName": "Chipley city",
+        "population": "3804"
+      },
+      {
+        "placeName": "Cinco Bayou town",
+        "population": "473"
+      },
+      {
+        "placeName": "Clearwater city",
+        "population": "114364"
+      },
+      {
+        "placeName": "Clermont city",
+        "population": "52812"
+      },
+      {
+        "placeName": "Clewiston city",
+        "population": "7594"
+      },
+      {
+        "placeName": "Cloud Lake town",
+        "population": "141"
+      },
+      {
+        "placeName": "Cocoa city",
+        "population": "19777"
+      },
+      {
+        "placeName": "Cocoa Beach city",
+        "population": "11314"
+      },
+      {
+        "placeName": "Coconut Creek city",
+        "population": "58626"
+      },
+      {
+        "placeName": "Coleman city",
+        "population": "803"
+      },
+      {
+        "placeName": "Cooper City city",
+        "population": "35030"
+      },
+      {
+        "placeName": "Coral Gables city",
+        "population": "49578"
+      },
+      {
+        "placeName": "Coral Springs city",
+        "population": "138783"
+      },
+      {
+        "placeName": "Cottondale town",
+        "population": "879"
+      },
+      {
+        "placeName": "Crescent City city",
+        "population": "1728"
+      },
+      {
+        "placeName": "Crestview city",
+        "population": "31193"
+      },
+      {
+        "placeName": "Cross City town",
+        "population": "1849"
+      },
+      {
+        "placeName": "Crystal River city",
+        "population": "3618"
+      },
+      {
+        "placeName": "Cutler Bay town",
+        "population": "44750"
+      },
+      {
+        "placeName": "Dade City city",
+        "population": "10173"
+      },
+      {
+        "placeName": "Dania Beach city",
+        "population": "32791"
+      },
+      {
+        "placeName": "Davenport city",
+        "population": "18110"
+      },
+      {
+        "placeName": "Davie town",
+        "population": "110851"
+      },
+      {
+        "placeName": "Daytona Beach city",
+        "population": "88471"
+      },
+      {
+        "placeName": "Daytona Beach Shores city",
+        "population": "5187"
+      },
+      {
+        "placeName": "DeBary city",
+        "population": "23544"
+      },
+      {
+        "placeName": "Deerfield Beach city",
+        "population": "89339"
+      },
+      {
+        "placeName": "DeFuniak Springs city",
+        "population": "7338"
+      },
+      {
+        "placeName": "DeLand city",
+        "population": "46346"
+      },
+      {
+        "placeName": "Delray Beach city",
+        "population": "69809"
+      },
+      {
+        "placeName": "Deltona city",
+        "population": "100267"
+      },
+      {
+        "placeName": "Destin city",
+        "population": "14046"
+      },
+      {
+        "placeName": "Doral city",
+        "population": "81634"
+      },
+      {
+        "placeName": "Dundee town",
+        "population": "6424"
+      },
+      {
+        "placeName": "Dunedin city",
+        "population": "35227"
+      },
+      {
+        "placeName": "Dunnellon city",
+        "population": "2056"
+      },
+      {
+        "placeName": "Eagle Lake city",
+        "population": "6415"
+      },
+      {
+        "placeName": "Eatonville town",
+        "population": "2333"
+      },
+      {
+        "placeName": "Ebro town",
+        "population": "249"
+      },
+      {
+        "placeName": "Edgewater city",
+        "population": "24795"
+      },
+      {
+        "placeName": "Edgewood city",
+        "population": "2845"
+      },
+      {
+        "placeName": "El Portal village",
+        "population": "1943"
+      },
+      {
+        "placeName": "Estero village",
+        "population": "38365"
+      },
+      {
+        "placeName": "Esto town",
+        "population": "353"
+      },
+      {
+        "placeName": "Eustis city",
+        "population": "25483"
+      },
+      {
+        "placeName": "Everglades city",
+        "population": "399"
+      },
+      {
+        "placeName": "Fanning Springs city",
+        "population": "1349"
+      },
+      {
+        "placeName": "Fellsmere city",
+        "population": "5025"
+      },
+      {
+        "placeName": "Fernandina Beach city",
+        "population": "13869"
+      },
+      {
+        "placeName": "Flagler Beach city",
+        "population": "5595"
+      },
+      {
+        "placeName": "Florida City city",
+        "population": "13576"
+      },
+      {
+        "placeName": "Fort Lauderdale city",
+        "population": "188677"
+      },
+      {
+        "placeName": "Fort Meade city",
+        "population": "5379"
+      },
+      {
+        "placeName": "Fort Myers city",
+        "population": "101581"
+      },
+      {
+        "placeName": "Fort Myers Beach town",
+        "population": "5287"
+      },
+      {
+        "placeName": "Fort Pierce city",
+        "population": "51737"
+      },
+      {
+        "placeName": "Fort Walton Beach city",
+        "population": "21097"
+      },
+      {
+        "placeName": "Fort White town",
+        "population": "665"
+      },
+      {
+        "placeName": "Freeport city",
+        "population": "7543"
+      },
+      {
+        "placeName": "Frostproof city",
+        "population": "3519"
+      },
+      {
+        "placeName": "Fruitland Park city",
+        "population": "9543"
+      },
+      {
+        "placeName": "Gainesville city",
+        "population": "148671"
+      },
+      {
+        "placeName": "Glen Ridge town",
+        "population": "217"
+      },
+      {
+        "placeName": "Glen St. Mary town",
+        "population": "510"
+      },
+      {
+        "placeName": "Golden Beach town",
+        "population": "1029"
+      },
+      {
+        "placeName": "Golf village",
+        "population": "271"
+      },
+      {
+        "placeName": "Graceville city",
+        "population": "2217"
+      },
+      {
+        "placeName": "Grand Ridge town",
+        "population": "925"
+      },
+      {
+        "placeName": "Grant-Valkaria town",
+        "population": "5982"
+      },
+      {
+        "placeName": "Greenacres city",
+        "population": "44736"
+      },
+      {
+        "placeName": "Green Cove Springs city",
+        "population": "10079"
+      },
+      {
+        "placeName": "Greensboro town",
+        "population": "468"
+      },
+      {
+        "placeName": "Greenville town",
+        "population": "778"
+      },
+      {
+        "placeName": "Greenwood town",
+        "population": "560"
+      },
+      {
+        "placeName": "Gretna city",
+        "population": "1296"
+      },
+      {
+        "placeName": "Groveland city",
+        "population": "25526"
+      },
+      {
+        "placeName": "Gulf Breeze city",
+        "population": "7067"
+      },
+      {
+        "placeName": "Gulfport city",
+        "population": "11404"
+      },
+      {
+        "placeName": "Gulf Stream town",
+        "population": "986"
+      },
+      {
+        "placeName": "Haines City city",
+        "population": "45973"
+      },
+      {
+        "placeName": "Hallandale Beach city",
+        "population": "42698"
+      },
+      {
+        "placeName": "Hampton city",
+        "population": "502"
+      },
+      {
+        "placeName": "Havana town",
+        "population": "1759"
+      },
+      {
+        "placeName": "Haverhill town",
+        "population": "2314"
+      },
+      {
+        "placeName": "Hawthorne city",
+        "population": "1505"
+      },
+      {
+        "placeName": "Hialeah city",
+        "population": "230968"
+      },
+      {
+        "placeName": "Hialeah Gardens city",
+        "population": "22777"
+      },
+      {
+        "placeName": "Highland Beach town",
+        "population": "4328"
+      },
+      {
+        "placeName": "Highland Park village",
+        "population": "293"
+      },
+      {
+        "placeName": "High Springs city",
+        "population": "6762"
+      },
+      {
+        "placeName": "Hillcrest Heights town",
+        "population": "284"
+      },
+      {
+        "placeName": "Hilliard town",
+        "population": "3161"
+      },
+      {
+        "placeName": "Hillsboro Beach town",
+        "population": "2015"
+      },
+      {
+        "placeName": "Holly Hill city",
+        "population": "13268"
+      },
+      {
+        "placeName": "Hollywood city",
+        "population": "157019"
+      },
+      {
+        "placeName": "Holmes Beach city",
+        "population": "3027"
+      },
+      {
+        "placeName": "Homestead city",
+        "population": "86242"
+      },
+      {
+        "placeName": "Horseshoe Beach town",
+        "population": "165"
+      },
+      {
+        "placeName": "Howey-in-the-Hills town",
+        "population": "1857"
+      },
+      {
+        "placeName": "Hypoluxo town",
+        "population": "2954"
+      },
+      {
+        "placeName": "Indialantic town",
+        "population": "3096"
+      },
+      {
+        "placeName": "Indian Creek village",
+        "population": "86"
+      },
+      {
+        "placeName": "Indian Harbour Beach city",
+        "population": "8914"
+      },
+      {
+        "placeName": "Indian River Shores town",
+        "population": "4467"
+      },
+      {
+        "placeName": "Indian Rocks Beach city",
+        "population": "3563"
+      },
+      {
+        "placeName": "Indian Shores town",
+        "population": "1167"
+      },
+      {
+        "placeName": "Indiantown village",
+        "population": "6826"
+      },
+      {
+        "placeName": "Inglis town",
+        "population": "1640"
+      },
+      {
+        "placeName": "Interlachen town",
+        "population": "1502"
+      },
+      {
+        "placeName": "Inverness city",
+        "population": "7796"
+      },
+      {
+        "placeName": "Islamorada, Village of Islands village",
+        "population": "6955"
+      },
+      {
+        "placeName": "Jacksonville city",
+        "population": "1017689"
+      },
+      {
+        "placeName": "Jacksonville Beach city",
+        "population": "23615"
+      },
+      {
+        "placeName": "Jacob City city",
+        "population": "230"
+      },
+      {
+        "placeName": "Jasper city",
+        "population": "3444"
+      },
+      {
+        "placeName": "Jay town",
+        "population": "594"
+      },
+      {
+        "placeName": "Jennings town",
+        "population": "766"
+      },
+      {
+        "placeName": "Juno Beach town",
+        "population": "3935"
+      },
+      {
+        "placeName": "Jupiter town",
+        "population": "62350"
+      },
+      {
+        "placeName": "Jupiter Inlet Colony town",
+        "population": "457"
+      },
+      {
+        "placeName": "Jupiter Island town",
+        "population": "841"
+      },
+      {
+        "placeName": "Kenneth City town",
+        "population": "4868"
+      },
+      {
+        "placeName": "Key Biscayne village",
+        "population": "14815"
+      },
+      {
+        "placeName": "Key Colony Beach city",
+        "population": "741"
+      },
+      {
+        "placeName": "Keystone Heights city",
+        "population": "1579"
+      },
+      {
+        "placeName": "Key West city",
+        "population": "24999"
+      },
+      {
+        "placeName": "Kissimmee city",
+        "population": "85591"
+      },
+      {
+        "placeName": "LaBelle city",
+        "population": "5754"
+      },
+      {
+        "placeName": "La Crosse town",
+        "population": "323"
+      },
+      {
+        "placeName": "Lady Lake town",
+        "population": "17496"
+      },
+      {
+        "placeName": "Lake Alfred city",
+        "population": "10107"
+      },
+      {
+        "placeName": "Lake Buena Vista city",
+        "population": "25"
+      },
+      {
+        "placeName": "Lake Butler city",
+        "population": "1921"
+      },
+      {
+        "placeName": "Lake City city",
+        "population": "12788"
+      },
+      {
+        "placeName": "Lake Clarke Shores town",
+        "population": "3597"
+      },
+      {
+        "placeName": "Lake Hamilton town",
+        "population": "3007"
+      },
+      {
+        "placeName": "Lake Helen city",
+        "population": "2994"
+      },
+      {
+        "placeName": "Lakeland city",
+        "population": "125520"
+      },
+      {
+        "placeName": "Lake Mary city",
+        "population": "16789"
+      },
+      {
+        "placeName": "Lake Park town",
+        "population": "9125"
+      },
+      {
+        "placeName": "Lake Placid town",
+        "population": "2599"
+      },
+      {
+        "placeName": "Lake Wales city",
+        "population": "18650"
+      },
+      {
+        "placeName": "Lake Worth Beach city",
+        "population": "43970"
+      },
+      {
+        "placeName": "Lantana town",
+        "population": "12449"
+      },
+      {
+        "placeName": "Largo city",
+        "population": "80690"
+      },
+      {
+        "placeName": "Lauderdale-by-the-Sea town",
+        "population": "6280"
+      },
+      {
+        "placeName": "Lauderdale Lakes city",
+        "population": "36898"
+      },
+      {
+        "placeName": "Lauderhill city",
+        "population": "75668"
+      },
+      {
+        "placeName": "Laurel Hill city",
+        "population": "563"
+      },
+      {
+        "placeName": "Lawtey city",
+        "population": "685"
+      },
+      {
+        "placeName": "Layton city",
+        "population": "209"
+      },
+      {
+        "placeName": "Lazy Lake village",
+        "population": "38"
+      },
+      {
+        "placeName": "Lee town",
+        "population": "379"
+      },
+      {
+        "placeName": "Leesburg city",
+        "population": "38905"
+      },
+      {
+        "placeName": "Lighthouse Point city",
+        "population": "10756"
+      },
+      {
+        "placeName": "Live Oak city",
+        "population": "7248"
+      },
+      {
+        "placeName": "Longboat Key town",
+        "population": "7359"
+      },
+      {
+        "placeName": "Longwood city",
+        "population": "16892"
+      },
+      {
+        "placeName": "Loxahatchee Groves town",
+        "population": "3549"
+      },
+      {
+        "placeName": "Lynn Haven city",
+        "population": "22479"
+      },
+      {
+        "placeName": "Macclenny city",
+        "population": "8251"
+      },
+      {
+        "placeName": "McIntosh town",
+        "population": "551"
+      },
+      {
+        "placeName": "Madeira Beach city",
+        "population": "3940"
+      },
+      {
+        "placeName": "Madison city",
+        "population": "2988"
+      },
+      {
+        "placeName": "Maitland city",
+        "population": "19511"
+      },
+      {
+        "placeName": "Malabar town",
+        "population": "3175"
+      },
+      {
+        "placeName": "Malone town",
+        "population": "1865"
+      },
+      {
+        "placeName": "Manalapan town",
+        "population": "445"
+      },
+      {
+        "placeName": "Mangonia Park town",
+        "population": "2667"
+      },
+      {
+        "placeName": "Marathon city",
+        "population": "10060"
+      },
+      {
+        "placeName": "Marco Island city",
+        "population": "16421"
+      },
+      {
+        "placeName": "Margate city",
+        "population": "60070"
+      },
+      {
+        "placeName": "Marianna city",
+        "population": "7289"
+      },
+      {
+        "placeName": "Marineland town",
+        "population": "9"
+      },
+      {
+        "placeName": "Mary Esther city",
+        "population": "4093"
+      },
+      {
+        "placeName": "Mascotte city",
+        "population": "10150"
+      },
+      {
+        "placeName": "Mayo town",
+        "population": "1119"
+      },
+      {
+        "placeName": "Medley town",
+        "population": "1075"
+      },
+      {
+        "placeName": "Melbourne city",
+        "population": "87097"
+      },
+      {
+        "placeName": "Melbourne Beach town",
+        "population": "3260"
+      },
+      {
+        "placeName": "Melbourne Village town",
+        "population": "679"
+      },
+      {
+        "placeName": "Mexico Beach city",
+        "population": "1275"
+      },
+      {
+        "placeName": "Miami city",
+        "population": "489812"
+      },
+      {
+        "placeName": "Miami Beach city",
+        "population": "81594"
+      },
+      {
+        "placeName": "Miami Gardens city",
+        "population": "113579"
+      },
+      {
+        "placeName": "Miami Lakes town",
+        "population": "33067"
+      },
+      {
+        "placeName": "Miami Shores village",
+        "population": "11669"
+      },
+      {
+        "placeName": "Miami Springs city",
+        "population": "13611"
+      },
+      {
+        "placeName": "Micanopy town",
+        "population": "653"
+      },
+      {
+        "placeName": "Midway city",
+        "population": "3482"
+      },
+      {
+        "placeName": "Milton city",
+        "population": "11440"
+      },
+      {
+        "placeName": "Minneola city",
+        "population": "21064"
+      },
+      {
+        "placeName": "Miramar city",
+        "population": "142570"
+      },
+      {
+        "placeName": "Monticello city",
+        "population": "2767"
+      },
+      {
+        "placeName": "Montverde town",
+        "population": "1836"
+      },
+      {
+        "placeName": "Moore Haven city",
+        "population": "1745"
+      },
+      {
+        "placeName": "Mount Dora city",
+        "population": "18791"
+      },
+      {
+        "placeName": "Mulberry city",
+        "population": "4573"
+      },
+      {
+        "placeName": "Naples city",
+        "population": "20114"
+      },
+      {
+        "placeName": "Neptune Beach city",
+        "population": "7020"
+      },
+      {
+        "placeName": "Newberry city",
+        "population": "8618"
+      },
+      {
+        "placeName": "New Port Richey city",
+        "population": "18299"
+      },
+      {
+        "placeName": "New Smyrna Beach city",
+        "population": "33182"
+      },
+      {
+        "placeName": "Niceville city",
+        "population": "17948"
+      },
+      {
+        "placeName": "Noma town",
+        "population": "212"
+      },
+      {
+        "placeName": "North Bay Village city",
+        "population": "8099"
+      },
+      {
+        "placeName": "North Lauderdale city",
+        "population": "45733"
+      },
+      {
+        "placeName": "North Miami city",
+        "population": "60884"
+      },
+      {
+        "placeName": "North Miami Beach city",
+        "population": "46236"
+      },
+      {
+        "placeName": "North Palm Beach village",
+        "population": "13319"
+      },
+      {
+        "placeName": "North Port city",
+        "population": "96551"
+      },
+      {
+        "placeName": "North Redington Beach town",
+        "population": "1444"
+      },
+      {
+        "placeName": "Oak Hill city",
+        "population": "2188"
+      },
+      {
+        "placeName": "Oakland town",
+        "population": "3774"
+      },
+      {
+        "placeName": "Oakland Park city",
+        "population": "45332"
+      },
+      {
+        "placeName": "Ocala city",
+        "population": "71753"
+      },
+      {
+        "placeName": "Ocean Breeze town",
+        "population": "402"
+      },
+      {
+        "placeName": "Ocean Ridge town",
+        "population": "1868"
+      },
+      {
+        "placeName": "Ocoee city",
+        "population": "51932"
+      },
+      {
+        "placeName": "Okeechobee city",
+        "population": "5811"
+      },
+      {
+        "placeName": "Oldsmar city",
+        "population": "14521"
+      },
+      {
+        "placeName": "Opa-locka city",
+        "population": "16177"
+      },
+      {
+        "placeName": "Orange City city",
+        "population": "15309"
+      },
+      {
+        "placeName": "Orange Park town",
+        "population": "8953"
+      },
+      {
+        "placeName": "Orchid town",
+        "population": "554"
+      },
+      {
+        "placeName": "Orlando city",
+        "population": "333888"
+      },
+      {
+        "placeName": "Ormond Beach city",
+        "population": "44692"
+      },
+      {
+        "placeName": "Otter Creek town",
+        "population": "117"
+      },
+      {
+        "placeName": "Oviedo city",
+        "population": "41317"
+      },
+      {
+        "placeName": "Pahokee city",
+        "population": "5794"
+      },
+      {
+        "placeName": "Palatka city",
+        "population": "10872"
+      },
+      {
+        "placeName": "Palm Bay city",
+        "population": "148092"
+      },
+      {
+        "placeName": "Palm Beach town",
+        "population": "9423"
+      },
+      {
+        "placeName": "Palm Beach Gardens city",
+        "population": "63883"
+      },
+      {
+        "placeName": "Palm Beach Shores town",
+        "population": "1350"
+      },
+      {
+        "placeName": "Palm Coast city",
+        "population": "109886"
+      },
+      {
+        "placeName": "Palmetto city",
+        "population": "13562"
+      },
+      {
+        "placeName": "Palmetto Bay village",
+        "population": "24886"
+      },
+      {
+        "placeName": "Palm Shores town",
+        "population": "1209"
+      },
+      {
+        "placeName": "Palm Springs village",
+        "population": "28303"
+      },
+      {
+        "placeName": "Panama City city",
+        "population": "37806"
+      },
+      {
+        "placeName": "Panama City Beach city",
+        "population": "20375"
+      },
+      {
+        "placeName": "Parker city",
+        "population": "4832"
+      },
+      {
+        "placeName": "Parkland city",
+        "population": "39186"
+      },
+      {
+        "placeName": "Paxton town",
+        "population": "695"
+      },
+      {
+        "placeName": "Pembroke Park town",
+        "population": "6425"
+      },
+      {
+        "placeName": "Pembroke Pines city",
+        "population": "176714"
+      },
+      {
+        "placeName": "Penney Farms town",
+        "population": "835"
+      },
+      {
+        "placeName": "Pensacola city",
+        "population": "53817"
+      },
+      {
+        "placeName": "Perry city",
+        "population": "7330"
+      },
+      {
+        "placeName": "Pierson town",
+        "population": "1555"
+      },
+      {
+        "placeName": "Pinecrest village",
+        "population": "18635"
+      },
+      {
+        "placeName": "Pinellas Park city",
+        "population": "52295"
+      },
+      {
+        "placeName": "Plantation city",
+        "population": "99183"
+      },
+      {
+        "placeName": "Plant City city",
+        "population": "44118"
+      },
+      {
+        "placeName": "Polk City town",
+        "population": "3082"
+      },
+      {
+        "placeName": "Pomona Park town",
+        "population": "824"
+      },
+      {
+        "placeName": "Pompano Beach city",
+        "population": "117211"
+      },
+      {
+        "placeName": "Ponce de Leon town",
+        "population": "521"
+      },
+      {
+        "placeName": "Ponce Inlet town",
+        "population": "3470"
+      },
+      {
+        "placeName": "Port Orange city",
+        "population": "66395"
+      },
+      {
+        "placeName": "Port Richey city",
+        "population": "3655"
+      },
+      {
+        "placeName": "Port St. Joe city",
+        "population": "3995"
+      },
+      {
+        "placeName": "Port St. Lucie city",
+        "population": "268062"
+      },
+      {
+        "placeName": "Punta Gorda city",
+        "population": "20383"
+      },
+      {
+        "placeName": "Quincy city",
+        "population": "8162"
+      },
+      {
+        "placeName": "Raiford town",
+        "population": "226"
+      },
+      {
+        "placeName": "Reddick town",
+        "population": "535"
+      },
+      {
+        "placeName": "Redington Beach town",
+        "population": "1355"
+      },
+      {
+        "placeName": "Redington Shores town",
+        "population": "2118"
+      },
+      {
+        "placeName": "Riviera Beach city",
+        "population": "39357"
+      },
+      {
+        "placeName": "Rockledge city",
+        "population": "31343"
+      },
+      {
+        "placeName": "Royal Palm Beach village",
+        "population": "42477"
+      },
+      {
+        "placeName": "Safety Harbor city",
+        "population": "16624"
+      },
+      {
+        "placeName": "St. Augustine city",
+        "population": "16141"
+      },
+      {
+        "placeName": "St. Augustine Beach city",
+        "population": "6810"
+      },
+      {
+        "placeName": "St. Cloud city",
+        "population": "74960"
+      },
+      {
+        "placeName": "St. Leo town",
+        "population": "2468"
+      },
+      {
+        "placeName": "St. Lucie Village town",
+        "population": "642"
+      },
+      {
+        "placeName": "St. Marks city",
+        "population": "320"
+      },
+      {
+        "placeName": "St. Pete Beach city",
+        "population": "8553"
+      },
+      {
+        "placeName": "St. Petersburg city",
+        "population": "264033"
+      },
+      {
+        "placeName": "San Antonio city",
+        "population": "1603"
+      },
+      {
+        "placeName": "Sanford city",
+        "population": "67483"
+      },
+      {
+        "placeName": "Sanibel city",
+        "population": "6303"
+      },
+      {
+        "placeName": "Sarasota city",
+        "population": "58458"
+      },
+      {
+        "placeName": "Satellite Beach city",
+        "population": "11365"
+      },
+      {
+        "placeName": "Sea Ranch Lakes village",
+        "population": "567"
+      },
+      {
+        "placeName": "Sebastian city",
+        "population": "27352"
+      },
+      {
+        "placeName": "Sebring city",
+        "population": "12059"
+      },
+      {
+        "placeName": "Seminole city",
+        "population": "18997"
+      },
+      {
+        "placeName": "Sewall's Point town",
+        "population": "2078"
+      },
+      {
+        "placeName": "Shalimar town",
+        "population": "758"
+      },
+      {
+        "placeName": "Sneads town",
+        "population": "1784"
+      },
+      {
+        "placeName": "Sopchoppy city",
+        "population": "487"
+      },
+      {
+        "placeName": "South Bay city",
+        "population": "5140"
+      },
+      {
+        "placeName": "South Daytona city",
+        "population": "13894"
+      },
+      {
+        "placeName": "South Miami city",
+        "population": "13660"
+      },
+      {
+        "placeName": "South Palm Beach town",
+        "population": "1488"
+      },
+      {
+        "placeName": "South Pasadena city",
+        "population": "5169"
+      },
+      {
+        "placeName": "Southwest Ranches town",
+        "population": "7773"
+      },
+      {
+        "placeName": "Springfield city",
+        "population": "8551"
+      },
+      {
+        "placeName": "Starke city",
+        "population": "5963"
+      },
+      {
+        "placeName": "Stuart city",
+        "population": "19451"
+      },
+      {
+        "placeName": "Sunny Isles Beach city",
+        "population": "22395"
+      },
+      {
+        "placeName": "Sunrise city",
+        "population": "98846"
+      },
+      {
+        "placeName": "Surfside town",
+        "population": "5591"
+      },
+      {
+        "placeName": "Sweetwater city",
+        "population": "20828"
+      },
+      {
+        "placeName": "Tallahassee city",
+        "population": "204902"
+      },
+      {
+        "placeName": "Tamarac city",
+        "population": "74134"
+      },
+      {
+        "placeName": "Tampa city",
+        "population": "413554"
+      },
+      {
+        "placeName": "Tarpon Springs city",
+        "population": "25602"
+      },
+      {
+        "placeName": "Tavares city",
+        "population": "22490"
+      },
+      {
+        "placeName": "Temple Terrace city",
+        "population": "27075"
+      },
+      {
+        "placeName": "Tequesta village",
+        "population": "6299"
+      },
+      {
+        "placeName": "Titusville city",
+        "population": "49800"
+      },
+      {
+        "placeName": "Treasure Island city",
+        "population": "6397"
+      },
+      {
+        "placeName": "Trenton city",
+        "population": "2296"
+      },
+      {
+        "placeName": "Umatilla city",
+        "population": "4199"
+      },
+      {
+        "placeName": "Valparaiso city",
+        "population": "4896"
+      },
+      {
+        "placeName": "Venice city",
+        "population": "30477"
+      },
+      {
+        "placeName": "Vernon city",
+        "population": "755"
+      },
+      {
+        "placeName": "Vero Beach city",
+        "population": "17603"
+      },
+      {
+        "placeName": "Virginia Gardens village",
+        "population": "2307"
+      },
+      {
+        "placeName": "Waldo city",
+        "population": "814"
+      },
+      {
+        "placeName": "Wauchula city",
+        "population": "4946"
+      },
+      {
+        "placeName": "Wausau town",
+        "population": "394"
+      },
+      {
+        "placeName": "Webster city",
+        "population": "989"
+      },
+      {
+        "placeName": "Welaka town",
+        "population": "786"
+      },
+      {
+        "placeName": "Wellington village",
+        "population": "62662"
+      },
+      {
+        "placeName": "Westlake city",
+        "population": "9042"
+      },
+      {
+        "placeName": "West Melbourne city",
+        "population": "31285"
+      },
+      {
+        "placeName": "West Miami city",
+        "population": "7125"
+      },
+      {
+        "placeName": "Weston city",
+        "population": "69588"
+      },
+      {
+        "placeName": "West Palm Beach city",
+        "population": "127189"
+      },
+      {
+        "placeName": "West Park city",
+        "population": "15444"
+      },
+      {
+        "placeName": "Westville town",
+        "population": "274"
+      },
+      {
+        "placeName": "Wewahitchka city",
+        "population": "2213"
+      },
+      {
+        "placeName": "White Springs town",
+        "population": "759"
+      },
+      {
+        "placeName": "Wildwood city",
+        "population": "19436"
+      },
+      {
+        "placeName": "Williston city",
+        "population": "3456"
+      },
+      {
+        "placeName": "Wilton Manors city",
+        "population": "11655"
+      },
+      {
+        "placeName": "Windermere town",
+        "population": "3344"
+      },
+      {
+        "placeName": "Winter Garden city",
+        "population": "48063"
+      },
+      {
+        "placeName": "Winter Haven city",
+        "population": "62313"
+      },
+      {
+        "placeName": "Winter Park city",
+        "population": "30444"
+      },
+      {
+        "placeName": "Winter Springs city",
+        "population": "39585"
+      },
+      {
+        "placeName": "Worthington Springs town",
+        "population": "380"
+      },
+      {
+        "placeName": "Yankeetown town",
+        "population": "637"
+      },
+      {
+        "placeName": "Zephyrhills city",
+        "population": "22447"
+      },
+      {
+        "placeName": "Zolfo Springs town",
+        "population": "1754"
+      }
+    ]
+  }
+]

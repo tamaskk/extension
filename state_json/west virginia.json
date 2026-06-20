@@ -1,0 +1,927 @@
+[
+  {
+    "state": "West Virginia",
+    "places": [
+      {
+        "placeName": "Addison (Webster Springs) town",
+        "population": "663"
+      },
+      {
+        "placeName": "Albright town",
+        "population": "242"
+      },
+      {
+        "placeName": "Alderson town",
+        "population": "925"
+      },
+      {
+        "placeName": "Anawalt town",
+        "population": "146"
+      },
+      {
+        "placeName": "Anmoore town",
+        "population": "482"
+      },
+      {
+        "placeName": "Ansted town",
+        "population": "1273"
+      },
+      {
+        "placeName": "Athens town",
+        "population": "1184"
+      },
+      {
+        "placeName": "Auburn town",
+        "population": "76"
+      },
+      {
+        "placeName": "Bancroft town",
+        "population": "363"
+      },
+      {
+        "placeName": "Barboursville village",
+        "population": "4307"
+      },
+      {
+        "placeName": "Barrackville town",
+        "population": "1196"
+      },
+      {
+        "placeName": "Bath (Berkeley Springs) town",
+        "population": "753"
+      },
+      {
+        "placeName": "Bayard town",
+        "population": "209"
+      },
+      {
+        "placeName": "Beckley city",
+        "population": "16373"
+      },
+      {
+        "placeName": "Beech Bottom village",
+        "population": "508"
+      },
+      {
+        "placeName": "Belington town",
+        "population": "1809"
+      },
+      {
+        "placeName": "Belle town",
+        "population": "1088"
+      },
+      {
+        "placeName": "Belmont city",
+        "population": "820"
+      },
+      {
+        "placeName": "Benwood city",
+        "population": "1196"
+      },
+      {
+        "placeName": "Bethany town",
+        "population": "752"
+      },
+      {
+        "placeName": "Bethlehem village",
+        "population": "2520"
+      },
+      {
+        "placeName": "Beverly town",
+        "population": "567"
+      },
+      {
+        "placeName": "Blacksville town",
+        "population": "119"
+      },
+      {
+        "placeName": "Bluefield city",
+        "population": "9158"
+      },
+      {
+        "placeName": "Bolivar town",
+        "population": "983"
+      },
+      {
+        "placeName": "Bradshaw town",
+        "population": "176"
+      },
+      {
+        "placeName": "Bramwell town",
+        "population": "259"
+      },
+      {
+        "placeName": "Brandonville town",
+        "population": "128"
+      },
+      {
+        "placeName": "Bridgeport city",
+        "population": "9427"
+      },
+      {
+        "placeName": "Bruceton Mills town",
+        "population": "60"
+      },
+      {
+        "placeName": "Buckhannon city",
+        "population": "5054"
+      },
+      {
+        "placeName": "Buffalo town",
+        "population": "1185"
+      },
+      {
+        "placeName": "Burnsville town",
+        "population": "371"
+      },
+      {
+        "placeName": "Cairo town",
+        "population": "165"
+      },
+      {
+        "placeName": "Camden-on-Gauley town",
+        "population": "114"
+      },
+      {
+        "placeName": "Cameron city",
+        "population": "818"
+      },
+      {
+        "placeName": "Capon Bridge town",
+        "population": "447"
+      },
+      {
+        "placeName": "Carpendale town",
+        "population": "824"
+      },
+      {
+        "placeName": "Cedar Grove town",
+        "population": "682"
+      },
+      {
+        "placeName": "Ceredo city",
+        "population": "1318"
+      },
+      {
+        "placeName": "Chapmanville town",
+        "population": "936"
+      },
+      {
+        "placeName": "Charleston city",
+        "population": "46117"
+      },
+      {
+        "placeName": "Charles Town city",
+        "population": "9329"
+      },
+      {
+        "placeName": "Chesapeake town",
+        "population": "1270"
+      },
+      {
+        "placeName": "Chester city",
+        "population": "2080"
+      },
+      {
+        "placeName": "Clarksburg city",
+        "population": "15562"
+      },
+      {
+        "placeName": "Clay town",
+        "population": "363"
+      },
+      {
+        "placeName": "Clearview village",
+        "population": "450"
+      },
+      {
+        "placeName": "Clendenin town",
+        "population": "859"
+      },
+      {
+        "placeName": "Cowen town",
+        "population": "465"
+      },
+      {
+        "placeName": "Danville town",
+        "population": "630"
+      },
+      {
+        "placeName": "Davis town",
+        "population": "579"
+      },
+      {
+        "placeName": "Davy town",
+        "population": "182"
+      },
+      {
+        "placeName": "Delbarton town",
+        "population": "381"
+      },
+      {
+        "placeName": "Dunbar city",
+        "population": "7050"
+      },
+      {
+        "placeName": "Durbin town",
+        "population": "246"
+      },
+      {
+        "placeName": "East Bank town",
+        "population": "772"
+      },
+      {
+        "placeName": "Eleanor town",
+        "population": "1497"
+      },
+      {
+        "placeName": "Elizabeth town",
+        "population": "676"
+      },
+      {
+        "placeName": "Elk Garden town",
+        "population": "209"
+      },
+      {
+        "placeName": "Elkins city",
+        "population": "6622"
+      },
+      {
+        "placeName": "Ellenboro town",
+        "population": "244"
+      },
+      {
+        "placeName": "Fairmont city",
+        "population": "18035"
+      },
+      {
+        "placeName": "Fairview town",
+        "population": "367"
+      },
+      {
+        "placeName": "Falling Spring town",
+        "population": "165"
+      },
+      {
+        "placeName": "Farmington town",
+        "population": "395"
+      },
+      {
+        "placeName": "Fayetteville town",
+        "population": "2721"
+      },
+      {
+        "placeName": "Flatwoods town",
+        "population": "260"
+      },
+      {
+        "placeName": "Flemington town",
+        "population": "302"
+      },
+      {
+        "placeName": "Follansbee city",
+        "population": "2668"
+      },
+      {
+        "placeName": "Fort Gay town",
+        "population": "654"
+      },
+      {
+        "placeName": "Franklin town",
+        "population": "527"
+      },
+      {
+        "placeName": "Friendly town",
+        "population": "94"
+      },
+      {
+        "placeName": "Gary city",
+        "population": "681"
+      },
+      {
+        "placeName": "Gassaway town",
+        "population": "715"
+      },
+      {
+        "placeName": "Gauley Bridge town",
+        "population": "514"
+      },
+      {
+        "placeName": "Gilbert town",
+        "population": "301"
+      },
+      {
+        "placeName": "Glasgow town",
+        "population": "682"
+      },
+      {
+        "placeName": "Glen Dale city",
+        "population": "1404"
+      },
+      {
+        "placeName": "Glenville town",
+        "population": "1047"
+      },
+      {
+        "placeName": "Grafton city",
+        "population": "4529"
+      },
+      {
+        "placeName": "Grantsville town",
+        "population": "475"
+      },
+      {
+        "placeName": "Grant Town town",
+        "population": "669"
+      },
+      {
+        "placeName": "Granville town",
+        "population": "1362"
+      },
+      {
+        "placeName": "Hambleton town",
+        "population": "229"
+      },
+      {
+        "placeName": "Hamlin town",
+        "population": "968"
+      },
+      {
+        "placeName": "Handley town",
+        "population": "210"
+      },
+      {
+        "placeName": "Harman town",
+        "population": "91"
+      },
+      {
+        "placeName": "Harpers Ferry town",
+        "population": "266"
+      },
+      {
+        "placeName": "Harrisville town",
+        "population": "1511"
+      },
+      {
+        "placeName": "Hartford City town",
+        "population": "488"
+      },
+      {
+        "placeName": "Hedgesville town",
+        "population": "298"
+      },
+      {
+        "placeName": "Henderson town",
+        "population": "220"
+      },
+      {
+        "placeName": "Hendricks town",
+        "population": "205"
+      },
+      {
+        "placeName": "Hillsboro town",
+        "population": "218"
+      },
+      {
+        "placeName": "Hinton city",
+        "population": "2149"
+      },
+      {
+        "placeName": "Hundred town",
+        "population": "240"
+      },
+      {
+        "placeName": "Huntington city",
+        "population": "44815"
+      },
+      {
+        "placeName": "Hurricane city",
+        "population": "7367"
+      },
+      {
+        "placeName": "Huttonsville town",
+        "population": "155"
+      },
+      {
+        "placeName": "Iaeger town",
+        "population": "239"
+      },
+      {
+        "placeName": "Jane Lew town",
+        "population": "395"
+      },
+      {
+        "placeName": "Junior town",
+        "population": "380"
+      },
+      {
+        "placeName": "Kenova city",
+        "population": "2841"
+      },
+      {
+        "placeName": "Kermit town",
+        "population": "286"
+      },
+      {
+        "placeName": "Keyser city",
+        "population": "4777"
+      },
+      {
+        "placeName": "Keystone city",
+        "population": "151"
+      },
+      {
+        "placeName": "Kimball town",
+        "population": "243"
+      },
+      {
+        "placeName": "Kingwood city",
+        "population": "2937"
+      },
+      {
+        "placeName": "Leon town",
+        "population": "129"
+      },
+      {
+        "placeName": "Lester town",
+        "population": "331"
+      },
+      {
+        "placeName": "Lewisburg city",
+        "population": "3721"
+      },
+      {
+        "placeName": "Logan city",
+        "population": "1312"
+      },
+      {
+        "placeName": "Lost Creek town",
+        "population": "363"
+      },
+      {
+        "placeName": "Lumberport town",
+        "population": "648"
+      },
+      {
+        "placeName": "Mabscott town",
+        "population": "1259"
+      },
+      {
+        "placeName": "McMechen city",
+        "population": "1605"
+      },
+      {
+        "placeName": "Madison city",
+        "population": "2678"
+      },
+      {
+        "placeName": "Man town",
+        "population": "711"
+      },
+      {
+        "placeName": "Mannington city",
+        "population": "1910"
+      },
+      {
+        "placeName": "Marlinton town",
+        "population": "945"
+      },
+      {
+        "placeName": "Marmet city",
+        "population": "1416"
+      },
+      {
+        "placeName": "Martinsburg city",
+        "population": "19211"
+      },
+      {
+        "placeName": "Mason town",
+        "population": "832"
+      },
+      {
+        "placeName": "Masontown town",
+        "population": "510"
+      },
+      {
+        "placeName": "Matewan town",
+        "population": "370"
+      },
+      {
+        "placeName": "Meadow Bridge town",
+        "population": "307"
+      },
+      {
+        "placeName": "Middlebourne town",
+        "population": "676"
+      },
+      {
+        "placeName": "Mill Creek town",
+        "population": "532"
+      },
+      {
+        "placeName": "Milton town",
+        "population": "2792"
+      },
+      {
+        "placeName": "Mitchell Heights town",
+        "population": "291"
+      },
+      {
+        "placeName": "Monongah town",
+        "population": "1055"
+      },
+      {
+        "placeName": "Montgomery city",
+        "population": "1186"
+      },
+      {
+        "placeName": "Montrose town",
+        "population": "133"
+      },
+      {
+        "placeName": "Moorefield town",
+        "population": "2655"
+      },
+      {
+        "placeName": "Morgantown city",
+        "population": "30293"
+      },
+      {
+        "placeName": "Moundsville city",
+        "population": "7659"
+      },
+      {
+        "placeName": "Mount Hope city",
+        "population": "1234"
+      },
+      {
+        "placeName": "Mullens city",
+        "population": "1336"
+      },
+      {
+        "placeName": "Newburg town",
+        "population": "256"
+      },
+      {
+        "placeName": "New Cumberland city",
+        "population": "939"
+      },
+      {
+        "placeName": "New Haven town",
+        "population": "1385"
+      },
+      {
+        "placeName": "New Martinsville city",
+        "population": "5039"
+      },
+      {
+        "placeName": "Nitro city",
+        "population": "6270"
+      },
+      {
+        "placeName": "Northfork town",
+        "population": "202"
+      },
+      {
+        "placeName": "North Hills town",
+        "population": "805"
+      },
+      {
+        "placeName": "Nutter Fort town",
+        "population": "1451"
+      },
+      {
+        "placeName": "Oak Hill city",
+        "population": "7629"
+      },
+      {
+        "placeName": "Oakvale town",
+        "population": "132"
+      },
+      {
+        "placeName": "Oceana town",
+        "population": "1382"
+      },
+      {
+        "placeName": "Paden City city",
+        "population": "2381"
+      },
+      {
+        "placeName": "Parkersburg city",
+        "population": "28593"
+      },
+      {
+        "placeName": "Parsons city",
+        "population": "1282"
+      },
+      {
+        "placeName": "Paw Paw town",
+        "population": "416"
+      },
+      {
+        "placeName": "Pax town",
+        "population": "117"
+      },
+      {
+        "placeName": "Pennsboro city",
+        "population": "987"
+      },
+      {
+        "placeName": "Petersburg city",
+        "population": "2282"
+      },
+      {
+        "placeName": "Peterstown town",
+        "population": "449"
+      },
+      {
+        "placeName": "Philippi city",
+        "population": "2846"
+      },
+      {
+        "placeName": "Piedmont town",
+        "population": "691"
+      },
+      {
+        "placeName": "Pine Grove town",
+        "population": "341"
+      },
+      {
+        "placeName": "Pineville town",
+        "population": "663"
+      },
+      {
+        "placeName": "Pleasant Valley city",
+        "population": "3457"
+      },
+      {
+        "placeName": "Poca town",
+        "population": "860"
+      },
+      {
+        "placeName": "Point Pleasant city",
+        "population": "3869"
+      },
+      {
+        "placeName": "Pratt town",
+        "population": "458"
+      },
+      {
+        "placeName": "Princeton city",
+        "population": "5578"
+      },
+      {
+        "placeName": "Pullman town",
+        "population": "132"
+      },
+      {
+        "placeName": "Quinwood town",
+        "population": "204"
+      },
+      {
+        "placeName": "Rainelle town",
+        "population": "1180"
+      },
+      {
+        "placeName": "Ranson corporation",
+        "population": "6853"
+      },
+      {
+        "placeName": "Ravenswood city",
+        "population": "3790"
+      },
+      {
+        "placeName": "Reedsville town",
+        "population": "524"
+      },
+      {
+        "placeName": "Reedy town",
+        "population": "144"
+      },
+      {
+        "placeName": "Richwood city",
+        "population": "1598"
+      },
+      {
+        "placeName": "Ridgeley town",
+        "population": "570"
+      },
+      {
+        "placeName": "Ripley city",
+        "population": "3038"
+      },
+      {
+        "placeName": "Rivesville town",
+        "population": "806"
+      },
+      {
+        "placeName": "Romney city",
+        "population": "1767"
+      },
+      {
+        "placeName": "Ronceverte city",
+        "population": "1492"
+      },
+      {
+        "placeName": "Rowlesburg town",
+        "population": "430"
+      },
+      {
+        "placeName": "Rupert town",
+        "population": "822"
+      },
+      {
+        "placeName": "St. Albans city",
+        "population": "10210"
+      },
+      {
+        "placeName": "St. Marys city",
+        "population": "1746"
+      },
+      {
+        "placeName": "Salem city",
+        "population": "1570"
+      },
+      {
+        "placeName": "Sand Fork town",
+        "population": "168"
+      },
+      {
+        "placeName": "Shepherdstown town",
+        "population": "1522"
+      },
+      {
+        "placeName": "Shinnston city",
+        "population": "2241"
+      },
+      {
+        "placeName": "Sistersville city",
+        "population": "1319"
+      },
+      {
+        "placeName": "Smithers city",
+        "population": "694"
+      },
+      {
+        "placeName": "Smithfield town",
+        "population": "96"
+      },
+      {
+        "placeName": "Sophia town",
+        "population": "1076"
+      },
+      {
+        "placeName": "South Charleston city",
+        "population": "13072"
+      },
+      {
+        "placeName": "Spencer city",
+        "population": "1895"
+      },
+      {
+        "placeName": "Star City town",
+        "population": "1795"
+      },
+      {
+        "placeName": "Stonewood city",
+        "population": "1743"
+      },
+      {
+        "placeName": "Summersville city",
+        "population": "3297"
+      },
+      {
+        "placeName": "Sutton town",
+        "population": "814"
+      },
+      {
+        "placeName": "Sylvester town",
+        "population": "149"
+      },
+      {
+        "placeName": "Terra Alta town",
+        "population": "1413"
+      },
+      {
+        "placeName": "Thomas city",
+        "population": "587"
+      },
+      {
+        "placeName": "Thurmond town",
+        "population": "6"
+      },
+      {
+        "placeName": "Triadelphia town",
+        "population": "651"
+      },
+      {
+        "placeName": "Tunnelton town",
+        "population": "296"
+      },
+      {
+        "placeName": "Union town",
+        "population": "418"
+      },
+      {
+        "placeName": "Valley Grove village",
+        "population": "269"
+      },
+      {
+        "placeName": "Vienna city",
+        "population": "10321"
+      },
+      {
+        "placeName": "War city",
+        "population": "536"
+      },
+      {
+        "placeName": "Wardensville town",
+        "population": "260"
+      },
+      {
+        "placeName": "Wayne town",
+        "population": "1383"
+      },
+      {
+        "placeName": "Weirton city",
+        "population": "18133"
+      },
+      {
+        "placeName": "Welch city",
+        "population": "3389"
+      },
+      {
+        "placeName": "Wellsburg city",
+        "population": "2255"
+      },
+      {
+        "placeName": "West Hamlin town",
+        "population": "503"
+      },
+      {
+        "placeName": "West Liberty town",
+        "population": "1429"
+      },
+      {
+        "placeName": "West Logan town",
+        "population": "369"
+      },
+      {
+        "placeName": "West Milford town",
+        "population": "443"
+      },
+      {
+        "placeName": "Weston city",
+        "population": "3736"
+      },
+      {
+        "placeName": "Westover city",
+        "population": "4086"
+      },
+      {
+        "placeName": "West Union town",
+        "population": "647"
+      },
+      {
+        "placeName": "Wheeling city",
+        "population": "25680"
+      },
+      {
+        "placeName": "White Hall town",
+        "population": "700"
+      },
+      {
+        "placeName": "White Sulphur Springs city",
+        "population": "2133"
+      },
+      {
+        "placeName": "Whitesville town",
+        "population": "340"
+      },
+      {
+        "placeName": "Williamson city",
+        "population": "2753"
+      },
+      {
+        "placeName": "Williamstown city",
+        "population": "2922"
+      },
+      {
+        "placeName": "Windsor Heights village",
+        "population": "337"
+      },
+      {
+        "placeName": "Winfield town",
+        "population": "2381"
+      },
+      {
+        "placeName": "Womelsdorf (Coalton) town",
+        "population": "182"
+      },
+      {
+        "placeName": "Worthington town",
+        "population": "171"
+      }
+    ]
+  }
+]

@@ -1,0 +1,239 @@
+[
+  {
+    "state": "Massachusetts",
+    "places": [
+      {
+        "placeName": "Agawam Town city",
+        "population": "28783"
+      },
+      {
+        "placeName": "Amesbury city",
+        "population": "17588"
+      },
+      {
+        "placeName": "Amherst Town city",
+        "population": "40920"
+      },
+      {
+        "placeName": "Attleboro city",
+        "population": "47447"
+      },
+      {
+        "placeName": "Barnstable Town city",
+        "population": "50101"
+      },
+      {
+        "placeName": "Beverly city",
+        "population": "43363"
+      },
+      {
+        "placeName": "Boston city",
+        "population": "672973"
+      },
+      {
+        "placeName": "Braintree Town city",
+        "population": "38957"
+      },
+      {
+        "placeName": "Bridgewater Town city",
+        "population": "29309"
+      },
+      {
+        "placeName": "Brockton city",
+        "population": "106134"
+      },
+      {
+        "placeName": "Cambridge city",
+        "population": "122588"
+      },
+      {
+        "placeName": "Chelsea city",
+        "population": "40130"
+      },
+      {
+        "placeName": "Chicopee city",
+        "population": "55310"
+      },
+      {
+        "placeName": "Easthampton city",
+        "population": "15851"
+      },
+      {
+        "placeName": "Everett city",
+        "population": "53572"
+      },
+      {
+        "placeName": "Fall River city",
+        "population": "95298"
+      },
+      {
+        "placeName": "Fitchburg city",
+        "population": "42136"
+      },
+      {
+        "placeName": "Framingham city",
+        "population": "73021"
+      },
+      {
+        "placeName": "Franklin Town city",
+        "population": "33955"
+      },
+      {
+        "placeName": "Gardner city",
+        "population": "21483"
+      },
+      {
+        "placeName": "Gloucester city",
+        "population": "30627"
+      },
+      {
+        "placeName": "Greenfield city",
+        "population": "17691"
+      },
+      {
+        "placeName": "Haverhill city",
+        "population": "68361"
+      },
+      {
+        "placeName": "Holyoke city",
+        "population": "38023"
+      },
+      {
+        "placeName": "Lawrence city",
+        "population": "89320"
+      },
+      {
+        "placeName": "Leominster city",
+        "population": "44194"
+      },
+      {
+        "placeName": "Lowell city",
+        "population": "119971"
+      },
+      {
+        "placeName": "Lynn city",
+        "population": "104236"
+      },
+      {
+        "placeName": "Malden city",
+        "population": "66370"
+      },
+      {
+        "placeName": "Marlborough city",
+        "population": "42772"
+      },
+      {
+        "placeName": "Medford city",
+        "population": "59834"
+      },
+      {
+        "placeName": "Melrose city",
+        "population": "29597"
+      },
+      {
+        "placeName": "Methuen city",
+        "population": "54584"
+      },
+      {
+        "placeName": "New Bedford city",
+        "population": "101834"
+      },
+      {
+        "placeName": "Newburyport city",
+        "population": "19148"
+      },
+      {
+        "placeName": "Newton city",
+        "population": "90741"
+      },
+      {
+        "placeName": "North Adams city",
+        "population": "12368"
+      },
+      {
+        "placeName": "Northampton city",
+        "population": "31047"
+      },
+      {
+        "placeName": "North Attleborough Town city",
+        "population": "31506"
+      },
+      {
+        "placeName": "Palmer Town city",
+        "population": "12367"
+      },
+      {
+        "placeName": "Peabody city",
+        "population": "55953"
+      },
+      {
+        "placeName": "Pittsfield city",
+        "population": "42909"
+      },
+      {
+        "placeName": "Quincy city",
+        "population": "103173"
+      },
+      {
+        "placeName": "Randolph Town city",
+        "population": "34948"
+      },
+      {
+        "placeName": "Revere city",
+        "population": "60141"
+      },
+      {
+        "placeName": "Salem city",
+        "population": "45381"
+      },
+      {
+        "placeName": "Somerville city",
+        "population": "84211"
+      },
+      {
+        "placeName": "Southbridge Town city",
+        "population": "18105"
+      },
+      {
+        "placeName": "Springfield city",
+        "population": "154702"
+      },
+      {
+        "placeName": "Taunton city",
+        "population": "62522"
+      },
+      {
+        "placeName": "Waltham city",
+        "population": "65037"
+      },
+      {
+        "placeName": "Watertown city",
+        "population": "35710"
+      },
+      {
+        "placeName": "Westfield city",
+        "population": "40546"
+      },
+      {
+        "placeName": "West Springfield Town city",
+        "population": "28829"
+      },
+      {
+        "placeName": "Weymouth Town city",
+        "population": "59759"
+      },
+      {
+        "placeName": "Winthrop Town city",
+        "population": "18647"
+      },
+      {
+        "placeName": "Woburn city",
+        "population": "43962"
+      },
+      {
+        "placeName": "Worcester city",
+        "population": "213862"
+      }
+    ]
+  }
+]

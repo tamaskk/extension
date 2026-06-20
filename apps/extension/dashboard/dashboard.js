@@ -779,6 +779,17 @@ async function renderQueue(force) {
   });
 }
 
+// Country / State segmented switch (top of the batch modal). Persisted; used later.
+let bdGeo = 'country';
+function applyBdGeo(geo) {
+  bdGeo = geo === 'state' ? 'state' : 'country';
+  document.querySelectorAll('#bd_geo .seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.geo === bdGeo));
+}
+chrome.storage.local.get('gridleads_batch_geo', (o) => applyBdGeo(o.gridleads_batch_geo || 'country'));
+document.querySelectorAll('#bd_geo .seg-btn').forEach((b) => {
+  b.addEventListener('click', () => { applyBdGeo(b.dataset.geo); chrome.storage.local.set({ gridleads_batch_geo: bdGeo }); });
+});
+
 // Batch mode switch (shared persisted setting; same as the popup).
 const bdModeHint = (on) => { $('bd_modeHint').textContent = on ? 'On — upload each batch to DB, free browser storage' : 'Off — keep everything in the browser'; };
 msg({ type: 'getBatchMode' }).then((r) => { const on = r && r.mode === 'stream'; $('bd_mode').checked = on; bdModeHint(on); }).catch(() => {});

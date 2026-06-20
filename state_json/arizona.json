@@ -1,0 +1,371 @@
+[
+  {
+    "state": "Arizona",
+    "places": [
+      {
+        "placeName": "Apache Junction city",
+        "population": "45672"
+      },
+      {
+        "placeName": "Avondale city",
+        "population": "100983"
+      },
+      {
+        "placeName": "Benson city",
+        "population": "5532"
+      },
+      {
+        "placeName": "Bisbee city",
+        "population": "4860"
+      },
+      {
+        "placeName": "Buckeye city",
+        "population": "125445"
+      },
+      {
+        "placeName": "Bullhead City city",
+        "population": "43987"
+      },
+      {
+        "placeName": "Camp Verde town",
+        "population": "12581"
+      },
+      {
+        "placeName": "Carefree town",
+        "population": "3600"
+      },
+      {
+        "placeName": "Casa Grande city",
+        "population": "69753"
+      },
+      {
+        "placeName": "Cave Creek town",
+        "population": "5160"
+      },
+      {
+        "placeName": "Chandler city",
+        "population": "278748"
+      },
+      {
+        "placeName": "Chino Valley town",
+        "population": "13832"
+      },
+      {
+        "placeName": "Clarkdale town",
+        "population": "4806"
+      },
+      {
+        "placeName": "Clifton town",
+        "population": "3752"
+      },
+      {
+        "placeName": "Colorado City town",
+        "population": "3484"
+      },
+      {
+        "placeName": "Coolidge city",
+        "population": "19959"
+      },
+      {
+        "placeName": "Cottonwood city",
+        "population": "12709"
+      },
+      {
+        "placeName": "Dewey-Humboldt town",
+        "population": "4604"
+      },
+      {
+        "placeName": "Douglas city",
+        "population": "16038"
+      },
+      {
+        "placeName": "Duncan town",
+        "population": "672"
+      },
+      {
+        "placeName": "Eagar town",
+        "population": "4459"
+      },
+      {
+        "placeName": "El Mirage city",
+        "population": "35820"
+      },
+      {
+        "placeName": "Eloy city",
+        "population": "19967"
+      },
+      {
+        "placeName": "Flagstaff city",
+        "population": "77260"
+      },
+      {
+        "placeName": "Florence town",
+        "population": "25222"
+      },
+      {
+        "placeName": "Fountain Hills town",
+        "population": "23625"
+      },
+      {
+        "placeName": "Fredonia town",
+        "population": "1290"
+      },
+      {
+        "placeName": "Gila Bend town",
+        "population": "1816"
+      },
+      {
+        "placeName": "Gilbert town",
+        "population": "287285"
+      },
+      {
+        "placeName": "Glendale city",
+        "population": "260572"
+      },
+      {
+        "placeName": "Globe city",
+        "population": "7191"
+      },
+      {
+        "placeName": "Goodyear city",
+        "population": "125359"
+      },
+      {
+        "placeName": "Guadalupe town",
+        "population": "5093"
+      },
+      {
+        "placeName": "Hayden town",
+        "population": "510"
+      },
+      {
+        "placeName": "Holbrook city",
+        "population": "4866"
+      },
+      {
+        "placeName": "Huachuca City town",
+        "population": "1583"
+      },
+      {
+        "placeName": "Jerome town",
+        "population": "452"
+      },
+      {
+        "placeName": "Kearny town",
+        "population": "1849"
+      },
+      {
+        "placeName": "Kingman city",
+        "population": "35829"
+      },
+      {
+        "placeName": "Lake Havasu City city",
+        "population": "59358"
+      },
+      {
+        "placeName": "Litchfield Park city",
+        "population": "6727"
+      },
+      {
+        "placeName": "Mammoth town",
+        "population": "1149"
+      },
+      {
+        "placeName": "Marana town",
+        "population": "65523"
+      },
+      {
+        "placeName": "Maricopa city",
+        "population": "78362"
+      },
+      {
+        "placeName": "Mesa city",
+        "population": "513656"
+      },
+      {
+        "placeName": "Miami town",
+        "population": "1514"
+      },
+      {
+        "placeName": "Nogales city",
+        "population": "19495"
+      },
+      {
+        "placeName": "Oro Valley town",
+        "population": "48085"
+      },
+      {
+        "placeName": "Page city",
+        "population": "7147"
+      },
+      {
+        "placeName": "Paradise Valley town",
+        "population": "12251"
+      },
+      {
+        "placeName": "Parker town",
+        "population": "3394"
+      },
+      {
+        "placeName": "Patagonia town",
+        "population": "771"
+      },
+      {
+        "placeName": "Payson town",
+        "population": "16693"
+      },
+      {
+        "placeName": "Peoria city",
+        "population": "200881"
+      },
+      {
+        "placeName": "Phoenix city",
+        "population": "1665481"
+      },
+      {
+        "placeName": "Pima town",
+        "population": "3181"
+      },
+      {
+        "placeName": "Pinetop-Lakeside town",
+        "population": "4149"
+      },
+      {
+        "placeName": "Prescott city",
+        "population": "48420"
+      },
+      {
+        "placeName": "Prescott Valley town",
+        "population": "52423"
+      },
+      {
+        "placeName": "Quartzsite town",
+        "population": "2388"
+      },
+      {
+        "placeName": "Queen Creek town",
+        "population": "89770"
+      },
+      {
+        "placeName": "Safford city",
+        "population": "10279"
+      },
+      {
+        "placeName": "Sahuarita town",
+        "population": "37694"
+      },
+      {
+        "placeName": "St. Johns city",
+        "population": "3336"
+      },
+      {
+        "placeName": "San Luis city",
+        "population": "42030"
+      },
+      {
+        "placeName": "Scottsdale city",
+        "population": "243006"
+      },
+      {
+        "placeName": "Sedona city",
+        "population": "9619"
+      },
+      {
+        "placeName": "Show Low city",
+        "population": "12471"
+      },
+      {
+        "placeName": "Sierra Vista city",
+        "population": "44907"
+      },
+      {
+        "placeName": "Snowflake town",
+        "population": "6902"
+      },
+      {
+        "placeName": "Somerton city",
+        "population": "14934"
+      },
+      {
+        "placeName": "South Tucson city",
+        "population": "4452"
+      },
+      {
+        "placeName": "Springerville town",
+        "population": "1719"
+      },
+      {
+        "placeName": "Star Valley town",
+        "population": "2538"
+      },
+      {
+        "placeName": "Superior town",
+        "population": "2611"
+      },
+      {
+        "placeName": "Surprise city",
+        "population": "175304"
+      },
+      {
+        "placeName": "Taylor town",
+        "population": "4408"
+      },
+      {
+        "placeName": "Tempe city",
+        "population": "190571"
+      },
+      {
+        "placeName": "Thatcher town",
+        "population": "5690"
+      },
+      {
+        "placeName": "Tolleson city",
+        "population": "9224"
+      },
+      {
+        "placeName": "Tombstone city",
+        "population": "1376"
+      },
+      {
+        "placeName": "Tucson city",
+        "population": "548371"
+      },
+      {
+        "placeName": "Tusayan town",
+        "population": "581"
+      },
+      {
+        "placeName": "Wellton town",
+        "population": "2671"
+      },
+      {
+        "placeName": "Wickenburg town",
+        "population": "8305"
+      },
+      {
+        "placeName": "Willcox city",
+        "population": "3189"
+      },
+      {
+        "placeName": "Williams city",
+        "population": "3473"
+      },
+      {
+        "placeName": "Winkelman town",
+        "population": "290"
+      },
+      {
+        "placeName": "Winslow city",
+        "population": "8464"
+      },
+      {
+        "placeName": "Youngtown town",
+        "population": "7039"
+      },
+      {
+        "placeName": "Yuma city",
+        "population": "105227"
+      }
+    ]
+  }
+]

@@ -1,0 +1,1091 @@
+[
+  {
+    "state": "Colorado",
+    "places": [
+      {
+        "placeName": "Aguilar town",
+        "population": "445"
+      },
+      {
+        "placeName": "Akron town",
+        "population": "1725"
+      },
+      {
+        "placeName": "Alamosa city",
+        "population": "9849"
+      },
+      {
+        "placeName": "Alma town",
+        "population": "312"
+      },
+      {
+        "placeName": "Antonito town",
+        "population": "615"
+      },
+      {
+        "placeName": "Arriba town",
+        "population": "203"
+      },
+      {
+        "placeName": "Arvada city",
+        "population": "122901"
+      },
+      {
+        "placeName": "Aspen city",
+        "population": "6489"
+      },
+      {
+        "placeName": "Ault town",
+        "population": "2667"
+      },
+      {
+        "placeName": "Aurora city",
+        "population": "410053"
+      },
+      {
+        "placeName": "Avon town",
+        "population": "6184"
+      },
+      {
+        "placeName": "Basalt town",
+        "population": "4009"
+      },
+      {
+        "placeName": "Bayfield town",
+        "population": "2974"
+      },
+      {
+        "placeName": "Bennett town",
+        "population": "4224"
+      },
+      {
+        "placeName": "Berthoud town",
+        "population": "14080"
+      },
+      {
+        "placeName": "Bethune town",
+        "population": "190"
+      },
+      {
+        "placeName": "Black Hawk city",
+        "population": "120"
+      },
+      {
+        "placeName": "Blanca town",
+        "population": "320"
+      },
+      {
+        "placeName": "Blue River town",
+        "population": "859"
+      },
+      {
+        "placeName": "Boone town",
+        "population": "305"
+      },
+      {
+        "placeName": "Boulder city",
+        "population": "105689"
+      },
+      {
+        "placeName": "Bow Mar town",
+        "population": "832"
+      },
+      {
+        "placeName": "Branson town",
+        "population": "57"
+      },
+      {
+        "placeName": "Breckenridge town",
+        "population": "5015"
+      },
+      {
+        "placeName": "Brighton city",
+        "population": "45395"
+      },
+      {
+        "placeName": "Brookside town",
+        "population": "235"
+      },
+      {
+        "placeName": "Broomfield city",
+        "population": "79174"
+      },
+      {
+        "placeName": "Brush city",
+        "population": "5337"
+      },
+      {
+        "placeName": "Buena Vista town",
+        "population": "3248"
+      },
+      {
+        "placeName": "Burlington city",
+        "population": "3164"
+      },
+      {
+        "placeName": "Calhan town",
+        "population": "727"
+      },
+      {
+        "placeName": "Campo town",
+        "population": "95"
+      },
+      {
+        "placeName": "Cañon City city",
+        "population": "17030"
+      },
+      {
+        "placeName": "Carbondale town",
+        "population": "6762"
+      },
+      {
+        "placeName": "Castle Pines city",
+        "population": "15583"
+      },
+      {
+        "placeName": "Castle Rock town",
+        "population": "83815"
+      },
+      {
+        "placeName": "Cedaredge town",
+        "population": "2448"
+      },
+      {
+        "placeName": "Centennial city",
+        "population": "108658"
+      },
+      {
+        "placeName": "Center town",
+        "population": "1890"
+      },
+      {
+        "placeName": "Central city",
+        "population": "807"
+      },
+      {
+        "placeName": "Cheraw town",
+        "population": "223"
+      },
+      {
+        "placeName": "Cherry Hills Village city",
+        "population": "6389"
+      },
+      {
+        "placeName": "Cheyenne Wells town",
+        "population": "722"
+      },
+      {
+        "placeName": "City of Creede town",
+        "population": "275"
+      },
+      {
+        "placeName": "Coal Creek town",
+        "population": "361"
+      },
+      {
+        "placeName": "Cokedale town",
+        "population": "123"
+      },
+      {
+        "placeName": "Collbran town",
+        "population": "355"
+      },
+      {
+        "placeName": "Colorado Springs city",
+        "population": "494743"
+      },
+      {
+        "placeName": "Columbine Valley town",
+        "population": "1684"
+      },
+      {
+        "placeName": "Commerce City city",
+        "population": "72345"
+      },
+      {
+        "placeName": "Cortez city",
+        "population": "9126"
+      },
+      {
+        "placeName": "Craig city",
+        "population": "8874"
+      },
+      {
+        "placeName": "Crawford town",
+        "population": "411"
+      },
+      {
+        "placeName": "Crested Butte town",
+        "population": "1693"
+      },
+      {
+        "placeName": "Crestone town",
+        "population": "166"
+      },
+      {
+        "placeName": "Cripple Creek city",
+        "population": "1120"
+      },
+      {
+        "placeName": "Crook town",
+        "population": "125"
+      },
+      {
+        "placeName": "Crowley town",
+        "population": "155"
+      },
+      {
+        "placeName": "Dacono city",
+        "population": "6844"
+      },
+      {
+        "placeName": "De Beque town",
+        "population": "476"
+      },
+      {
+        "placeName": "Deer Trail town",
+        "population": "1755"
+      },
+      {
+        "placeName": "Del Norte town",
+        "population": "1396"
+      },
+      {
+        "placeName": "Delta city",
+        "population": "9802"
+      },
+      {
+        "placeName": "Denver city",
+        "population": "740613"
+      },
+      {
+        "placeName": "Dillon town",
+        "population": "1029"
+      },
+      {
+        "placeName": "Dinosaur town",
+        "population": "242"
+      },
+      {
+        "placeName": "Dolores town",
+        "population": "933"
+      },
+      {
+        "placeName": "Dove Creek town",
+        "population": "664"
+      },
+      {
+        "placeName": "Durango city",
+        "population": "19733"
+      },
+      {
+        "placeName": "Eads town",
+        "population": "642"
+      },
+      {
+        "placeName": "Eagle town",
+        "population": "7280"
+      },
+      {
+        "placeName": "Eaton town",
+        "population": "5848"
+      },
+      {
+        "placeName": "Eckley town",
+        "population": "232"
+      },
+      {
+        "placeName": "Edgewater city",
+        "population": "4870"
+      },
+      {
+        "placeName": "Elizabeth town",
+        "population": "2957"
+      },
+      {
+        "placeName": "Empire town",
+        "population": "317"
+      },
+      {
+        "placeName": "Englewood city",
+        "population": "35305"
+      },
+      {
+        "placeName": "Erie town",
+        "population": "40904"
+      },
+      {
+        "placeName": "Estes Park town",
+        "population": "5780"
+      },
+      {
+        "placeName": "Evans city",
+        "population": "22500"
+      },
+      {
+        "placeName": "Fairplay town",
+        "population": "743"
+      },
+      {
+        "placeName": "Federal Heights city",
+        "population": "14075"
+      },
+      {
+        "placeName": "Firestone town",
+        "population": "20129"
+      },
+      {
+        "placeName": "Flagler town",
+        "population": "584"
+      },
+      {
+        "placeName": "Fleming town",
+        "population": "421"
+      },
+      {
+        "placeName": "Florence city",
+        "population": "3856"
+      },
+      {
+        "placeName": "Fort Collins city",
+        "population": "171500"
+      },
+      {
+        "placeName": "Fort Lupton city",
+        "population": "10402"
+      },
+      {
+        "placeName": "Fort Morgan city",
+        "population": "11841"
+      },
+      {
+        "placeName": "Fountain city",
+        "population": "29450"
+      },
+      {
+        "placeName": "Fowler town",
+        "population": "1171"
+      },
+      {
+        "placeName": "Foxfield town",
+        "population": "746"
+      },
+      {
+        "placeName": "Fraser town",
+        "population": "1543"
+      },
+      {
+        "placeName": "Frederick town",
+        "population": "18241"
+      },
+      {
+        "placeName": "Frisco town",
+        "population": "2792"
+      },
+      {
+        "placeName": "Fruita city",
+        "population": "14003"
+      },
+      {
+        "placeName": "Garden City town",
+        "population": "250"
+      },
+      {
+        "placeName": "Genoa town",
+        "population": "156"
+      },
+      {
+        "placeName": "Georgetown town",
+        "population": "1217"
+      },
+      {
+        "placeName": "Gilcrest town",
+        "population": "1017"
+      },
+      {
+        "placeName": "Glendale city",
+        "population": "4475"
+      },
+      {
+        "placeName": "Glenwood Springs city",
+        "population": "10395"
+      },
+      {
+        "placeName": "Golden city",
+        "population": "20390"
+      },
+      {
+        "placeName": "Granada town",
+        "population": "463"
+      },
+      {
+        "placeName": "Granby town",
+        "population": "2392"
+      },
+      {
+        "placeName": "Grand Junction city",
+        "population": "71827"
+      },
+      {
+        "placeName": "Grand Lake town",
+        "population": "402"
+      },
+      {
+        "placeName": "Greeley city",
+        "population": "115073"
+      },
+      {
+        "placeName": "Green Mountain Falls town",
+        "population": "601"
+      },
+      {
+        "placeName": "Greenwood Village city",
+        "population": "15323"
+      },
+      {
+        "placeName": "Grover town",
+        "population": "152"
+      },
+      {
+        "placeName": "Gunnison city",
+        "population": "6836"
+      },
+      {
+        "placeName": "Gypsum town",
+        "population": "9212"
+      },
+      {
+        "placeName": "Hartman town",
+        "population": "55"
+      },
+      {
+        "placeName": "Haswell town",
+        "population": "71"
+      },
+      {
+        "placeName": "Haxtun town",
+        "population": "951"
+      },
+      {
+        "placeName": "Hayden town",
+        "population": "2250"
+      },
+      {
+        "placeName": "Hillrose town",
+        "population": "312"
+      },
+      {
+        "placeName": "Holly town",
+        "population": "836"
+      },
+      {
+        "placeName": "Holyoke city",
+        "population": "2264"
+      },
+      {
+        "placeName": "Hooper town",
+        "population": "77"
+      },
+      {
+        "placeName": "Hotchkiss town",
+        "population": "945"
+      },
+      {
+        "placeName": "Hot Sulphur Springs town",
+        "population": "663"
+      },
+      {
+        "placeName": "Hudson town",
+        "population": "1621"
+      },
+      {
+        "placeName": "Hugo town",
+        "population": "781"
+      },
+      {
+        "placeName": "Idaho Springs city",
+        "population": "1842"
+      },
+      {
+        "placeName": "Ignacio town",
+        "population": "869"
+      },
+      {
+        "placeName": "Iliff town",
+        "population": "246"
+      },
+      {
+        "placeName": "Jamestown town",
+        "population": "245"
+      },
+      {
+        "placeName": "Johnstown town",
+        "population": "22433"
+      },
+      {
+        "placeName": "Julesburg town",
+        "population": "1217"
+      },
+      {
+        "placeName": "Keenesburg town",
+        "population": "2107"
+      },
+      {
+        "placeName": "Kersey town",
+        "population": "1500"
+      },
+      {
+        "placeName": "Keystone town",
+        "population": "1274"
+      },
+      {
+        "placeName": "Kim town",
+        "population": "63"
+      },
+      {
+        "placeName": "Kiowa town",
+        "population": "738"
+      },
+      {
+        "placeName": "Kit Carson town",
+        "population": "250"
+      },
+      {
+        "placeName": "Kremmling town",
+        "population": "1451"
+      },
+      {
+        "placeName": "Lafayette city",
+        "population": "30116"
+      },
+      {
+        "placeName": "La Jara town",
+        "population": "708"
+      },
+      {
+        "placeName": "La Junta city",
+        "population": "6864"
+      },
+      {
+        "placeName": "Lake City town",
+        "population": "416"
+      },
+      {
+        "placeName": "Lakeside town",
+        "population": "16"
+      },
+      {
+        "placeName": "Lakewood city",
+        "population": "156927"
+      },
+      {
+        "placeName": "Lamar city",
+        "population": "7588"
+      },
+      {
+        "placeName": "Larkspur town",
+        "population": "219"
+      },
+      {
+        "placeName": "La Salle town",
+        "population": "2304"
+      },
+      {
+        "placeName": "Las Animas city",
+        "population": "2325"
+      },
+      {
+        "placeName": "La Veta town",
+        "population": "859"
+      },
+      {
+        "placeName": "Leadville city",
+        "population": "2668"
+      },
+      {
+        "placeName": "Limon town",
+        "population": "2021"
+      },
+      {
+        "placeName": "Littleton city",
+        "population": "46246"
+      },
+      {
+        "placeName": "Lochbuie town",
+        "population": "8776"
+      },
+      {
+        "placeName": "Log Lane Village town",
+        "population": "937"
+      },
+      {
+        "placeName": "Lone Tree city",
+        "population": "15278"
+      },
+      {
+        "placeName": "Longmont city",
+        "population": "100109"
+      },
+      {
+        "placeName": "Louisville city",
+        "population": "20581"
+      },
+      {
+        "placeName": "Loveland city",
+        "population": "81387"
+      },
+      {
+        "placeName": "Lyons town",
+        "population": "2119"
+      },
+      {
+        "placeName": "Manassa town",
+        "population": "958"
+      },
+      {
+        "placeName": "Mancos town",
+        "population": "1266"
+      },
+      {
+        "placeName": "Manitou Springs city",
+        "population": "4577"
+      },
+      {
+        "placeName": "Manzanola town",
+        "population": "319"
+      },
+      {
+        "placeName": "Marble town",
+        "population": "133"
+      },
+      {
+        "placeName": "Mead town",
+        "population": "7042"
+      },
+      {
+        "placeName": "Meeker town",
+        "population": "2417"
+      },
+      {
+        "placeName": "Merino town",
+        "population": "276"
+      },
+      {
+        "placeName": "Milliken town",
+        "population": "9183"
+      },
+      {
+        "placeName": "Minturn town",
+        "population": "986"
+      },
+      {
+        "placeName": "Moffat town",
+        "population": "102"
+      },
+      {
+        "placeName": "Monte Vista city",
+        "population": "4005"
+      },
+      {
+        "placeName": "Montezuma town",
+        "population": "72"
+      },
+      {
+        "placeName": "Montrose city",
+        "population": "21583"
+      },
+      {
+        "placeName": "Monument town",
+        "population": "13813"
+      },
+      {
+        "placeName": "Morrison town",
+        "population": "364"
+      },
+      {
+        "placeName": "Mountain View town",
+        "population": "517"
+      },
+      {
+        "placeName": "Mountain Village town",
+        "population": "1234"
+      },
+      {
+        "placeName": "Mount Crested Butte town",
+        "population": "966"
+      },
+      {
+        "placeName": "Naturita town",
+        "population": "478"
+      },
+      {
+        "placeName": "Nederland town",
+        "population": "1463"
+      },
+      {
+        "placeName": "New Castle town",
+        "population": "4896"
+      },
+      {
+        "placeName": "Northglenn city",
+        "population": "38893"
+      },
+      {
+        "placeName": "Norwood town",
+        "population": "516"
+      },
+      {
+        "placeName": "Nucla town",
+        "population": "577"
+      },
+      {
+        "placeName": "Nunn town",
+        "population": "539"
+      },
+      {
+        "placeName": "Oak Creek town",
+        "population": "834"
+      },
+      {
+        "placeName": "Olathe town",
+        "population": "1927"
+      },
+      {
+        "placeName": "Olney Springs town",
+        "population": "288"
+      },
+      {
+        "placeName": "Ophir town",
+        "population": "185"
+      },
+      {
+        "placeName": "Orchard City town",
+        "population": "3299"
+      },
+      {
+        "placeName": "Ordway town",
+        "population": "1053"
+      },
+      {
+        "placeName": "Otis town",
+        "population": "502"
+      },
+      {
+        "placeName": "Ouray city",
+        "population": "929"
+      },
+      {
+        "placeName": "Ovid town",
+        "population": "256"
+      },
+      {
+        "placeName": "Pagosa Springs town",
+        "population": "1838"
+      },
+      {
+        "placeName": "Palisade town",
+        "population": "2599"
+      },
+      {
+        "placeName": "Palmer Lake town",
+        "population": "2591"
+      },
+      {
+        "placeName": "Paoli town",
+        "population": "48"
+      },
+      {
+        "placeName": "Paonia town",
+        "population": "1477"
+      },
+      {
+        "placeName": "Parachute town",
+        "population": "1366"
+      },
+      {
+        "placeName": "Parker town",
+        "population": "65985"
+      },
+      {
+        "placeName": "Peetz town",
+        "population": "202"
+      },
+      {
+        "placeName": "Pierce town",
+        "population": "1086"
+      },
+      {
+        "placeName": "Pitkin town",
+        "population": "74"
+      },
+      {
+        "placeName": "Platteville town",
+        "population": "2908"
+      },
+      {
+        "placeName": "Poncha Springs town",
+        "population": "1393"
+      },
+      {
+        "placeName": "Pritchett town",
+        "population": "106"
+      },
+      {
+        "placeName": "Pueblo city",
+        "population": "110404"
+      },
+      {
+        "placeName": "Ramah town",
+        "population": "105"
+      },
+      {
+        "placeName": "Rangely town",
+        "population": "2304"
+      },
+      {
+        "placeName": "Raymer (New Raymer) town",
+        "population": "111"
+      },
+      {
+        "placeName": "Red Cliff town",
+        "population": "238"
+      },
+      {
+        "placeName": "Rico town",
+        "population": "347"
+      },
+      {
+        "placeName": "Ridgway town",
+        "population": "1324"
+      },
+      {
+        "placeName": "Rifle city",
+        "population": "10844"
+      },
+      {
+        "placeName": "Rockvale town",
+        "population": "530"
+      },
+      {
+        "placeName": "Rocky Ford city",
+        "population": "3752"
+      },
+      {
+        "placeName": "Romeo town",
+        "population": "309"
+      },
+      {
+        "placeName": "Rye town",
+        "population": "201"
+      },
+      {
+        "placeName": "Saguache town",
+        "population": "520"
+      },
+      {
+        "placeName": "Salida city",
+        "population": "5985"
+      },
+      {
+        "placeName": "Sanford town",
+        "population": "897"
+      },
+      {
+        "placeName": "San Luis town",
+        "population": "597"
+      },
+      {
+        "placeName": "Sawpit town",
+        "population": "34"
+      },
+      {
+        "placeName": "Sedgwick town",
+        "population": "162"
+      },
+      {
+        "placeName": "Seibert town",
+        "population": "178"
+      },
+      {
+        "placeName": "Severance town",
+        "population": "11841"
+      },
+      {
+        "placeName": "Sheridan city",
+        "population": "5972"
+      },
+      {
+        "placeName": "Sheridan Lake town",
+        "population": "56"
+      },
+      {
+        "placeName": "Silt town",
+        "population": "3743"
+      },
+      {
+        "placeName": "Silver Cliff town",
+        "population": "713"
+      },
+      {
+        "placeName": "Silver Plume town",
+        "population": "180"
+      },
+      {
+        "placeName": "Silverthorne town",
+        "population": "5418"
+      },
+      {
+        "placeName": "Silverton town",
+        "population": "721"
+      },
+      {
+        "placeName": "Simla town",
+        "population": "587"
+      },
+      {
+        "placeName": "Snowmass Village town",
+        "population": "2965"
+      },
+      {
+        "placeName": "South Fork town",
+        "population": "506"
+      },
+      {
+        "placeName": "Springfield town",
+        "population": "1293"
+      },
+      {
+        "placeName": "Starkville town",
+        "population": "66"
+      },
+      {
+        "placeName": "Steamboat Springs city",
+        "population": "13557"
+      },
+      {
+        "placeName": "Sterling city",
+        "population": "13054"
+      },
+      {
+        "placeName": "Stratton town",
+        "population": "644"
+      },
+      {
+        "placeName": "Sugar City town",
+        "population": "238"
+      },
+      {
+        "placeName": "Superior town",
+        "population": "13637"
+      },
+      {
+        "placeName": "Swink town",
+        "population": "579"
+      },
+      {
+        "placeName": "Telluride town",
+        "population": "2454"
+      },
+      {
+        "placeName": "Thornton city",
+        "population": "147766"
+      },
+      {
+        "placeName": "Timnath town",
+        "population": "11600"
+      },
+      {
+        "placeName": "Trinidad city",
+        "population": "8091"
+      },
+      {
+        "placeName": "Two Buttes town",
+        "population": "30"
+      },
+      {
+        "placeName": "Vail town",
+        "population": "4407"
+      },
+      {
+        "placeName": "Victor city",
+        "population": "361"
+      },
+      {
+        "placeName": "Vilas town",
+        "population": "99"
+      },
+      {
+        "placeName": "Vona town",
+        "population": "89"
+      },
+      {
+        "placeName": "Walden town",
+        "population": "529"
+      },
+      {
+        "placeName": "Walsenburg city",
+        "population": "3039"
+      },
+      {
+        "placeName": "Walsh town",
+        "population": "513"
+      },
+      {
+        "placeName": "Ward town",
+        "population": "124"
+      },
+      {
+        "placeName": "Wellington town",
+        "population": "12169"
+      },
+      {
+        "placeName": "Westcliffe town",
+        "population": "488"
+      },
+      {
+        "placeName": "Westminster city",
+        "population": "116182"
+      },
+      {
+        "placeName": "Wheat Ridge city",
+        "population": "32081"
+      },
+      {
+        "placeName": "Wiggins town",
+        "population": "1868"
+      },
+      {
+        "placeName": "Wiley town",
+        "population": "433"
+      },
+      {
+        "placeName": "Williamsburg town",
+        "population": "789"
+      },
+      {
+        "placeName": "Windsor town",
+        "population": "43840"
+      },
+      {
+        "placeName": "Winter Park town",
+        "population": "1217"
+      },
+      {
+        "placeName": "Woodland Park city",
+        "population": "8014"
+      },
+      {
+        "placeName": "Wray city",
+        "population": "2352"
+      },
+      {
+        "placeName": "Yampa town",
+        "population": "373"
+      },
+      {
+        "placeName": "Yuma city",
+        "population": "3424"
+      }
+    ]
+  }
+]

@@ -1,0 +1,99 @@
+[
+  {
+    "state": "Maine",
+    "places": [
+      {
+        "placeName": "Auburn city",
+        "population": "25441"
+      },
+      {
+        "placeName": "Augusta city",
+        "population": "19155"
+      },
+      {
+        "placeName": "Bangor city",
+        "population": "32518"
+      },
+      {
+        "placeName": "Bath city",
+        "population": "8835"
+      },
+      {
+        "placeName": "Belfast city",
+        "population": "6988"
+      },
+      {
+        "placeName": "Biddeford city",
+        "population": "22399"
+      },
+      {
+        "placeName": "Brewer city",
+        "population": "9636"
+      },
+      {
+        "placeName": "Calais city",
+        "population": "3083"
+      },
+      {
+        "placeName": "Caribou city",
+        "population": "7321"
+      },
+      {
+        "placeName": "Eastport city",
+        "population": "1285"
+      },
+      {
+        "placeName": "Ellsworth city",
+        "population": "8862"
+      },
+      {
+        "placeName": "Gardiner city",
+        "population": "6206"
+      },
+      {
+        "placeName": "Hallowell city",
+        "population": "2624"
+      },
+      {
+        "placeName": "Lewiston city",
+        "population": "38866"
+      },
+      {
+        "placeName": "Old Town city",
+        "population": "7589"
+      },
+      {
+        "placeName": "Portland city",
+        "population": "69911"
+      },
+      {
+        "placeName": "Presque Isle city",
+        "population": "8694"
+      },
+      {
+        "placeName": "Rockland city",
+        "population": "7142"
+      },
+      {
+        "placeName": "Saco city",
+        "population": "21159"
+      },
+      {
+        "placeName": "Sanford city",
+        "population": "22663"
+      },
+      {
+        "placeName": "South Portland city",
+        "population": "27007"
+      },
+      {
+        "placeName": "Waterville city",
+        "population": "17579"
+      },
+      {
+        "placeName": "Westbrook city",
+        "population": "21565"
+      }
+    ]
+  }
+]

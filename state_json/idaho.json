@@ -1,0 +1,799 @@
+[
+  {
+    "state": "Idaho",
+    "places": [
+      {
+        "placeName": "Aberdeen city",
+        "population": "1852"
+      },
+      {
+        "placeName": "Acequia city",
+        "population": "134"
+      },
+      {
+        "placeName": "Albion city",
+        "population": "267"
+      },
+      {
+        "placeName": "American Falls city",
+        "population": "4785"
+      },
+      {
+        "placeName": "Ammon city",
+        "population": "20119"
+      },
+      {
+        "placeName": "Arco city",
+        "population": "918"
+      },
+      {
+        "placeName": "Arimo city",
+        "population": "362"
+      },
+      {
+        "placeName": "Ashton city",
+        "population": "977"
+      },
+      {
+        "placeName": "Athol city",
+        "population": "738"
+      },
+      {
+        "placeName": "Bancroft city",
+        "population": "317"
+      },
+      {
+        "placeName": "Basalt city",
+        "population": "376"
+      },
+      {
+        "placeName": "Bellevue city",
+        "population": "2597"
+      },
+      {
+        "placeName": "Blackfoot city",
+        "population": "13361"
+      },
+      {
+        "placeName": "Bliss city",
+        "population": "262"
+      },
+      {
+        "placeName": "Bloomington city",
+        "population": "212"
+      },
+      {
+        "placeName": "Boise City city",
+        "population": "238429"
+      },
+      {
+        "placeName": "Bonners Ferry city",
+        "population": "2797"
+      },
+      {
+        "placeName": "Bovill city",
+        "population": "195"
+      },
+      {
+        "placeName": "Buhl city",
+        "population": "4801"
+      },
+      {
+        "placeName": "Burley city",
+        "population": "12409"
+      },
+      {
+        "placeName": "Butte City city",
+        "population": "87"
+      },
+      {
+        "placeName": "Caldwell city",
+        "population": "76629"
+      },
+      {
+        "placeName": "Cambridge city",
+        "population": "357"
+      },
+      {
+        "placeName": "Carey city",
+        "population": "727"
+      },
+      {
+        "placeName": "Cascade city",
+        "population": "1018"
+      },
+      {
+        "placeName": "Castleford city",
+        "population": "230"
+      },
+      {
+        "placeName": "Challis city",
+        "population": "959"
+      },
+      {
+        "placeName": "Chubbuck city",
+        "population": "16823"
+      },
+      {
+        "placeName": "Clark Fork city",
+        "population": "579"
+      },
+      {
+        "placeName": "Clayton city",
+        "population": "11"
+      },
+      {
+        "placeName": "Clifton city",
+        "population": "466"
+      },
+      {
+        "placeName": "Coeur d'Alene city",
+        "population": "58179"
+      },
+      {
+        "placeName": "Cottonwood city",
+        "population": "921"
+      },
+      {
+        "placeName": "Council city",
+        "population": "985"
+      },
+      {
+        "placeName": "Craigmont city",
+        "population": "469"
+      },
+      {
+        "placeName": "Crouch city",
+        "population": "181"
+      },
+      {
+        "placeName": "Culdesac city",
+        "population": "417"
+      },
+      {
+        "placeName": "Dalton Gardens city",
+        "population": "2496"
+      },
+      {
+        "placeName": "Dayton city",
+        "population": "545"
+      },
+      {
+        "placeName": "Deary city",
+        "population": "531"
+      },
+      {
+        "placeName": "Declo city",
+        "population": "372"
+      },
+      {
+        "placeName": "Dietrich city",
+        "population": "313"
+      },
+      {
+        "placeName": "Donnelly city",
+        "population": "255"
+      },
+      {
+        "placeName": "Dover city",
+        "population": "1164"
+      },
+      {
+        "placeName": "Downey city",
+        "population": "583"
+      },
+      {
+        "placeName": "Driggs city",
+        "population": "2403"
+      },
+      {
+        "placeName": "Drummond city",
+        "population": "15"
+      },
+      {
+        "placeName": "Dubois city",
+        "population": "516"
+      },
+      {
+        "placeName": "Eagle city",
+        "population": "34658"
+      },
+      {
+        "placeName": "East Hope city",
+        "population": "252"
+      },
+      {
+        "placeName": "Eden city",
+        "population": "406"
+      },
+      {
+        "placeName": "Elk River city",
+        "population": "144"
+      },
+      {
+        "placeName": "Emmett city",
+        "population": "8900"
+      },
+      {
+        "placeName": "Fairfield city",
+        "population": "501"
+      },
+      {
+        "placeName": "Ferdinand city",
+        "population": "141"
+      },
+      {
+        "placeName": "Fernan Lake Village city",
+        "population": "163"
+      },
+      {
+        "placeName": "Filer city",
+        "population": "3026"
+      },
+      {
+        "placeName": "Firth city",
+        "population": "545"
+      },
+      {
+        "placeName": "Franklin city",
+        "population": "1155"
+      },
+      {
+        "placeName": "Fruitland city",
+        "population": "7213"
+      },
+      {
+        "placeName": "Garden City city",
+        "population": "13047"
+      },
+      {
+        "placeName": "Genesee city",
+        "population": "1094"
+      },
+      {
+        "placeName": "Georgetown city",
+        "population": "492"
+      },
+      {
+        "placeName": "Glenns Ferry city",
+        "population": "1256"
+      },
+      {
+        "placeName": "Gooding city",
+        "population": "3855"
+      },
+      {
+        "placeName": "Grace city",
+        "population": "938"
+      },
+      {
+        "placeName": "Grand View city",
+        "population": "461"
+      },
+      {
+        "placeName": "Grangeville city",
+        "population": "3621"
+      },
+      {
+        "placeName": "Greenleaf city",
+        "population": "788"
+      },
+      {
+        "placeName": "Hagerman city",
+        "population": "994"
+      },
+      {
+        "placeName": "Hailey city",
+        "population": "10053"
+      },
+      {
+        "placeName": "Hansen city",
+        "population": "1109"
+      },
+      {
+        "placeName": "Harrison city",
+        "population": "222"
+      },
+      {
+        "placeName": "Hauser city",
+        "population": "915"
+      },
+      {
+        "placeName": "Hayden city",
+        "population": "17363"
+      },
+      {
+        "placeName": "Hayden Lake city",
+        "population": "668"
+      },
+      {
+        "placeName": "Hazelton city",
+        "population": "827"
+      },
+      {
+        "placeName": "Heyburn city",
+        "population": "3783"
+      },
+      {
+        "placeName": "Hollister city",
+        "population": "265"
+      },
+      {
+        "placeName": "Homedale city",
+        "population": "3138"
+      },
+      {
+        "placeName": "Hope city",
+        "population": "108"
+      },
+      {
+        "placeName": "Horseshoe Bend city",
+        "population": "816"
+      },
+      {
+        "placeName": "Huetter city",
+        "population": "105"
+      },
+      {
+        "placeName": "Idaho City city",
+        "population": "531"
+      },
+      {
+        "placeName": "Idaho Falls city",
+        "population": "71785"
+      },
+      {
+        "placeName": "Inkom city",
+        "population": "862"
+      },
+      {
+        "placeName": "Iona city",
+        "population": "3179"
+      },
+      {
+        "placeName": "Irwin city",
+        "population": "302"
+      },
+      {
+        "placeName": "Island Park city",
+        "population": "190"
+      },
+      {
+        "placeName": "Jerome city",
+        "population": "13731"
+      },
+      {
+        "placeName": "Juliaetta city",
+        "population": "644"
+      },
+      {
+        "placeName": "Kamiah city",
+        "population": "1134"
+      },
+      {
+        "placeName": "Kellogg city",
+        "population": "2456"
+      },
+      {
+        "placeName": "Kendrick city",
+        "population": "300"
+      },
+      {
+        "placeName": "Ketchum city",
+        "population": "3643"
+      },
+      {
+        "placeName": "Kimberly city",
+        "population": "5798"
+      },
+      {
+        "placeName": "Kooskia city",
+        "population": "550"
+      },
+      {
+        "placeName": "Kootenai city",
+        "population": "1091"
+      },
+      {
+        "placeName": "Kuna city",
+        "population": "31525"
+      },
+      {
+        "placeName": "Lapwai city",
+        "population": "1251"
+      },
+      {
+        "placeName": "Lava Hot Springs city",
+        "population": "374"
+      },
+      {
+        "placeName": "Leadore city",
+        "population": "99"
+      },
+      {
+        "placeName": "Lewiston city",
+        "population": "34717"
+      },
+      {
+        "placeName": "Lewisville city",
+        "population": "437"
+      },
+      {
+        "placeName": "McCall city",
+        "population": "4133"
+      },
+      {
+        "placeName": "McCammon city",
+        "population": "828"
+      },
+      {
+        "placeName": "Mackay city",
+        "population": "480"
+      },
+      {
+        "placeName": "Malad City city",
+        "population": "2338"
+      },
+      {
+        "placeName": "Malta city",
+        "population": "181"
+      },
+      {
+        "placeName": "Marsing city",
+        "population": "1230"
+      },
+      {
+        "placeName": "Melba city",
+        "population": "630"
+      },
+      {
+        "placeName": "Menan city",
+        "population": "719"
+      },
+      {
+        "placeName": "Meridian city",
+        "population": "142988"
+      },
+      {
+        "placeName": "Middleton city",
+        "population": "12600"
+      },
+      {
+        "placeName": "Midvale city",
+        "population": "213"
+      },
+      {
+        "placeName": "Minidoka city",
+        "population": "95"
+      },
+      {
+        "placeName": "Montpelier city",
+        "population": "2710"
+      },
+      {
+        "placeName": "Moore city",
+        "population": "176"
+      },
+      {
+        "placeName": "Moscow city",
+        "population": "26721"
+      },
+      {
+        "placeName": "Mountain Home city",
+        "population": "16779"
+      },
+      {
+        "placeName": "Moyie Springs city",
+        "population": "1317"
+      },
+      {
+        "placeName": "Mud Lake city",
+        "population": "364"
+      },
+      {
+        "placeName": "Mullan city",
+        "population": "663"
+      },
+      {
+        "placeName": "Murtaugh city",
+        "population": "124"
+      },
+      {
+        "placeName": "Nampa city",
+        "population": "120384"
+      },
+      {
+        "placeName": "Newdale city",
+        "population": "329"
+      },
+      {
+        "placeName": "New Meadows city",
+        "population": "684"
+      },
+      {
+        "placeName": "New Plymouth city",
+        "population": "1629"
+      },
+      {
+        "placeName": "Nezperce city",
+        "population": "471"
+      },
+      {
+        "placeName": "Notus city",
+        "population": "605"
+      },
+      {
+        "placeName": "Oakley city",
+        "population": "835"
+      },
+      {
+        "placeName": "Oldtown city",
+        "population": "262"
+      },
+      {
+        "placeName": "Onaway city",
+        "population": "218"
+      },
+      {
+        "placeName": "Orofino city",
+        "population": "3259"
+      },
+      {
+        "placeName": "Osburn city",
+        "population": "1673"
+      },
+      {
+        "placeName": "Oxford city",
+        "population": "43"
+      },
+      {
+        "placeName": "Paris city",
+        "population": "541"
+      },
+      {
+        "placeName": "Parker city",
+        "population": "289"
+      },
+      {
+        "placeName": "Parma city",
+        "population": "2203"
+      },
+      {
+        "placeName": "Paul city",
+        "population": "1722"
+      },
+      {
+        "placeName": "Payette city",
+        "population": "8813"
+      },
+      {
+        "placeName": "Peck city",
+        "population": "174"
+      },
+      {
+        "placeName": "Pierce city",
+        "population": "516"
+      },
+      {
+        "placeName": "Pinehurst city",
+        "population": "1780"
+      },
+      {
+        "placeName": "Placerville city",
+        "population": "48"
+      },
+      {
+        "placeName": "Plummer city",
+        "population": "1130"
+      },
+      {
+        "placeName": "Pocatello city",
+        "population": "58771"
+      },
+      {
+        "placeName": "Ponderay city",
+        "population": "2024"
+      },
+      {
+        "placeName": "Post Falls city",
+        "population": "46715"
+      },
+      {
+        "placeName": "Potlatch city",
+        "population": "797"
+      },
+      {
+        "placeName": "Preston city",
+        "population": "6177"
+      },
+      {
+        "placeName": "Priest River city",
+        "population": "1851"
+      },
+      {
+        "placeName": "Rathdrum city",
+        "population": "13227"
+      },
+      {
+        "placeName": "Reubens city",
+        "population": "52"
+      },
+      {
+        "placeName": "Rexburg city",
+        "population": "40334"
+      },
+      {
+        "placeName": "Richfield city",
+        "population": "483"
+      },
+      {
+        "placeName": "Rigby city",
+        "population": "5757"
+      },
+      {
+        "placeName": "Riggins city",
+        "population": "396"
+      },
+      {
+        "placeName": "Ririe city",
+        "population": "711"
+      },
+      {
+        "placeName": "Roberts city",
+        "population": "572"
+      },
+      {
+        "placeName": "Rockland city",
+        "population": "257"
+      },
+      {
+        "placeName": "Rupert city",
+        "population": "6460"
+      },
+      {
+        "placeName": "St. Anthony city",
+        "population": "3990"
+      },
+      {
+        "placeName": "St. Charles city",
+        "population": "185"
+      },
+      {
+        "placeName": "St. Maries city",
+        "population": "2457"
+      },
+      {
+        "placeName": "Salmon city",
+        "population": "3286"
+      },
+      {
+        "placeName": "Sandpoint city",
+        "population": "10645"
+      },
+      {
+        "placeName": "Shelley city",
+        "population": "5303"
+      },
+      {
+        "placeName": "Shoshone city",
+        "population": "1767"
+      },
+      {
+        "placeName": "Smelterville city",
+        "population": "813"
+      },
+      {
+        "placeName": "Soda Springs city",
+        "population": "3165"
+      },
+      {
+        "placeName": "Spencer city",
+        "population": "29"
+      },
+      {
+        "placeName": "Spirit Lake city",
+        "population": "2485"
+      },
+      {
+        "placeName": "Stanley city",
+        "population": "124"
+      },
+      {
+        "placeName": "Star city",
+        "population": "20874"
+      },
+      {
+        "placeName": "State Line city",
+        "population": "38"
+      },
+      {
+        "placeName": "Stites city",
+        "population": "184"
+      },
+      {
+        "placeName": "Sugar City city",
+        "population": "2476"
+      },
+      {
+        "placeName": "Sun Valley city",
+        "population": "1776"
+      },
+      {
+        "placeName": "Swan Valley city",
+        "population": "321"
+      },
+      {
+        "placeName": "Tensed city",
+        "population": "99"
+      },
+      {
+        "placeName": "Teton city",
+        "population": "831"
+      },
+      {
+        "placeName": "Tetonia city",
+        "population": "274"
+      },
+      {
+        "placeName": "Troy city",
+        "population": "925"
+      },
+      {
+        "placeName": "Twin Falls city",
+        "population": "56216"
+      },
+      {
+        "placeName": "Ucon city",
+        "population": "1196"
+      },
+      {
+        "placeName": "Victor city",
+        "population": "2589"
+      },
+      {
+        "placeName": "Wallace city",
+        "population": "844"
+      },
+      {
+        "placeName": "Wardner city",
+        "population": "205"
+      },
+      {
+        "placeName": "Warm River city",
+        "population": "1"
+      },
+      {
+        "placeName": "Weippe city",
+        "population": "409"
+      },
+      {
+        "placeName": "Weiser city",
+        "population": "6249"
+      },
+      {
+        "placeName": "Wendell city",
+        "population": "3090"
+      },
+      {
+        "placeName": "Weston city",
+        "population": "586"
+      },
+      {
+        "placeName": "White Bird city",
+        "population": "83"
+      },
+      {
+        "placeName": "Wilder city",
+        "population": "1734"
+      },
+      {
+        "placeName": "Winchester city",
+        "population": "363"
+      },
+      {
+        "placeName": "Worley city",
+        "population": "248"
+      }
+    ]
+  }
+]

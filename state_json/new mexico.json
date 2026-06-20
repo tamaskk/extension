@@ -1,0 +1,427 @@
+[
+  {
+    "state": "New Mexico",
+    "places": [
+      {
+        "placeName": "Alamogordo city",
+        "population": "31906"
+      },
+      {
+        "placeName": "Albuquerque city",
+        "population": "556588"
+      },
+      {
+        "placeName": "Angel Fire village",
+        "population": "1170"
+      },
+      {
+        "placeName": "Anthony city",
+        "population": "8900"
+      },
+      {
+        "placeName": "Artesia city",
+        "population": "12735"
+      },
+      {
+        "placeName": "Aztec city",
+        "population": "6091"
+      },
+      {
+        "placeName": "Bayard city",
+        "population": "2048"
+      },
+      {
+        "placeName": "Belen city",
+        "population": "7589"
+      },
+      {
+        "placeName": "Bernalillo town",
+        "population": "9159"
+      },
+      {
+        "placeName": "Bloomfield city",
+        "population": "7335"
+      },
+      {
+        "placeName": "Bosque Farms village",
+        "population": "4174"
+      },
+      {
+        "placeName": "Capitan village",
+        "population": "1402"
+      },
+      {
+        "placeName": "Carlsbad city",
+        "population": "32524"
+      },
+      {
+        "placeName": "Carrizozo town",
+        "population": "959"
+      },
+      {
+        "placeName": "Causey village",
+        "population": "66"
+      },
+      {
+        "placeName": "Chama village",
+        "population": "913"
+      },
+      {
+        "placeName": "Cimarron village",
+        "population": "784"
+      },
+      {
+        "placeName": "Clayton town",
+        "population": "2510"
+      },
+      {
+        "placeName": "Cloudcroft village",
+        "population": "757"
+      },
+      {
+        "placeName": "Clovis city",
+        "population": "37127"
+      },
+      {
+        "placeName": "Columbus village",
+        "population": "1484"
+      },
+      {
+        "placeName": "Corona village",
+        "population": "128"
+      },
+      {
+        "placeName": "Corrales village",
+        "population": "8484"
+      },
+      {
+        "placeName": "Cuba village",
+        "population": "640"
+      },
+      {
+        "placeName": "Deming city",
+        "population": "14944"
+      },
+      {
+        "placeName": "Des Moines village",
+        "population": "105"
+      },
+      {
+        "placeName": "Dexter town",
+        "population": "1049"
+      },
+      {
+        "placeName": "Dora village",
+        "population": "117"
+      },
+      {
+        "placeName": "Eagle Nest village",
+        "population": "321"
+      },
+      {
+        "placeName": "Edgewood town",
+        "population": "6157"
+      },
+      {
+        "placeName": "Elephant Butte city",
+        "population": "1456"
+      },
+      {
+        "placeName": "Elida town",
+        "population": "154"
+      },
+      {
+        "placeName": "Encino village",
+        "population": "56"
+      },
+      {
+        "placeName": "EspaÃ±ola city",
+        "population": "10458"
+      },
+      {
+        "placeName": "Estancia town",
+        "population": "1321"
+      },
+      {
+        "placeName": "Eunice city",
+        "population": "3037"
+      },
+      {
+        "placeName": "Farmington city",
+        "population": "46055"
+      },
+      {
+        "placeName": "Floyd village",
+        "population": "84"
+      },
+      {
+        "placeName": "Folsom village",
+        "population": "46"
+      },
+      {
+        "placeName": "Fort Sumner village",
+        "population": "852"
+      },
+      {
+        "placeName": "Gallup city",
+        "population": "19969"
+      },
+      {
+        "placeName": "Grady village",
+        "population": "79"
+      },
+      {
+        "placeName": "Grants city",
+        "population": "8933"
+      },
+      {
+        "placeName": "Grenville village",
+        "population": "24"
+      },
+      {
+        "placeName": "Hagerman town",
+        "population": "957"
+      },
+      {
+        "placeName": "Hatch village",
+        "population": "1584"
+      },
+      {
+        "placeName": "Hobbs city",
+        "population": "40863"
+      },
+      {
+        "placeName": "Hope village",
+        "population": "111"
+      },
+      {
+        "placeName": "House village",
+        "population": "55"
+      },
+      {
+        "placeName": "Hurley town",
+        "population": "1211"
+      },
+      {
+        "placeName": "Jal city",
+        "population": "2178"
+      },
+      {
+        "placeName": "Jemez Springs village",
+        "population": "205"
+      },
+      {
+        "placeName": "Kirtland town",
+        "population": "572"
+      },
+      {
+        "placeName": "Lake Arthur town",
+        "population": "377"
+      },
+      {
+        "placeName": "Las Cruces city",
+        "population": "116978"
+      },
+      {
+        "placeName": "Las Vegas city",
+        "population": "12574"
+      },
+      {
+        "placeName": "Logan village",
+        "population": "948"
+      },
+      {
+        "placeName": "Lordsburg city",
+        "population": "2181"
+      },
+      {
+        "placeName": "Los Lunas village",
+        "population": "20572"
+      },
+      {
+        "placeName": "Los Ranchos de Albuquerque village",
+        "population": "5790"
+      },
+      {
+        "placeName": "Loving village",
+        "population": "1391"
+      },
+      {
+        "placeName": "Lovington city",
+        "population": "11620"
+      },
+      {
+        "placeName": "Magdalena village",
+        "population": "776"
+      },
+      {
+        "placeName": "Maxwell village",
+        "population": "220"
+      },
+      {
+        "placeName": "Melrose village",
+        "population": "603"
+      },
+      {
+        "placeName": "Mesilla town",
+        "population": "1818"
+      },
+      {
+        "placeName": "Milan village",
+        "population": "2468"
+      },
+      {
+        "placeName": "Moriarty city",
+        "population": "2074"
+      },
+      {
+        "placeName": "Mosquero village",
+        "population": "90"
+      },
+      {
+        "placeName": "Mountainair town",
+        "population": "932"
+      },
+      {
+        "placeName": "Pecos village",
+        "population": "1375"
+      },
+      {
+        "placeName": "Peralta town",
+        "population": "3499"
+      },
+      {
+        "placeName": "Portales city",
+        "population": "11734"
+      },
+      {
+        "placeName": "Questa village",
+        "population": "1809"
+      },
+      {
+        "placeName": "Raton city",
+        "population": "5952"
+      },
+      {
+        "placeName": "Red River town",
+        "population": "538"
+      },
+      {
+        "placeName": "Reserve village",
+        "population": "311"
+      },
+      {
+        "placeName": "Rio Communities city",
+        "population": "4953"
+      },
+      {
+        "placeName": "Rio Rancho city",
+        "population": "114419"
+      },
+      {
+        "placeName": "Roswell city",
+        "population": "46878"
+      },
+      {
+        "placeName": "Roy village",
+        "population": "185"
+      },
+      {
+        "placeName": "Ruidoso village",
+        "population": "7580"
+      },
+      {
+        "placeName": "Ruidoso Downs city",
+        "population": "2588"
+      },
+      {
+        "placeName": "San Jon village",
+        "population": "186"
+      },
+      {
+        "placeName": "Santa Clara village",
+        "population": "1592"
+      },
+      {
+        "placeName": "Santa Fe city",
+        "population": "89837"
+      },
+      {
+        "placeName": "Santa Rosa city",
+        "population": "2802"
+      },
+      {
+        "placeName": "San Ysidro village",
+        "population": "169"
+      },
+      {
+        "placeName": "Silver City town",
+        "population": "9284"
+      },
+      {
+        "placeName": "Socorro city",
+        "population": "8261"
+      },
+      {
+        "placeName": "Springer town",
+        "population": "922"
+      },
+      {
+        "placeName": "Sunland Park city",
+        "population": "18268"
+      },
+      {
+        "placeName": "Taos town",
+        "population": "6526"
+      },
+      {
+        "placeName": "Taos Ski Valley village",
+        "population": "81"
+      },
+      {
+        "placeName": "Tatum town",
+        "population": "711"
+      },
+      {
+        "placeName": "Texico city",
+        "population": "918"
+      },
+      {
+        "placeName": "Tijeras village",
+        "population": "460"
+      },
+      {
+        "placeName": "Truth or Consequences city",
+        "population": "5949"
+      },
+      {
+        "placeName": "Tucumcari city",
+        "population": "5082"
+      },
+      {
+        "placeName": "Tularosa village",
+        "population": "2662"
+      },
+      {
+        "placeName": "Vaughn town",
+        "population": "272"
+      },
+      {
+        "placeName": "Virden village",
+        "population": "118"
+      },
+      {
+        "placeName": "Wagon Mound village",
+        "population": "261"
+      },
+      {
+        "placeName": "Willard village",
+        "population": "217"
+      },
+      {
+        "placeName": "Williamsburg village",
+        "population": "458"
+      }
+    ]
+  }
+]

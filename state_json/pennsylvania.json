@@ -1,0 +1,4063 @@
+[
+  {
+    "state": "Pennsylvania",
+    "places": [
+      {
+        "placeName": "Abbottstown borough",
+        "population": "1048"
+      },
+      {
+        "placeName": "Adamsburg borough",
+        "population": "136"
+      },
+      {
+        "placeName": "Adamstown borough",
+        "population": "1953"
+      },
+      {
+        "placeName": "Addison borough",
+        "population": "215"
+      },
+      {
+        "placeName": "Akron borough",
+        "population": "4093"
+      },
+      {
+        "placeName": "Alba borough",
+        "population": "136"
+      },
+      {
+        "placeName": "Albion borough",
+        "population": "1479"
+      },
+      {
+        "placeName": "Alburtis borough",
+        "population": "2609"
+      },
+      {
+        "placeName": "Aldan borough",
+        "population": "4253"
+      },
+      {
+        "placeName": "Alexandria borough",
+        "population": "367"
+      },
+      {
+        "placeName": "Aliquippa city",
+        "population": "9002"
+      },
+      {
+        "placeName": "Allenport borough",
+        "population": "469"
+      },
+      {
+        "placeName": "Allentown city",
+        "population": "126044"
+      },
+      {
+        "placeName": "Altoona city",
+        "population": "42347"
+      },
+      {
+        "placeName": "Ambler borough",
+        "population": "6840"
+      },
+      {
+        "placeName": "Ambridge borough",
+        "population": "6944"
+      },
+      {
+        "placeName": "Apollo borough",
+        "population": "1537"
+      },
+      {
+        "placeName": "Applewold borough",
+        "population": "324"
+      },
+      {
+        "placeName": "Archbald borough",
+        "population": "7598"
+      },
+      {
+        "placeName": "Arendtsville borough",
+        "population": "890"
+      },
+      {
+        "placeName": "Armagh borough",
+        "population": "99"
+      },
+      {
+        "placeName": "Arnold city",
+        "population": "4619"
+      },
+      {
+        "placeName": "Arona borough",
+        "population": "244"
+      },
+      {
+        "placeName": "Ashland borough",
+        "population": "2520"
+      },
+      {
+        "placeName": "Ashley borough",
+        "population": "2627"
+      },
+      {
+        "placeName": "Ashville borough",
+        "population": "206"
+      },
+      {
+        "placeName": "Aspinwall borough",
+        "population": "2809"
+      },
+      {
+        "placeName": "Atglen borough",
+        "population": "1403"
+      },
+      {
+        "placeName": "Athens borough",
+        "population": "3205"
+      },
+      {
+        "placeName": "Atwood borough",
+        "population": "104"
+      },
+      {
+        "placeName": "Auburn borough",
+        "population": "677"
+      },
+      {
+        "placeName": "Austin borough",
+        "population": "463"
+      },
+      {
+        "placeName": "Avalon borough",
+        "population": "4572"
+      },
+      {
+        "placeName": "Avis borough",
+        "population": "1461"
+      },
+      {
+        "placeName": "Avoca borough",
+        "population": "2551"
+      },
+      {
+        "placeName": "Avondale borough",
+        "population": "1264"
+      },
+      {
+        "placeName": "Avonmore borough",
+        "population": "873"
+      },
+      {
+        "placeName": "Baden borough",
+        "population": "3831"
+      },
+      {
+        "placeName": "Baldwin borough",
+        "population": "20516"
+      },
+      {
+        "placeName": "Bally borough",
+        "population": "1243"
+      },
+      {
+        "placeName": "Bangor borough",
+        "population": "5118"
+      },
+      {
+        "placeName": "Barkeyville borough",
+        "population": "183"
+      },
+      {
+        "placeName": "Bath borough",
+        "population": "2903"
+      },
+      {
+        "placeName": "Beallsville borough",
+        "population": "389"
+      },
+      {
+        "placeName": "Bear Creek Village borough",
+        "population": "302"
+      },
+      {
+        "placeName": "Bear Lake borough",
+        "population": "141"
+      },
+      {
+        "placeName": "Beaver borough",
+        "population": "4342"
+      },
+      {
+        "placeName": "Beaver Falls city",
+        "population": "8832"
+      },
+      {
+        "placeName": "Beaver Meadows borough",
+        "population": "889"
+      },
+      {
+        "placeName": "Beavertown borough",
+        "population": "984"
+      },
+      {
+        "placeName": "Bechtelsville borough",
+        "population": "888"
+      },
+      {
+        "placeName": "Bedford borough",
+        "population": "2817"
+      },
+      {
+        "placeName": "Beech Creek borough",
+        "population": "732"
+      },
+      {
+        "placeName": "Bell Acres borough",
+        "population": "1454"
+      },
+      {
+        "placeName": "Bellefonte borough",
+        "population": "5862"
+      },
+      {
+        "placeName": "Belle Vernon borough",
+        "population": "979"
+      },
+      {
+        "placeName": "Bellevue borough",
+        "population": "7888"
+      },
+      {
+        "placeName": "Bellwood borough",
+        "population": "1748"
+      },
+      {
+        "placeName": "Ben Avon borough",
+        "population": "1824"
+      },
+      {
+        "placeName": "Ben Avon Heights borough",
+        "population": "376"
+      },
+      {
+        "placeName": "Bendersville borough",
+        "population": "757"
+      },
+      {
+        "placeName": "Benson borough",
+        "population": "177"
+      },
+      {
+        "placeName": "Bentleyville borough",
+        "population": "2326"
+      },
+      {
+        "placeName": "Benton borough",
+        "population": "819"
+      },
+      {
+        "placeName": "Berlin borough",
+        "population": "1956"
+      },
+      {
+        "placeName": "Bernville borough",
+        "population": "876"
+      },
+      {
+        "placeName": "Berrysburg borough",
+        "population": "323"
+      },
+      {
+        "placeName": "Berwick borough",
+        "population": "10297"
+      },
+      {
+        "placeName": "Bessemer borough",
+        "population": "1038"
+      },
+      {
+        "placeName": "Bethany borough",
+        "population": "239"
+      },
+      {
+        "placeName": "Bethel Park municipality",
+        "population": "32074"
+      },
+      {
+        "placeName": "Bethlehem city",
+        "population": "79644"
+      },
+      {
+        "placeName": "Big Beaver borough",
+        "population": "1822"
+      },
+      {
+        "placeName": "Biglerville borough",
+        "population": "1240"
+      },
+      {
+        "placeName": "Big Run borough",
+        "population": "622"
+      },
+      {
+        "placeName": "Birdsboro borough",
+        "population": "5161"
+      },
+      {
+        "placeName": "Birmingham borough",
+        "population": "90"
+      },
+      {
+        "placeName": "Blain borough",
+        "population": "225"
+      },
+      {
+        "placeName": "Blairsville borough",
+        "population": "3176"
+      },
+      {
+        "placeName": "Blakely borough",
+        "population": "6611"
+      },
+      {
+        "placeName": "Blawnox borough",
+        "population": "1384"
+      },
+      {
+        "placeName": "Bloomfield borough",
+        "population": "1248"
+      },
+      {
+        "placeName": "Blooming Valley borough",
+        "population": "350"
+      },
+      {
+        "placeName": "Bloomsburg town",
+        "population": "13375"
+      },
+      {
+        "placeName": "Blossburg borough",
+        "population": "1496"
+      },
+      {
+        "placeName": "Bolivar borough",
+        "population": "419"
+      },
+      {
+        "placeName": "Bonneauville borough",
+        "population": "1802"
+      },
+      {
+        "placeName": "Boswell borough",
+        "population": "1197"
+      },
+      {
+        "placeName": "Bowmanstown borough",
+        "population": "895"
+      },
+      {
+        "placeName": "Boyertown borough",
+        "population": "4333"
+      },
+      {
+        "placeName": "Brackenridge borough",
+        "population": "3093"
+      },
+      {
+        "placeName": "Braddock borough",
+        "population": "1647"
+      },
+      {
+        "placeName": "Braddock Hills borough",
+        "population": "1650"
+      },
+      {
+        "placeName": "Bradford city",
+        "population": "7442"
+      },
+      {
+        "placeName": "Bradford Woods borough",
+        "population": "1126"
+      },
+      {
+        "placeName": "Brentwood borough",
+        "population": "9597"
+      },
+      {
+        "placeName": "Briar Creek borough",
+        "population": "608"
+      },
+      {
+        "placeName": "Bridgeport borough",
+        "population": "5758"
+      },
+      {
+        "placeName": "Bridgeville borough",
+        "population": "4569"
+      },
+      {
+        "placeName": "Bridgewater borough",
+        "population": "732"
+      },
+      {
+        "placeName": "Brisbin borough",
+        "population": "412"
+      },
+      {
+        "placeName": "Bristol borough",
+        "population": "9970"
+      },
+      {
+        "placeName": "Broad Top City borough",
+        "population": "359"
+      },
+      {
+        "placeName": "Brockway borough",
+        "population": "2213"
+      },
+      {
+        "placeName": "Brookhaven borough",
+        "population": "8362"
+      },
+      {
+        "placeName": "Brookville borough",
+        "population": "3883"
+      },
+      {
+        "placeName": "Brownstown borough",
+        "population": "664"
+      },
+      {
+        "placeName": "Brownsville borough",
+        "population": "2075"
+      },
+      {
+        "placeName": "Bruin borough",
+        "population": "401"
+      },
+      {
+        "placeName": "Bryn Athyn borough",
+        "population": "1304"
+      },
+      {
+        "placeName": "Burgettstown borough",
+        "population": "1390"
+      },
+      {
+        "placeName": "Burlington borough",
+        "population": "143"
+      },
+      {
+        "placeName": "Burnham borough",
+        "population": "1970"
+      },
+      {
+        "placeName": "Burnside borough",
+        "population": "183"
+      },
+      {
+        "placeName": "Butler city",
+        "population": "12879"
+      },
+      {
+        "placeName": "California borough",
+        "population": "4615"
+      },
+      {
+        "placeName": "Callensburg borough",
+        "population": "143"
+      },
+      {
+        "placeName": "Callery borough",
+        "population": "335"
+      },
+      {
+        "placeName": "Callimont borough",
+        "population": "48"
+      },
+      {
+        "placeName": "Cambridge Springs borough",
+        "population": "2361"
+      },
+      {
+        "placeName": "Camp Hill borough",
+        "population": "8199"
+      },
+      {
+        "placeName": "Canonsburg borough",
+        "population": "9529"
+      },
+      {
+        "placeName": "Canton borough",
+        "population": "1682"
+      },
+      {
+        "placeName": "Carbondale city",
+        "population": "8731"
+      },
+      {
+        "placeName": "Carlisle borough",
+        "population": "22693"
+      },
+      {
+        "placeName": "Carmichaels borough",
+        "population": "401"
+      },
+      {
+        "placeName": "Carnegie borough",
+        "population": "7777"
+      },
+      {
+        "placeName": "Carrolltown borough",
+        "population": "998"
+      },
+      {
+        "placeName": "Carroll Valley borough",
+        "population": "4051"
+      },
+      {
+        "placeName": "Cassandra borough",
+        "population": "153"
+      },
+      {
+        "placeName": "Casselman borough",
+        "population": "119"
+      },
+      {
+        "placeName": "Cassville borough",
+        "population": "133"
+      },
+      {
+        "placeName": "Castle Shannon borough",
+        "population": "8006"
+      },
+      {
+        "placeName": "Catasauqua borough",
+        "population": "6590"
+      },
+      {
+        "placeName": "Catawissa borough",
+        "population": "1539"
+      },
+      {
+        "placeName": "Centerport borough",
+        "population": "321"
+      },
+      {
+        "placeName": "Centerville borough",
+        "population": "172"
+      },
+      {
+        "placeName": "Centerville borough",
+        "population": "3223"
+      },
+      {
+        "placeName": "Central City borough",
+        "population": "954"
+      },
+      {
+        "placeName": "Centralia borough",
+        "population": "4"
+      },
+      {
+        "placeName": "Centre Hall borough",
+        "population": "1225"
+      },
+      {
+        "placeName": "Chalfant borough",
+        "population": "710"
+      },
+      {
+        "placeName": "Chalfont borough",
+        "population": "4419"
+      },
+      {
+        "placeName": "Chambersburg borough",
+        "population": "23376"
+      },
+      {
+        "placeName": "Chapman borough",
+        "population": "221"
+      },
+      {
+        "placeName": "Charleroi borough",
+        "population": "4112"
+      },
+      {
+        "placeName": "Cherry Tree borough",
+        "population": "271"
+      },
+      {
+        "placeName": "Cherry Valley borough",
+        "population": "55"
+      },
+      {
+        "placeName": "Chester city",
+        "population": "33996"
+      },
+      {
+        "placeName": "Chester Heights borough",
+        "population": "3183"
+      },
+      {
+        "placeName": "Chester Hill borough",
+        "population": "787"
+      },
+      {
+        "placeName": "Chest Springs borough",
+        "population": "133"
+      },
+      {
+        "placeName": "Cheswick borough",
+        "population": "1594"
+      },
+      {
+        "placeName": "Chicora borough",
+        "population": "870"
+      },
+      {
+        "placeName": "Christiana borough",
+        "population": "1096"
+      },
+      {
+        "placeName": "Churchill borough",
+        "population": "3014"
+      },
+      {
+        "placeName": "Clairton municipality",
+        "population": "5876"
+      },
+      {
+        "placeName": "Clarendon borough",
+        "population": "395"
+      },
+      {
+        "placeName": "Clarion borough",
+        "population": "4037"
+      },
+      {
+        "placeName": "Clark borough",
+        "population": "558"
+      },
+      {
+        "placeName": "Clarks Green borough",
+        "population": "1519"
+      },
+      {
+        "placeName": "Clarks Summit borough",
+        "population": "5069"
+      },
+      {
+        "placeName": "Clarksville borough",
+        "population": "183"
+      },
+      {
+        "placeName": "Claysville borough",
+        "population": "706"
+      },
+      {
+        "placeName": "Clearfield borough",
+        "population": "5753"
+      },
+      {
+        "placeName": "Cleona borough",
+        "population": "2055"
+      },
+      {
+        "placeName": "Clifton Heights borough",
+        "population": "6835"
+      },
+      {
+        "placeName": "Clintonville borough",
+        "population": "430"
+      },
+      {
+        "placeName": "Clymer borough",
+        "population": "1304"
+      },
+      {
+        "placeName": "Coal Center borough",
+        "population": "110"
+      },
+      {
+        "placeName": "Coaldale borough",
+        "population": "127"
+      },
+      {
+        "placeName": "Coaldale borough",
+        "population": "2440"
+      },
+      {
+        "placeName": "Coalmont borough",
+        "population": "84"
+      },
+      {
+        "placeName": "Coalport borough",
+        "population": "414"
+      },
+      {
+        "placeName": "Coatesville city",
+        "population": "13283"
+      },
+      {
+        "placeName": "Cochranton borough",
+        "population": "1090"
+      },
+      {
+        "placeName": "Cokeburg borough",
+        "population": "607"
+      },
+      {
+        "placeName": "Collegeville borough",
+        "population": "5287"
+      },
+      {
+        "placeName": "Collingdale borough",
+        "population": "8898"
+      },
+      {
+        "placeName": "Columbia borough",
+        "population": "10314"
+      },
+      {
+        "placeName": "Colwyn borough",
+        "population": "2465"
+      },
+      {
+        "placeName": "Confluence borough",
+        "population": "705"
+      },
+      {
+        "placeName": "Conneaut Lake borough",
+        "population": "609"
+      },
+      {
+        "placeName": "Conneautville borough",
+        "population": "713"
+      },
+      {
+        "placeName": "Connellsville city",
+        "population": "6574"
+      },
+      {
+        "placeName": "Connoquenessing borough",
+        "population": "809"
+      },
+      {
+        "placeName": "Conshohocken borough",
+        "population": "9266"
+      },
+      {
+        "placeName": "Conway borough",
+        "population": "2122"
+      },
+      {
+        "placeName": "Conyngham borough",
+        "population": "1837"
+      },
+      {
+        "placeName": "Coopersburg borough",
+        "population": "2535"
+      },
+      {
+        "placeName": "Cooperstown borough",
+        "population": "383"
+      },
+      {
+        "placeName": "Coplay borough",
+        "population": "3532"
+      },
+      {
+        "placeName": "Coraopolis borough",
+        "population": "5280"
+      },
+      {
+        "placeName": "Cornwall borough",
+        "population": "4698"
+      },
+      {
+        "placeName": "Corry city",
+        "population": "5993"
+      },
+      {
+        "placeName": "Corsica borough",
+        "population": "312"
+      },
+      {
+        "placeName": "Coudersport borough",
+        "population": "2281"
+      },
+      {
+        "placeName": "Courtdale borough",
+        "population": "707"
+      },
+      {
+        "placeName": "Crafton borough",
+        "population": "5790"
+      },
+      {
+        "placeName": "Cranesville borough",
+        "population": "563"
+      },
+      {
+        "placeName": "Creekside borough",
+        "population": "280"
+      },
+      {
+        "placeName": "Cresson borough",
+        "population": "1465"
+      },
+      {
+        "placeName": "Cressona borough",
+        "population": "1622"
+      },
+      {
+        "placeName": "Cross Roads borough",
+        "population": "534"
+      },
+      {
+        "placeName": "Curwensville borough",
+        "population": "2473"
+      },
+      {
+        "placeName": "Daisytown borough",
+        "population": "283"
+      },
+      {
+        "placeName": "Dale borough",
+        "population": "947"
+      },
+      {
+        "placeName": "Dallas borough",
+        "population": "2685"
+      },
+      {
+        "placeName": "Dallastown borough",
+        "population": "4198"
+      },
+      {
+        "placeName": "Dalton borough",
+        "population": "1296"
+      },
+      {
+        "placeName": "Danville borough",
+        "population": "4101"
+      },
+      {
+        "placeName": "Darby borough",
+        "population": "10666"
+      },
+      {
+        "placeName": "Darlington borough",
+        "population": "246"
+      },
+      {
+        "placeName": "Dauphin borough",
+        "population": "790"
+      },
+      {
+        "placeName": "Dawson borough",
+        "population": "336"
+      },
+      {
+        "placeName": "Dayton borough",
+        "population": "528"
+      },
+      {
+        "placeName": "Deemston borough",
+        "population": "735"
+      },
+      {
+        "placeName": "Deer Lake borough",
+        "population": "693"
+      },
+      {
+        "placeName": "Delaware Water Gap borough",
+        "population": "669"
+      },
+      {
+        "placeName": "Delmont borough",
+        "population": "2630"
+      },
+      {
+        "placeName": "Delta borough",
+        "population": "713"
+      },
+      {
+        "placeName": "Denver borough",
+        "population": "3747"
+      },
+      {
+        "placeName": "Derry borough",
+        "population": "2561"
+      },
+      {
+        "placeName": "Dickson City borough",
+        "population": "5976"
+      },
+      {
+        "placeName": "Dillsburg borough",
+        "population": "2635"
+      },
+      {
+        "placeName": "Donegal borough",
+        "population": "99"
+      },
+      {
+        "placeName": "Donora borough",
+        "population": "4462"
+      },
+      {
+        "placeName": "Dormont borough",
+        "population": "7816"
+      },
+      {
+        "placeName": "Dover borough",
+        "population": "1959"
+      },
+      {
+        "placeName": "Downingtown borough",
+        "population": "8384"
+      },
+      {
+        "placeName": "Doylestown borough",
+        "population": "8330"
+      },
+      {
+        "placeName": "Dravosburg borough",
+        "population": "1536"
+      },
+      {
+        "placeName": "Driftwood borough",
+        "population": "35"
+      },
+      {
+        "placeName": "Dublin borough",
+        "population": "2436"
+      },
+      {
+        "placeName": "DuBois city",
+        "population": "7254"
+      },
+      {
+        "placeName": "Duboistown borough",
+        "population": "1184"
+      },
+      {
+        "placeName": "Dudley borough",
+        "population": "178"
+      },
+      {
+        "placeName": "Dunbar borough",
+        "population": "978"
+      },
+      {
+        "placeName": "Duncannon borough",
+        "population": "1465"
+      },
+      {
+        "placeName": "Duncansville borough",
+        "population": "1207"
+      },
+      {
+        "placeName": "Dunlevy borough",
+        "population": "363"
+      },
+      {
+        "placeName": "Dunmore borough",
+        "population": "14249"
+      },
+      {
+        "placeName": "Dupont borough",
+        "population": "2589"
+      },
+      {
+        "placeName": "Duquesne city",
+        "population": "5019"
+      },
+      {
+        "placeName": "Duryea borough",
+        "population": "5157"
+      },
+      {
+        "placeName": "Dushore borough",
+        "population": "452"
+      },
+      {
+        "placeName": "Eagles Mere borough",
+        "population": "153"
+      },
+      {
+        "placeName": "East Bangor borough",
+        "population": "1101"
+      },
+      {
+        "placeName": "East Berlin borough",
+        "population": "1582"
+      },
+      {
+        "placeName": "East Brady borough",
+        "population": "799"
+      },
+      {
+        "placeName": "East Butler borough",
+        "population": "728"
+      },
+      {
+        "placeName": "East Conemaugh borough",
+        "population": "1034"
+      },
+      {
+        "placeName": "East Greenville borough",
+        "population": "3154"
+      },
+      {
+        "placeName": "East Lansdowne borough",
+        "population": "2703"
+      },
+      {
+        "placeName": "East McKeesport borough",
+        "population": "1969"
+      },
+      {
+        "placeName": "Easton city",
+        "population": "30402"
+      },
+      {
+        "placeName": "East Petersburg borough",
+        "population": "4702"
+      },
+      {
+        "placeName": "East Pittsburgh borough",
+        "population": "1835"
+      },
+      {
+        "placeName": "East Prospect borough",
+        "population": "961"
+      },
+      {
+        "placeName": "East Rochester borough",
+        "population": "560"
+      },
+      {
+        "placeName": "East Side borough",
+        "population": "257"
+      },
+      {
+        "placeName": "East Stroudsburg borough",
+        "population": "9438"
+      },
+      {
+        "placeName": "Eastvale borough",
+        "population": "186"
+      },
+      {
+        "placeName": "East Vandergrift borough",
+        "population": "573"
+      },
+      {
+        "placeName": "East Washington borough",
+        "population": "1814"
+      },
+      {
+        "placeName": "Eau Claire borough",
+        "population": "290"
+      },
+      {
+        "placeName": "Ebensburg borough",
+        "population": "3228"
+      },
+      {
+        "placeName": "Economy borough",
+        "population": "9098"
+      },
+      {
+        "placeName": "Eddystone borough",
+        "population": "2448"
+      },
+      {
+        "placeName": "Edgewood borough",
+        "population": "2997"
+      },
+      {
+        "placeName": "Edgeworth borough",
+        "population": "1611"
+      },
+      {
+        "placeName": "Edinboro borough",
+        "population": "5790"
+      },
+      {
+        "placeName": "Edwardsville borough",
+        "population": "4927"
+      },
+      {
+        "placeName": "Ehrenfeld borough",
+        "population": "196"
+      },
+      {
+        "placeName": "Elco borough",
+        "population": "257"
+      },
+      {
+        "placeName": "Elderton borough",
+        "population": "322"
+      },
+      {
+        "placeName": "Eldred borough",
+        "population": "720"
+      },
+      {
+        "placeName": "Elgin borough",
+        "population": "198"
+      },
+      {
+        "placeName": "Elizabeth borough",
+        "population": "1343"
+      },
+      {
+        "placeName": "Elizabethtown borough",
+        "population": "11961"
+      },
+      {
+        "placeName": "Elizabethville borough",
+        "population": "1347"
+      },
+      {
+        "placeName": "Elkland borough",
+        "population": "1772"
+      },
+      {
+        "placeName": "Ellport borough",
+        "population": "1081"
+      },
+      {
+        "placeName": "Ellsworth borough",
+        "population": "899"
+      },
+      {
+        "placeName": "Ellwood City borough",
+        "population": "7362"
+      },
+      {
+        "placeName": "Elverson borough",
+        "population": "1396"
+      },
+      {
+        "placeName": "Emlenton borough",
+        "population": "600"
+      },
+      {
+        "placeName": "Emmaus borough",
+        "population": "12514"
+      },
+      {
+        "placeName": "Emporium borough",
+        "population": "1781"
+      },
+      {
+        "placeName": "Emsworth borough",
+        "population": "2377"
+      },
+      {
+        "placeName": "Enon Valley borough",
+        "population": "301"
+      },
+      {
+        "placeName": "Ephrata borough",
+        "population": "13647"
+      },
+      {
+        "placeName": "Erie city",
+        "population": "91838"
+      },
+      {
+        "placeName": "Ernest borough",
+        "population": "410"
+      },
+      {
+        "placeName": "Etna borough",
+        "population": "3269"
+      },
+      {
+        "placeName": "Evans City borough",
+        "population": "1670"
+      },
+      {
+        "placeName": "Everett borough",
+        "population": "1732"
+      },
+      {
+        "placeName": "Everson borough",
+        "population": "736"
+      },
+      {
+        "placeName": "Exeter borough",
+        "population": "5587"
+      },
+      {
+        "placeName": "Export borough",
+        "population": "865"
+      },
+      {
+        "placeName": "Factoryville borough",
+        "population": "1089"
+      },
+      {
+        "placeName": "Fairchance borough",
+        "population": "1787"
+      },
+      {
+        "placeName": "Fairfield borough",
+        "population": "542"
+      },
+      {
+        "placeName": "Fairview borough",
+        "population": "177"
+      },
+      {
+        "placeName": "Falls Creek borough",
+        "population": "1002"
+      },
+      {
+        "placeName": "Fallston borough",
+        "population": "245"
+      },
+      {
+        "placeName": "Farrell city",
+        "population": "4110"
+      },
+      {
+        "placeName": "Fawn Grove borough",
+        "population": "473"
+      },
+      {
+        "placeName": "Fayette City borough",
+        "population": "476"
+      },
+      {
+        "placeName": "Felton borough",
+        "population": "505"
+      },
+      {
+        "placeName": "Ferndale borough",
+        "population": "1485"
+      },
+      {
+        "placeName": "Finleyville borough",
+        "population": "360"
+      },
+      {
+        "placeName": "Fleetwood borough",
+        "population": "4094"
+      },
+      {
+        "placeName": "Flemington borough",
+        "population": "1256"
+      },
+      {
+        "placeName": "Folcroft borough",
+        "population": "6780"
+      },
+      {
+        "placeName": "Ford City borough",
+        "population": "2750"
+      },
+      {
+        "placeName": "Ford Cliff borough",
+        "population": "346"
+      },
+      {
+        "placeName": "Forest City borough",
+        "population": "1741"
+      },
+      {
+        "placeName": "Forest Hills borough",
+        "population": "6116"
+      },
+      {
+        "placeName": "Forksville borough",
+        "population": "108"
+      },
+      {
+        "placeName": "Forty Fort borough",
+        "population": "4280"
+      },
+      {
+        "placeName": "Fountain Hill borough",
+        "population": "4835"
+      },
+      {
+        "placeName": "Foxburg borough",
+        "population": "178"
+      },
+      {
+        "placeName": "Fox Chapel borough",
+        "population": "5139"
+      },
+      {
+        "placeName": "Frackville borough",
+        "population": "3893"
+      },
+      {
+        "placeName": "Frankfort Springs borough",
+        "population": "112"
+      },
+      {
+        "placeName": "Franklin borough",
+        "population": "263"
+      },
+      {
+        "placeName": "Franklin city",
+        "population": "5899"
+      },
+      {
+        "placeName": "Franklin Park borough",
+        "population": "14978"
+      },
+      {
+        "placeName": "Franklintown borough",
+        "population": "559"
+      },
+      {
+        "placeName": "Fredonia borough",
+        "population": "417"
+      },
+      {
+        "placeName": "Freeburg borough",
+        "population": "552"
+      },
+      {
+        "placeName": "Freedom borough",
+        "population": "1442"
+      },
+      {
+        "placeName": "Freeland borough",
+        "population": "3811"
+      },
+      {
+        "placeName": "Freemansburg borough",
+        "population": "3003"
+      },
+      {
+        "placeName": "Freeport borough",
+        "population": "1672"
+      },
+      {
+        "placeName": "Friendsville borough",
+        "population": "98"
+      },
+      {
+        "placeName": "Galeton borough",
+        "population": "947"
+      },
+      {
+        "placeName": "Gallitzin borough",
+        "population": "1465"
+      },
+      {
+        "placeName": "Garrett borough",
+        "population": "408"
+      },
+      {
+        "placeName": "Geistown borough",
+        "population": "2263"
+      },
+      {
+        "placeName": "Georgetown borough",
+        "population": "198"
+      },
+      {
+        "placeName": "Gettysburg borough",
+        "population": "8365"
+      },
+      {
+        "placeName": "Gilberton borough",
+        "population": "590"
+      },
+      {
+        "placeName": "Girard borough",
+        "population": "2906"
+      },
+      {
+        "placeName": "Girardville borough",
+        "population": "1325"
+      },
+      {
+        "placeName": "Glasgow borough",
+        "population": "68"
+      },
+      {
+        "placeName": "Glassport borough",
+        "population": "4251"
+      },
+      {
+        "placeName": "Glen Campbell borough",
+        "population": "250"
+      },
+      {
+        "placeName": "Glendon borough",
+        "population": "383"
+      },
+      {
+        "placeName": "Glenfield borough",
+        "population": "200"
+      },
+      {
+        "placeName": "Glen Hope borough",
+        "population": "122"
+      },
+      {
+        "placeName": "Glenolden borough",
+        "population": "7217"
+      },
+      {
+        "placeName": "Glen Osborne borough",
+        "population": "558"
+      },
+      {
+        "placeName": "Glen Rock borough",
+        "population": "2129"
+      },
+      {
+        "placeName": "Goldsboro borough",
+        "population": "931"
+      },
+      {
+        "placeName": "Gordon borough",
+        "population": "769"
+      },
+      {
+        "placeName": "Grampian borough",
+        "population": "345"
+      },
+      {
+        "placeName": "Gratz borough",
+        "population": "750"
+      },
+      {
+        "placeName": "Great Bend borough",
+        "population": "620"
+      },
+      {
+        "placeName": "Greencastle borough",
+        "population": "4222"
+      },
+      {
+        "placeName": "Green Hills borough",
+        "population": "17"
+      },
+      {
+        "placeName": "Green Lane borough",
+        "population": "471"
+      },
+      {
+        "placeName": "Greensboro borough",
+        "population": "248"
+      },
+      {
+        "placeName": "Greensburg city",
+        "population": "14462"
+      },
+      {
+        "placeName": "Green Tree borough",
+        "population": "4672"
+      },
+      {
+        "placeName": "Greenville borough",
+        "population": "5406"
+      },
+      {
+        "placeName": "Grove City borough",
+        "population": "7694"
+      },
+      {
+        "placeName": "Halifax borough",
+        "population": "810"
+      },
+      {
+        "placeName": "Hallam borough",
+        "population": "2798"
+      },
+      {
+        "placeName": "Hallstead borough",
+        "population": "1167"
+      },
+      {
+        "placeName": "Hamburg borough",
+        "population": "4551"
+      },
+      {
+        "placeName": "Hanover borough",
+        "population": "16684"
+      },
+      {
+        "placeName": "Harmony borough",
+        "population": "905"
+      },
+      {
+        "placeName": "Harrisburg city",
+        "population": "50522"
+      },
+      {
+        "placeName": "Harrisville borough",
+        "population": "782"
+      },
+      {
+        "placeName": "Hartleton borough",
+        "population": "245"
+      },
+      {
+        "placeName": "Harveys Lake borough",
+        "population": "2889"
+      },
+      {
+        "placeName": "Hastings borough",
+        "population": "1168"
+      },
+      {
+        "placeName": "Hatboro borough",
+        "population": "8593"
+      },
+      {
+        "placeName": "Hatfield borough",
+        "population": "3424"
+      },
+      {
+        "placeName": "Hawley borough",
+        "population": "1212"
+      },
+      {
+        "placeName": "Hawthorn borough",
+        "population": "468"
+      },
+      {
+        "placeName": "Haysville borough",
+        "population": "77"
+      },
+      {
+        "placeName": "Hazleton city",
+        "population": "30286"
+      },
+      {
+        "placeName": "Heidelberg borough",
+        "population": "1230"
+      },
+      {
+        "placeName": "Hellertown borough",
+        "population": "6138"
+      },
+      {
+        "placeName": "Hermitage city",
+        "population": "16308"
+      },
+      {
+        "placeName": "Herndon borough",
+        "population": "341"
+      },
+      {
+        "placeName": "Highspire borough",
+        "population": "2725"
+      },
+      {
+        "placeName": "Hollidaysburg borough",
+        "population": "5470"
+      },
+      {
+        "placeName": "Homer City borough",
+        "population": "1708"
+      },
+      {
+        "placeName": "Homestead borough",
+        "population": "2822"
+      },
+      {
+        "placeName": "Homewood borough",
+        "population": "88"
+      },
+      {
+        "placeName": "Honesdale borough",
+        "population": "4417"
+      },
+      {
+        "placeName": "Honey Brook borough",
+        "population": "1891"
+      },
+      {
+        "placeName": "Hookstown borough",
+        "population": "129"
+      },
+      {
+        "placeName": "Hooversville borough",
+        "population": "605"
+      },
+      {
+        "placeName": "Hop Bottom borough",
+        "population": "314"
+      },
+      {
+        "placeName": "Hopewell borough",
+        "population": "185"
+      },
+      {
+        "placeName": "Houston borough",
+        "population": "1126"
+      },
+      {
+        "placeName": "Houtzdale borough",
+        "population": "741"
+      },
+      {
+        "placeName": "Howard borough",
+        "population": "659"
+      },
+      {
+        "placeName": "Hughestown borough",
+        "population": "1371"
+      },
+      {
+        "placeName": "Hughesville borough",
+        "population": "2089"
+      },
+      {
+        "placeName": "Hulmeville borough",
+        "population": "982"
+      },
+      {
+        "placeName": "Hummelstown borough",
+        "population": "4492"
+      },
+      {
+        "placeName": "Hunker borough",
+        "population": "302"
+      },
+      {
+        "placeName": "Huntingdon borough",
+        "population": "6862"
+      },
+      {
+        "placeName": "Hyde Park borough",
+        "population": "491"
+      },
+      {
+        "placeName": "Hydetown borough",
+        "population": "514"
+      },
+      {
+        "placeName": "Hyndman borough",
+        "population": "849"
+      },
+      {
+        "placeName": "Indiana borough",
+        "population": "14697"
+      },
+      {
+        "placeName": "Indian Lake borough",
+        "population": "377"
+      },
+      {
+        "placeName": "Industry borough",
+        "population": "1783"
+      },
+      {
+        "placeName": "Ingram borough",
+        "population": "3222"
+      },
+      {
+        "placeName": "Irvona borough",
+        "population": "528"
+      },
+      {
+        "placeName": "Irwin borough",
+        "population": "3759"
+      },
+      {
+        "placeName": "Ivyland borough",
+        "population": "943"
+      },
+      {
+        "placeName": "Jackson Center borough",
+        "population": "189"
+      },
+      {
+        "placeName": "Jacobus borough",
+        "population": "1838"
+      },
+      {
+        "placeName": "Jamestown borough",
+        "population": "556"
+      },
+      {
+        "placeName": "Jeannette city",
+        "population": "8489"
+      },
+      {
+        "placeName": "Jeddo borough",
+        "population": "102"
+      },
+      {
+        "placeName": "Jefferson borough",
+        "population": "239"
+      },
+      {
+        "placeName": "Jefferson borough",
+        "population": "657"
+      },
+      {
+        "placeName": "Jefferson Hills borough",
+        "population": "12357"
+      },
+      {
+        "placeName": "Jenkintown borough",
+        "population": "4785"
+      },
+      {
+        "placeName": "Jennerstown borough",
+        "population": "657"
+      },
+      {
+        "placeName": "Jermyn borough",
+        "population": "2109"
+      },
+      {
+        "placeName": "Jersey Shore borough",
+        "population": "4048"
+      },
+      {
+        "placeName": "Jessup borough",
+        "population": "4506"
+      },
+      {
+        "placeName": "Jim Thorpe borough",
+        "population": "4531"
+      },
+      {
+        "placeName": "Johnsonburg borough",
+        "population": "2291"
+      },
+      {
+        "placeName": "Johnstown city",
+        "population": "17654"
+      },
+      {
+        "placeName": "Jonestown borough",
+        "population": "1666"
+      },
+      {
+        "placeName": "Juniata Terrace borough",
+        "population": "550"
+      },
+      {
+        "placeName": "Kane borough",
+        "population": "3463"
+      },
+      {
+        "placeName": "Karns City borough",
+        "population": "160"
+      },
+      {
+        "placeName": "Kenhorst borough",
+        "population": "3028"
+      },
+      {
+        "placeName": "Kennett Square borough",
+        "population": "6893"
+      },
+      {
+        "placeName": "Kingston borough",
+        "population": "13462"
+      },
+      {
+        "placeName": "Kistler borough",
+        "population": "291"
+      },
+      {
+        "placeName": "Kittanning borough",
+        "population": "3941"
+      },
+      {
+        "placeName": "Knox borough",
+        "population": "1068"
+      },
+      {
+        "placeName": "Knoxville borough",
+        "population": "666"
+      },
+      {
+        "placeName": "Koppel borough",
+        "population": "693"
+      },
+      {
+        "placeName": "Kulpmont borough",
+        "population": "2688"
+      },
+      {
+        "placeName": "Kutztown borough",
+        "population": "4255"
+      },
+      {
+        "placeName": "Laceyville borough",
+        "population": "354"
+      },
+      {
+        "placeName": "Laflin borough",
+        "population": "1468"
+      },
+      {
+        "placeName": "Lake City borough",
+        "population": "2842"
+      },
+      {
+        "placeName": "Lancaster city",
+        "population": "58366"
+      },
+      {
+        "placeName": "Landingville borough",
+        "population": "145"
+      },
+      {
+        "placeName": "Landisburg borough",
+        "population": "224"
+      },
+      {
+        "placeName": "Lanesboro borough",
+        "population": "496"
+      },
+      {
+        "placeName": "Langhorne borough",
+        "population": "1620"
+      },
+      {
+        "placeName": "Langhorne Manor borough",
+        "population": "1467"
+      },
+      {
+        "placeName": "Lansdale borough",
+        "population": "18986"
+      },
+      {
+        "placeName": "Lansdowne borough",
+        "population": "11141"
+      },
+      {
+        "placeName": "Lansford borough",
+        "population": "4123"
+      },
+      {
+        "placeName": "Laporte borough",
+        "population": "312"
+      },
+      {
+        "placeName": "Larksville borough",
+        "population": "4321"
+      },
+      {
+        "placeName": "Latrobe borough",
+        "population": "7826"
+      },
+      {
+        "placeName": "Laureldale borough",
+        "population": "4352"
+      },
+      {
+        "placeName": "Laurel Mountain borough",
+        "population": "142"
+      },
+      {
+        "placeName": "Laurel Run borough",
+        "population": "572"
+      },
+      {
+        "placeName": "Lawrenceville borough",
+        "population": "702"
+      },
+      {
+        "placeName": "Lebanon city",
+        "population": "26479"
+      },
+      {
+        "placeName": "Leechburg borough",
+        "population": "2068"
+      },
+      {
+        "placeName": "Leesport borough",
+        "population": "1964"
+      },
+      {
+        "placeName": "Leetsdale borough",
+        "population": "1102"
+      },
+      {
+        "placeName": "Lehighton borough",
+        "population": "5232"
+      },
+      {
+        "placeName": "Lemoyne borough",
+        "population": "4801"
+      },
+      {
+        "placeName": "Lenhartsville borough",
+        "population": "180"
+      },
+      {
+        "placeName": "LeRaysville borough",
+        "population": "285"
+      },
+      {
+        "placeName": "Lewisberry borough",
+        "population": "378"
+      },
+      {
+        "placeName": "Lewisburg borough",
+        "population": "5226"
+      },
+      {
+        "placeName": "Lewis Run borough",
+        "population": "550"
+      },
+      {
+        "placeName": "Lewistown borough",
+        "population": "8385"
+      },
+      {
+        "placeName": "Liberty borough",
+        "population": "2242"
+      },
+      {
+        "placeName": "Liberty borough",
+        "population": "232"
+      },
+      {
+        "placeName": "Ligonier borough",
+        "population": "1462"
+      },
+      {
+        "placeName": "Lilly borough",
+        "population": "842"
+      },
+      {
+        "placeName": "Lincoln borough",
+        "population": "888"
+      },
+      {
+        "placeName": "Linesville borough",
+        "population": "932"
+      },
+      {
+        "placeName": "Lititz borough",
+        "population": "9689"
+      },
+      {
+        "placeName": "Little Meadows borough",
+        "population": "243"
+      },
+      {
+        "placeName": "Littlestown borough",
+        "population": "4895"
+      },
+      {
+        "placeName": "Liverpool borough",
+        "population": "979"
+      },
+      {
+        "placeName": "Lock Haven city",
+        "population": "8500"
+      },
+      {
+        "placeName": "Loganton borough",
+        "population": "466"
+      },
+      {
+        "placeName": "Loganville borough",
+        "population": "1442"
+      },
+      {
+        "placeName": "Long Branch borough",
+        "population": "410"
+      },
+      {
+        "placeName": "Lorain borough",
+        "population": "568"
+      },
+      {
+        "placeName": "Loretto borough",
+        "population": "1135"
+      },
+      {
+        "placeName": "Lower Burrell city",
+        "population": "11470"
+      },
+      {
+        "placeName": "Luzerne borough",
+        "population": "2744"
+      },
+      {
+        "placeName": "Lykens borough",
+        "population": "1856"
+      },
+      {
+        "placeName": "Lyons borough",
+        "population": "444"
+      },
+      {
+        "placeName": "McAdoo borough",
+        "population": "2474"
+      },
+      {
+        "placeName": "McClure borough",
+        "population": "880"
+      },
+      {
+        "placeName": "McConnellsburg borough",
+        "population": "1112"
+      },
+      {
+        "placeName": "McDonald borough",
+        "population": "1994"
+      },
+      {
+        "placeName": "McEwensville borough",
+        "population": "284"
+      },
+      {
+        "placeName": "McKean borough",
+        "population": "477"
+      },
+      {
+        "placeName": "McKeesport city",
+        "population": "16907"
+      },
+      {
+        "placeName": "McKees Rocks borough",
+        "population": "5624"
+      },
+      {
+        "placeName": "McSherrystown borough",
+        "population": "3150"
+      },
+      {
+        "placeName": "Macungie borough",
+        "population": "3395"
+      },
+      {
+        "placeName": "McVeytown borough",
+        "population": "334"
+      },
+      {
+        "placeName": "Madison borough",
+        "population": "350"
+      },
+      {
+        "placeName": "Mahaffey borough",
+        "population": "312"
+      },
+      {
+        "placeName": "Mahanoy City borough",
+        "population": "3539"
+      },
+      {
+        "placeName": "Malvern borough",
+        "population": "3427"
+      },
+      {
+        "placeName": "Manchester borough",
+        "population": "2821"
+      },
+      {
+        "placeName": "Manheim borough",
+        "population": "4977"
+      },
+      {
+        "placeName": "Manns Choice borough",
+        "population": "305"
+      },
+      {
+        "placeName": "Manor borough",
+        "population": "3482"
+      },
+      {
+        "placeName": "Manorville borough",
+        "population": "364"
+      },
+      {
+        "placeName": "Mansfield borough",
+        "population": "2937"
+      },
+      {
+        "placeName": "Mapleton borough",
+        "population": "402"
+      },
+      {
+        "placeName": "Marcus Hook borough",
+        "population": "2448"
+      },
+      {
+        "placeName": "Marianna borough",
+        "population": "386"
+      },
+      {
+        "placeName": "Marietta borough",
+        "population": "2931"
+      },
+      {
+        "placeName": "Marion Center borough",
+        "population": "404"
+      },
+      {
+        "placeName": "Marion Heights borough",
+        "population": "552"
+      },
+      {
+        "placeName": "Marklesburg borough",
+        "population": "181"
+      },
+      {
+        "placeName": "Markleysburg borough",
+        "population": "234"
+      },
+      {
+        "placeName": "Mars borough",
+        "population": "1391"
+      },
+      {
+        "placeName": "Martinsburg borough",
+        "population": "1811"
+      },
+      {
+        "placeName": "Marysville borough",
+        "population": "2717"
+      },
+      {
+        "placeName": "Masontown borough",
+        "population": "3100"
+      },
+      {
+        "placeName": "Matamoras borough",
+        "population": "2448"
+      },
+      {
+        "placeName": "Mayfield borough",
+        "population": "1749"
+      },
+      {
+        "placeName": "Meadville city",
+        "population": "12230"
+      },
+      {
+        "placeName": "Mechanicsburg borough",
+        "population": "10037"
+      },
+      {
+        "placeName": "Mechanicsville borough",
+        "population": "458"
+      },
+      {
+        "placeName": "Media borough",
+        "population": "5920"
+      },
+      {
+        "placeName": "Mercer borough",
+        "population": "1905"
+      },
+      {
+        "placeName": "Mercersburg borough",
+        "population": "1492"
+      },
+      {
+        "placeName": "Meshoppen borough",
+        "population": "324"
+      },
+      {
+        "placeName": "Meyersdale borough",
+        "population": "1986"
+      },
+      {
+        "placeName": "Middleburg borough",
+        "population": "1302"
+      },
+      {
+        "placeName": "Middleport borough",
+        "population": "363"
+      },
+      {
+        "placeName": "Middletown borough",
+        "population": "9776"
+      },
+      {
+        "placeName": "Midland borough",
+        "population": "2358"
+      },
+      {
+        "placeName": "Midway borough",
+        "population": "908"
+      },
+      {
+        "placeName": "Mifflin borough",
+        "population": "515"
+      },
+      {
+        "placeName": "Mifflinburg borough",
+        "population": "3436"
+      },
+      {
+        "placeName": "Mifflintown borough",
+        "population": "819"
+      },
+      {
+        "placeName": "Milesburg borough",
+        "population": "1062"
+      },
+      {
+        "placeName": "Milford borough",
+        "population": "1142"
+      },
+      {
+        "placeName": "Millbourne borough",
+        "population": "1210"
+      },
+      {
+        "placeName": "Mill Creek borough",
+        "population": "283"
+      },
+      {
+        "placeName": "Millersburg borough",
+        "population": "2540"
+      },
+      {
+        "placeName": "Millerstown borough",
+        "population": "699"
+      },
+      {
+        "placeName": "Millersville borough",
+        "population": "9280"
+      },
+      {
+        "placeName": "Mill Hall borough",
+        "population": "1456"
+      },
+      {
+        "placeName": "Millheim borough",
+        "population": "821"
+      },
+      {
+        "placeName": "Millvale borough",
+        "population": "3211"
+      },
+      {
+        "placeName": "Mill Village borough",
+        "population": "378"
+      },
+      {
+        "placeName": "Millville borough",
+        "population": "980"
+      },
+      {
+        "placeName": "Milton borough",
+        "population": "6457"
+      },
+      {
+        "placeName": "Minersville borough",
+        "population": "4423"
+      },
+      {
+        "placeName": "Modena borough",
+        "population": "542"
+      },
+      {
+        "placeName": "Mohnton borough",
+        "population": "2939"
+      },
+      {
+        "placeName": "Monaca borough",
+        "population": "5456"
+      },
+      {
+        "placeName": "Monessen city",
+        "population": "6657"
+      },
+      {
+        "placeName": "Monongahela city",
+        "population": "4041"
+      },
+      {
+        "placeName": "Monroe borough",
+        "population": "479"
+      },
+      {
+        "placeName": "Monroeville municipality",
+        "population": "27685"
+      },
+      {
+        "placeName": "Mont Alto borough",
+        "population": "1563"
+      },
+      {
+        "placeName": "Montgomery borough",
+        "population": "1538"
+      },
+      {
+        "placeName": "Montoursville borough",
+        "population": "4635"
+      },
+      {
+        "placeName": "Montrose borough",
+        "population": "1275"
+      },
+      {
+        "placeName": "Moosic borough",
+        "population": "5989"
+      },
+      {
+        "placeName": "Morrisville borough",
+        "population": "9665"
+      },
+      {
+        "placeName": "Morton borough",
+        "population": "2768"
+      },
+      {
+        "placeName": "Moscow borough",
+        "population": "1996"
+      },
+      {
+        "placeName": "Mount Carbon borough",
+        "population": "92"
+      },
+      {
+        "placeName": "Mount Carmel borough",
+        "population": "5579"
+      },
+      {
+        "placeName": "Mount Gretna borough",
+        "population": "193"
+      },
+      {
+        "placeName": "Mount Holly Springs borough",
+        "population": "2019"
+      },
+      {
+        "placeName": "Mount Jewett borough",
+        "population": "828"
+      },
+      {
+        "placeName": "Mount Joy borough",
+        "population": "8319"
+      },
+      {
+        "placeName": "Mount Oliver borough",
+        "population": "3222"
+      },
+      {
+        "placeName": "Mount Penn borough",
+        "population": "3269"
+      },
+      {
+        "placeName": "Mount Lebanon municipality",
+        "population": "32552"
+      },
+      {
+        "placeName": "Mount Pleasant borough",
+        "population": "4108"
+      },
+      {
+        "placeName": "Mount Pocono borough",
+        "population": "3047"
+      },
+      {
+        "placeName": "Mount Union borough",
+        "population": "2231"
+      },
+      {
+        "placeName": "Mountville borough",
+        "population": "2977"
+      },
+      {
+        "placeName": "Mount Wolf borough",
+        "population": "1422"
+      },
+      {
+        "placeName": "Muncy borough",
+        "population": "2383"
+      },
+      {
+        "placeName": "Munhall borough",
+        "population": "10253"
+      },
+      {
+        "placeName": "Murrysville municipality",
+        "population": "20636"
+      },
+      {
+        "placeName": "Myerstown borough",
+        "population": "3157"
+      },
+      {
+        "placeName": "Nanticoke city",
+        "population": "10712"
+      },
+      {
+        "placeName": "Nanty-Glo borough",
+        "population": "2413"
+      },
+      {
+        "placeName": "Narberth borough",
+        "population": "4479"
+      },
+      {
+        "placeName": "Nazareth borough",
+        "population": "6091"
+      },
+      {
+        "placeName": "Nescopeck borough",
+        "population": "1511"
+      },
+      {
+        "placeName": "Nesquehoning borough",
+        "population": "3336"
+      },
+      {
+        "placeName": "New Albany borough",
+        "population": "250"
+      },
+      {
+        "placeName": "New Alexandria borough",
+        "population": "479"
+      },
+      {
+        "placeName": "New Baltimore borough",
+        "population": "134"
+      },
+      {
+        "placeName": "New Beaver borough",
+        "population": "1343"
+      },
+      {
+        "placeName": "New Berlin borough",
+        "population": "771"
+      },
+      {
+        "placeName": "New Bethlehem borough",
+        "population": "943"
+      },
+      {
+        "placeName": "New Brighton borough",
+        "population": "5503"
+      },
+      {
+        "placeName": "New Britain borough",
+        "population": "2799"
+      },
+      {
+        "placeName": "New Buffalo borough",
+        "population": "128"
+      },
+      {
+        "placeName": "Newburg borough",
+        "population": "78"
+      },
+      {
+        "placeName": "Newburg borough",
+        "population": "359"
+      },
+      {
+        "placeName": "New Castle city",
+        "population": "21175"
+      },
+      {
+        "placeName": "New Centerville borough",
+        "population": "121"
+      },
+      {
+        "placeName": "New Columbus borough",
+        "population": "223"
+      },
+      {
+        "placeName": "New Cumberland borough",
+        "population": "7590"
+      },
+      {
+        "placeName": "New Eagle borough",
+        "population": "2018"
+      },
+      {
+        "placeName": "Newell borough",
+        "population": "490"
+      },
+      {
+        "placeName": "New Florence borough",
+        "population": "648"
+      },
+      {
+        "placeName": "New Freedom borough",
+        "population": "5116"
+      },
+      {
+        "placeName": "New Galilee borough",
+        "population": "321"
+      },
+      {
+        "placeName": "New Holland borough",
+        "population": "5754"
+      },
+      {
+        "placeName": "New Hope borough",
+        "population": "2629"
+      },
+      {
+        "placeName": "New Kensington city",
+        "population": "11759"
+      },
+      {
+        "placeName": "New Lebanon borough",
+        "population": "195"
+      },
+      {
+        "placeName": "New Milford borough",
+        "population": "796"
+      },
+      {
+        "placeName": "New Morgan borough",
+        "population": "46"
+      },
+      {
+        "placeName": "New Oxford borough",
+        "population": "1912"
+      },
+      {
+        "placeName": "New Paris borough",
+        "population": "191"
+      },
+      {
+        "placeName": "New Philadelphia borough",
+        "population": "1062"
+      },
+      {
+        "placeName": "Newport borough",
+        "population": "1511"
+      },
+      {
+        "placeName": "New Ringgold borough",
+        "population": "254"
+      },
+      {
+        "placeName": "Newry borough",
+        "population": "221"
+      },
+      {
+        "placeName": "New Salem borough",
+        "population": "822"
+      },
+      {
+        "placeName": "New Stanton borough",
+        "population": "2338"
+      },
+      {
+        "placeName": "Newton Hamilton borough",
+        "population": "203"
+      },
+      {
+        "placeName": "Newtown borough",
+        "population": "2257"
+      },
+      {
+        "placeName": "Newville borough",
+        "population": "1409"
+      },
+      {
+        "placeName": "New Washington borough",
+        "population": "51"
+      },
+      {
+        "placeName": "New Wilmington borough",
+        "population": "2084"
+      },
+      {
+        "placeName": "Nicholson borough",
+        "population": "726"
+      },
+      {
+        "placeName": "Norristown borough",
+        "population": "35911"
+      },
+      {
+        "placeName": "Northampton borough",
+        "population": "10570"
+      },
+      {
+        "placeName": "North Apollo borough",
+        "population": "1212"
+      },
+      {
+        "placeName": "North Belle Vernon borough",
+        "population": "1817"
+      },
+      {
+        "placeName": "North Braddock borough",
+        "population": "4107"
+      },
+      {
+        "placeName": "North Catasauqua borough",
+        "population": "3229"
+      },
+      {
+        "placeName": "North Charleroi borough",
+        "population": "1283"
+      },
+      {
+        "placeName": "North East borough",
+        "population": "4018"
+      },
+      {
+        "placeName": "Northern Cambria borough",
+        "population": "3399"
+      },
+      {
+        "placeName": "North Irwin borough",
+        "population": "804"
+      },
+      {
+        "placeName": "Northumberland borough",
+        "population": "3800"
+      },
+      {
+        "placeName": "North Wales borough",
+        "population": "3422"
+      },
+      {
+        "placeName": "North York borough",
+        "population": "2248"
+      },
+      {
+        "placeName": "Norwood borough",
+        "population": "5927"
+      },
+      {
+        "placeName": "Nuangola borough",
+        "population": "676"
+      },
+      {
+        "placeName": "Oakdale borough",
+        "population": "1413"
+      },
+      {
+        "placeName": "Oakland borough",
+        "population": "549"
+      },
+      {
+        "placeName": "Oakmont borough",
+        "population": "6576"
+      },
+      {
+        "placeName": "Ohiopyle borough",
+        "population": "36"
+      },
+      {
+        "placeName": "Ohioville borough",
+        "population": "3317"
+      },
+      {
+        "placeName": "Oil City city",
+        "population": "9301"
+      },
+      {
+        "placeName": "Oklahoma borough",
+        "population": "763"
+      },
+      {
+        "placeName": "Old Forge borough",
+        "population": "8640"
+      },
+      {
+        "placeName": "Olyphant borough",
+        "population": "5390"
+      },
+      {
+        "placeName": "Orangeville borough",
+        "population": "476"
+      },
+      {
+        "placeName": "Orbisonia borough",
+        "population": "413"
+      },
+      {
+        "placeName": "Orrstown borough",
+        "population": "210"
+      },
+      {
+        "placeName": "Orwigsburg borough",
+        "population": "3003"
+      },
+      {
+        "placeName": "Osceola Mills borough",
+        "population": "1007"
+      },
+      {
+        "placeName": "Oswayo borough",
+        "population": "127"
+      },
+      {
+        "placeName": "Oxford borough",
+        "population": "5887"
+      },
+      {
+        "placeName": "Paint borough",
+        "population": "875"
+      },
+      {
+        "placeName": "Palmerton borough",
+        "population": "5615"
+      },
+      {
+        "placeName": "Palmyra borough",
+        "population": "7762"
+      },
+      {
+        "placeName": "Palo Alto borough",
+        "population": "983"
+      },
+      {
+        "placeName": "Parker city",
+        "population": "674"
+      },
+      {
+        "placeName": "Parkesburg borough",
+        "population": "3976"
+      },
+      {
+        "placeName": "Parkside borough",
+        "population": "2320"
+      },
+      {
+        "placeName": "Parryville borough",
+        "population": "417"
+      },
+      {
+        "placeName": "Patterson Heights borough",
+        "population": "620"
+      },
+      {
+        "placeName": "Patton borough",
+        "population": "1656"
+      },
+      {
+        "placeName": "Paxtang borough",
+        "population": "1632"
+      },
+      {
+        "placeName": "Pen Argyl borough",
+        "population": "3468"
+      },
+      {
+        "placeName": "Penbrook borough",
+        "population": "3243"
+      },
+      {
+        "placeName": "Penn borough",
+        "population": "610"
+      },
+      {
+        "placeName": "Penndel borough",
+        "population": "2507"
+      },
+      {
+        "placeName": "Penn Hills municipality",
+        "population": "39452"
+      },
+      {
+        "placeName": "Penn Lake Park borough",
+        "population": "383"
+      },
+      {
+        "placeName": "Pennsburg borough",
+        "population": "4036"
+      },
+      {
+        "placeName": "Pennsbury Village borough",
+        "population": "644"
+      },
+      {
+        "placeName": "Perkasie borough",
+        "population": "9312"
+      },
+      {
+        "placeName": "Perryopolis borough",
+        "population": "1599"
+      },
+      {
+        "placeName": "Petersburg borough",
+        "population": "416"
+      },
+      {
+        "placeName": "Petrolia borough",
+        "population": "171"
+      },
+      {
+        "placeName": "Philadelphia city",
+        "population": "1574281"
+      },
+      {
+        "placeName": "Philipsburg borough",
+        "population": "2674"
+      },
+      {
+        "placeName": "Phoenixville borough",
+        "population": "20356"
+      },
+      {
+        "placeName": "Picture Rocks borough",
+        "population": "635"
+      },
+      {
+        "placeName": "Pillow borough",
+        "population": "288"
+      },
+      {
+        "placeName": "Pine Grove borough",
+        "population": "2077"
+      },
+      {
+        "placeName": "Pitcairn borough",
+        "population": "2953"
+      },
+      {
+        "placeName": "Pittsburgh city",
+        "population": "307632"
+      },
+      {
+        "placeName": "Pittston city",
+        "population": "7715"
+      },
+      {
+        "placeName": "Platea borough",
+        "population": "431"
+      },
+      {
+        "placeName": "Pleasant Hills borough",
+        "population": "8212"
+      },
+      {
+        "placeName": "Pleasantville borough",
+        "population": "193"
+      },
+      {
+        "placeName": "Pleasantville borough",
+        "population": "819"
+      },
+      {
+        "placeName": "Plum borough",
+        "population": "26225"
+      },
+      {
+        "placeName": "Plumville borough",
+        "population": "247"
+      },
+      {
+        "placeName": "Plymouth borough",
+        "population": "5801"
+      },
+      {
+        "placeName": "Point Marion borough",
+        "population": "1094"
+      },
+      {
+        "placeName": "Polk borough",
+        "population": "621"
+      },
+      {
+        "placeName": "Portage borough",
+        "population": "2344"
+      },
+      {
+        "placeName": "Port Allegany borough",
+        "population": "2031"
+      },
+      {
+        "placeName": "Port Carbon borough",
+        "population": "1806"
+      },
+      {
+        "placeName": "Port Clinton borough",
+        "population": "281"
+      },
+      {
+        "placeName": "Portersville borough",
+        "population": "220"
+      },
+      {
+        "placeName": "Portland borough",
+        "population": "485"
+      },
+      {
+        "placeName": "Port Matilda borough",
+        "population": "571"
+      },
+      {
+        "placeName": "Port Royal borough",
+        "population": "797"
+      },
+      {
+        "placeName": "Port Vue borough",
+        "population": "3519"
+      },
+      {
+        "placeName": "Pottstown borough",
+        "population": "23322"
+      },
+      {
+        "placeName": "Pottsville city",
+        "population": "13170"
+      },
+      {
+        "placeName": "Pringle borough",
+        "population": "913"
+      },
+      {
+        "placeName": "Prompton borough",
+        "population": "234"
+      },
+      {
+        "placeName": "Prospect borough",
+        "population": "1086"
+      },
+      {
+        "placeName": "Prospect Park borough",
+        "population": "6409"
+      },
+      {
+        "placeName": "Punxsutawney borough",
+        "population": "5558"
+      },
+      {
+        "placeName": "Quakertown borough",
+        "population": "9235"
+      },
+      {
+        "placeName": "Quarryville borough",
+        "population": "2871"
+      },
+      {
+        "placeName": "Railroad borough",
+        "population": "265"
+      },
+      {
+        "placeName": "Rainsburg borough",
+        "population": "138"
+      },
+      {
+        "placeName": "Ramey borough",
+        "population": "421"
+      },
+      {
+        "placeName": "Rankin borough",
+        "population": "1975"
+      },
+      {
+        "placeName": "Reading city",
+        "population": "95832"
+      },
+      {
+        "placeName": "Red Hill borough",
+        "population": "2508"
+      },
+      {
+        "placeName": "Red Lion borough",
+        "population": "6523"
+      },
+      {
+        "placeName": "Renovo borough",
+        "population": "1044"
+      },
+      {
+        "placeName": "Reynoldsville borough",
+        "population": "2473"
+      },
+      {
+        "placeName": "Rices Landing borough",
+        "population": "392"
+      },
+      {
+        "placeName": "Richland borough",
+        "population": "1524"
+      },
+      {
+        "placeName": "Richlandtown borough",
+        "population": "1335"
+      },
+      {
+        "placeName": "Ridgway borough",
+        "population": "3893"
+      },
+      {
+        "placeName": "Ridley Park borough",
+        "population": "7255"
+      },
+      {
+        "placeName": "Riegelsville borough",
+        "population": "837"
+      },
+      {
+        "placeName": "Rimersburg borough",
+        "population": "919"
+      },
+      {
+        "placeName": "Ringtown borough",
+        "population": "721"
+      },
+      {
+        "placeName": "Riverside borough",
+        "population": "1991"
+      },
+      {
+        "placeName": "Roaring Spring borough",
+        "population": "2280"
+      },
+      {
+        "placeName": "Robesonia borough",
+        "population": "2181"
+      },
+      {
+        "placeName": "Rochester borough",
+        "population": "3358"
+      },
+      {
+        "placeName": "Rockhill borough",
+        "population": "372"
+      },
+      {
+        "placeName": "Rockledge borough",
+        "population": "2613"
+      },
+      {
+        "placeName": "Rockwood borough",
+        "population": "811"
+      },
+      {
+        "placeName": "Rome borough",
+        "population": "373"
+      },
+      {
+        "placeName": "Roscoe borough",
+        "population": "701"
+      },
+      {
+        "placeName": "Roseto borough",
+        "population": "1603"
+      },
+      {
+        "placeName": "Rose Valley borough",
+        "population": "1017"
+      },
+      {
+        "placeName": "Roseville borough",
+        "population": "174"
+      },
+      {
+        "placeName": "Rosslyn Farms borough",
+        "population": "419"
+      },
+      {
+        "placeName": "Rouseville borough",
+        "population": "443"
+      },
+      {
+        "placeName": "Royalton borough",
+        "population": "1133"
+      },
+      {
+        "placeName": "Royersford borough",
+        "population": "4888"
+      },
+      {
+        "placeName": "Rural Valley borough",
+        "population": "798"
+      },
+      {
+        "placeName": "Rutledge borough",
+        "population": "779"
+      },
+      {
+        "placeName": "Saegertown borough",
+        "population": "840"
+      },
+      {
+        "placeName": "St. Clair borough",
+        "population": "2755"
+      },
+      {
+        "placeName": "St. Clairsville borough",
+        "population": "75"
+      },
+      {
+        "placeName": "St. Lawrence borough",
+        "population": "1962"
+      },
+      {
+        "placeName": "St. Marys city",
+        "population": "12253"
+      },
+      {
+        "placeName": "St. Petersburg borough",
+        "population": "326"
+      },
+      {
+        "placeName": "Salisbury borough",
+        "population": "681"
+      },
+      {
+        "placeName": "Salladasburg borough",
+        "population": "243"
+      },
+      {
+        "placeName": "Saltillo borough",
+        "population": "300"
+      },
+      {
+        "placeName": "Saltsburg borough",
+        "population": "761"
+      },
+      {
+        "placeName": "Sandy Lake borough",
+        "population": "624"
+      },
+      {
+        "placeName": "Sankertown borough",
+        "population": "613"
+      },
+      {
+        "placeName": "Saxonburg borough",
+        "population": "1368"
+      },
+      {
+        "placeName": "Saxton borough",
+        "population": "707"
+      },
+      {
+        "placeName": "Sayre borough",
+        "population": "5328"
+      },
+      {
+        "placeName": "Scalp Level borough",
+        "population": "716"
+      },
+      {
+        "placeName": "Schellsburg borough",
+        "population": "323"
+      },
+      {
+        "placeName": "Schuylkill Haven borough",
+        "population": "5253"
+      },
+      {
+        "placeName": "Schwenksville borough",
+        "population": "1265"
+      },
+      {
+        "placeName": "Scottdale borough",
+        "population": "4271"
+      },
+      {
+        "placeName": "Scranton city",
+        "population": "75514"
+      },
+      {
+        "placeName": "Selinsgrove borough",
+        "population": "5488"
+      },
+      {
+        "placeName": "Sellersville borough",
+        "population": "4501"
+      },
+      {
+        "placeName": "Seven Fields borough",
+        "population": "2864"
+      },
+      {
+        "placeName": "Seven Springs borough",
+        "population": "20"
+      },
+      {
+        "placeName": "Seven Valleys borough",
+        "population": "472"
+      },
+      {
+        "placeName": "Seward borough",
+        "population": "395"
+      },
+      {
+        "placeName": "Sewickley borough",
+        "population": "3729"
+      },
+      {
+        "placeName": "Sewickley Heights borough",
+        "population": "827"
+      },
+      {
+        "placeName": "Sewickley Hills borough",
+        "population": "681"
+      },
+      {
+        "placeName": "Shade Gap borough",
+        "population": "78"
+      },
+      {
+        "placeName": "Shamokin city",
+        "population": "6764"
+      },
+      {
+        "placeName": "Shamokin Dam borough",
+        "population": "1623"
+      },
+      {
+        "placeName": "Shanksville borough",
+        "population": "189"
+      },
+      {
+        "placeName": "Sharon city",
+        "population": "12648"
+      },
+      {
+        "placeName": "Sharon Hill borough",
+        "population": "5995"
+      },
+      {
+        "placeName": "Sharpsburg borough",
+        "population": "2990"
+      },
+      {
+        "placeName": "Sharpsville borough",
+        "population": "4095"
+      },
+      {
+        "placeName": "Sheakleyville borough",
+        "population": "145"
+      },
+      {
+        "placeName": "Shelocta borough",
+        "population": "99"
+      },
+      {
+        "placeName": "Shenandoah borough",
+        "population": "4122"
+      },
+      {
+        "placeName": "Shickshinny borough",
+        "population": "636"
+      },
+      {
+        "placeName": "Shillington borough",
+        "population": "5542"
+      },
+      {
+        "placeName": "Shinglehouse borough",
+        "population": "1060"
+      },
+      {
+        "placeName": "Shippensburg borough",
+        "population": "5615"
+      },
+      {
+        "placeName": "Shippenville borough",
+        "population": "440"
+      },
+      {
+        "placeName": "Shippingport borough",
+        "population": "155"
+      },
+      {
+        "placeName": "Shiremanstown borough",
+        "population": "1657"
+      },
+      {
+        "placeName": "Shirleysburg borough",
+        "population": "134"
+      },
+      {
+        "placeName": "Shoemakersville borough",
+        "population": "1387"
+      },
+      {
+        "placeName": "Shrewsbury borough",
+        "population": "4014"
+      },
+      {
+        "placeName": "Silverdale borough",
+        "population": "793"
+      },
+      {
+        "placeName": "Sinking Spring borough",
+        "population": "4584"
+      },
+      {
+        "placeName": "Slatington borough",
+        "population": "4296"
+      },
+      {
+        "placeName": "Sligo borough",
+        "population": "666"
+      },
+      {
+        "placeName": "Slippery Rock borough",
+        "population": "3551"
+      },
+      {
+        "placeName": "Smethport borough",
+        "population": "1359"
+      },
+      {
+        "placeName": "Smicksburg borough",
+        "population": "54"
+      },
+      {
+        "placeName": "Smithfield borough",
+        "population": "793"
+      },
+      {
+        "placeName": "Smithton borough",
+        "population": "334"
+      },
+      {
+        "placeName": "Snow Shoe borough",
+        "population": "652"
+      },
+      {
+        "placeName": "S.N.P.J. borough",
+        "population": "15"
+      },
+      {
+        "placeName": "Snydertown borough",
+        "population": "316"
+      },
+      {
+        "placeName": "Somerset borough",
+        "population": "5815"
+      },
+      {
+        "placeName": "Souderton borough",
+        "population": "7288"
+      },
+      {
+        "placeName": "South Bethlehem borough",
+        "population": "464"
+      },
+      {
+        "placeName": "South Coatesville borough",
+        "population": "1773"
+      },
+      {
+        "placeName": "South Connellsville borough",
+        "population": "1835"
+      },
+      {
+        "placeName": "South Fork borough",
+        "population": "907"
+      },
+      {
+        "placeName": "South Greensburg borough",
+        "population": "2073"
+      },
+      {
+        "placeName": "South Heights borough",
+        "population": "376"
+      },
+      {
+        "placeName": "Southmont borough",
+        "population": "1957"
+      },
+      {
+        "placeName": "South New Castle borough",
+        "population": "635"
+      },
+      {
+        "placeName": "South Renovo borough",
+        "population": "403"
+      },
+      {
+        "placeName": "South Waverly borough",
+        "population": "1089"
+      },
+      {
+        "placeName": "Southwest Greensburg borough",
+        "population": "2147"
+      },
+      {
+        "placeName": "South Williamsport borough",
+        "population": "6124"
+      },
+      {
+        "placeName": "Spartansburg borough",
+        "population": "267"
+      },
+      {
+        "placeName": "Speers borough",
+        "population": "1047"
+      },
+      {
+        "placeName": "Springboro borough",
+        "population": "366"
+      },
+      {
+        "placeName": "Spring City borough",
+        "population": "3878"
+      },
+      {
+        "placeName": "Springdale borough",
+        "population": "3234"
+      },
+      {
+        "placeName": "Spring Grove borough",
+        "population": "2520"
+      },
+      {
+        "placeName": "Starrucca borough",
+        "population": "170"
+      },
+      {
+        "placeName": "State College borough",
+        "population": "40844"
+      },
+      {
+        "placeName": "Steelton borough",
+        "population": "6328"
+      },
+      {
+        "placeName": "Stewartstown borough",
+        "population": "2225"
+      },
+      {
+        "placeName": "Stillwater borough",
+        "population": "199"
+      },
+      {
+        "placeName": "Stockdale borough",
+        "population": "414"
+      },
+      {
+        "placeName": "Stockertown borough",
+        "population": "918"
+      },
+      {
+        "placeName": "Stoneboro borough",
+        "population": "922"
+      },
+      {
+        "placeName": "Stoystown borough",
+        "population": "286"
+      },
+      {
+        "placeName": "Strasburg borough",
+        "population": "3085"
+      },
+      {
+        "placeName": "Strattanville borough",
+        "population": "521"
+      },
+      {
+        "placeName": "Stroudsburg borough",
+        "population": "5809"
+      },
+      {
+        "placeName": "Sugarcreek borough",
+        "population": "4680"
+      },
+      {
+        "placeName": "Sugar Grove borough",
+        "population": "527"
+      },
+      {
+        "placeName": "Sugar Notch borough",
+        "population": "989"
+      },
+      {
+        "placeName": "Summerhill borough",
+        "population": "461"
+      },
+      {
+        "placeName": "Summerville borough",
+        "population": "496"
+      },
+      {
+        "placeName": "Summit Hill borough",
+        "population": "3133"
+      },
+      {
+        "placeName": "Sunbury city",
+        "population": "9495"
+      },
+      {
+        "placeName": "Susquehanna Depot borough",
+        "population": "1336"
+      },
+      {
+        "placeName": "Sutersville borough",
+        "population": "543"
+      },
+      {
+        "placeName": "Swarthmore borough",
+        "population": "6561"
+      },
+      {
+        "placeName": "Swissvale borough",
+        "population": "8197"
+      },
+      {
+        "placeName": "Swoyersville borough",
+        "population": "5155"
+      },
+      {
+        "placeName": "Sykesville borough",
+        "population": "1078"
+      },
+      {
+        "placeName": "Sylvania borough",
+        "population": "207"
+      },
+      {
+        "placeName": "Tamaqua borough",
+        "population": "6929"
+      },
+      {
+        "placeName": "Tarentum borough",
+        "population": "4127"
+      },
+      {
+        "placeName": "Tatamy borough",
+        "population": "1389"
+      },
+      {
+        "placeName": "Taylor borough",
+        "population": "6232"
+      },
+      {
+        "placeName": "Telford borough",
+        "population": "4978"
+      },
+      {
+        "placeName": "Terre Hill borough",
+        "population": "1282"
+      },
+      {
+        "placeName": "Thompson borough",
+        "population": "246"
+      },
+      {
+        "placeName": "Thompsontown borough",
+        "population": "628"
+      },
+      {
+        "placeName": "Thornburg borough",
+        "population": "447"
+      },
+      {
+        "placeName": "Three Springs borough",
+        "population": "428"
+      },
+      {
+        "placeName": "Throop borough",
+        "population": "4113"
+      },
+      {
+        "placeName": "Tidioute borough",
+        "population": "599"
+      },
+      {
+        "placeName": "Timblin borough",
+        "population": "140"
+      },
+      {
+        "placeName": "Tioga borough",
+        "population": "602"
+      },
+      {
+        "placeName": "Tionesta borough",
+        "population": "399"
+      },
+      {
+        "placeName": "Titusville city",
+        "population": "5112"
+      },
+      {
+        "placeName": "Topton borough",
+        "population": "2062"
+      },
+      {
+        "placeName": "Towanda borough",
+        "population": "2746"
+      },
+      {
+        "placeName": "Tower City borough",
+        "population": "1434"
+      },
+      {
+        "placeName": "Townville borough",
+        "population": "315"
+      },
+      {
+        "placeName": "Trafford borough",
+        "population": "3211"
+      },
+      {
+        "placeName": "Trainer borough",
+        "population": "1972"
+      },
+      {
+        "placeName": "Trappe borough",
+        "population": "4061"
+      },
+      {
+        "placeName": "Tremont borough",
+        "population": "1696"
+      },
+      {
+        "placeName": "Troutville borough",
+        "population": "225"
+      },
+      {
+        "placeName": "Troy borough",
+        "population": "1227"
+      },
+      {
+        "placeName": "Trumbauersville borough",
+        "population": "881"
+      },
+      {
+        "placeName": "Tullytown borough",
+        "population": "2228"
+      },
+      {
+        "placeName": "Tunkhannock borough",
+        "population": "1718"
+      },
+      {
+        "placeName": "Tunnelhill borough",
+        "population": "302"
+      },
+      {
+        "placeName": "Turbotville borough",
+        "population": "660"
+      },
+      {
+        "placeName": "Turtle Creek borough",
+        "population": "4865"
+      },
+      {
+        "placeName": "Twilight borough",
+        "population": "236"
+      },
+      {
+        "placeName": "Tyrone borough",
+        "population": "5226"
+      },
+      {
+        "placeName": "Ulysses borough",
+        "population": "583"
+      },
+      {
+        "placeName": "Union City borough",
+        "population": "2823"
+      },
+      {
+        "placeName": "Union Dale borough",
+        "population": "221"
+      },
+      {
+        "placeName": "Uniontown city",
+        "population": "9434"
+      },
+      {
+        "placeName": "Unionville borough",
+        "population": "259"
+      },
+      {
+        "placeName": "Upland borough",
+        "population": "3049"
+      },
+      {
+        "placeName": "Ursina borough",
+        "population": "228"
+      },
+      {
+        "placeName": "Utica borough",
+        "population": "179"
+      },
+      {
+        "placeName": "Valencia borough",
+        "population": "681"
+      },
+      {
+        "placeName": "Valley-Hi borough",
+        "population": "5"
+      },
+      {
+        "placeName": "Vanderbilt borough",
+        "population": "395"
+      },
+      {
+        "placeName": "Vandergrift borough",
+        "population": "4903"
+      },
+      {
+        "placeName": "Vandling borough",
+        "population": "715"
+      },
+      {
+        "placeName": "Venango borough",
+        "population": "205"
+      },
+      {
+        "placeName": "Verona borough",
+        "population": "2396"
+      },
+      {
+        "placeName": "Versailles borough",
+        "population": "1406"
+      },
+      {
+        "placeName": "Vintondale borough",
+        "population": "399"
+      },
+      {
+        "placeName": "Volant borough",
+        "population": "123"
+      },
+      {
+        "placeName": "Wall borough",
+        "population": "493"
+      },
+      {
+        "placeName": "Wallaceton borough",
+        "population": "322"
+      },
+      {
+        "placeName": "Walnutport borough",
+        "population": "2097"
+      },
+      {
+        "placeName": "Wampum borough",
+        "population": "541"
+      },
+      {
+        "placeName": "Warren city",
+        "population": "9046"
+      },
+      {
+        "placeName": "Warrior Run borough",
+        "population": "558"
+      },
+      {
+        "placeName": "Washington city",
+        "population": "13377"
+      },
+      {
+        "placeName": "Washingtonville borough",
+        "population": "206"
+      },
+      {
+        "placeName": "Waterford borough",
+        "population": "1430"
+      },
+      {
+        "placeName": "Watsontown borough",
+        "population": "2188"
+      },
+      {
+        "placeName": "Wattsburg borough",
+        "population": "340"
+      },
+      {
+        "placeName": "Waymart borough",
+        "population": "1287"
+      },
+      {
+        "placeName": "Waynesboro borough",
+        "population": "11190"
+      },
+      {
+        "placeName": "Waynesburg borough",
+        "population": "3631"
+      },
+      {
+        "placeName": "Weatherly borough",
+        "population": "2546"
+      },
+      {
+        "placeName": "Weissport borough",
+        "population": "418"
+      },
+      {
+        "placeName": "Wellersburg borough",
+        "population": "206"
+      },
+      {
+        "placeName": "Wellsboro borough",
+        "population": "3393"
+      },
+      {
+        "placeName": "Wellsville borough",
+        "population": "305"
+      },
+      {
+        "placeName": "Wernersville borough",
+        "population": "2831"
+      },
+      {
+        "placeName": "Wesleyville borough",
+        "population": "3112"
+      },
+      {
+        "placeName": "West Brownsville borough",
+        "population": "960"
+      },
+      {
+        "placeName": "West Chester borough",
+        "population": "19591"
+      },
+      {
+        "placeName": "West Conshohocken borough",
+        "population": "1498"
+      },
+      {
+        "placeName": "West Easton borough",
+        "population": "1250"
+      },
+      {
+        "placeName": "West Elizabeth borough",
+        "population": "385"
+      },
+      {
+        "placeName": "Westfield borough",
+        "population": "1075"
+      },
+      {
+        "placeName": "West Grove borough",
+        "population": "2835"
+      },
+      {
+        "placeName": "West Hazleton borough",
+        "population": "5284"
+      },
+      {
+        "placeName": "West Homestead borough",
+        "population": "1778"
+      },
+      {
+        "placeName": "West Kittanning borough",
+        "population": "1152"
+      },
+      {
+        "placeName": "West Leechburg borough",
+        "population": "1232"
+      },
+      {
+        "placeName": "West Liberty borough",
+        "population": "320"
+      },
+      {
+        "placeName": "West Mayfield borough",
+        "population": "1163"
+      },
+      {
+        "placeName": "West Middlesex borough",
+        "population": "772"
+      },
+      {
+        "placeName": "West Middletown borough",
+        "population": "107"
+      },
+      {
+        "placeName": "West Mifflin borough",
+        "population": "18707"
+      },
+      {
+        "placeName": "Westmont borough",
+        "population": "4747"
+      },
+      {
+        "placeName": "West Newton borough",
+        "population": "2569"
+      },
+      {
+        "placeName": "Westover borough",
+        "population": "343"
+      },
+      {
+        "placeName": "West Pittston borough",
+        "population": "4682"
+      },
+      {
+        "placeName": "West Reading borough",
+        "population": "4590"
+      },
+      {
+        "placeName": "West Sunbury borough",
+        "population": "174"
+      },
+      {
+        "placeName": "West View borough",
+        "population": "6355"
+      },
+      {
+        "placeName": "West Wyoming borough",
+        "population": "2678"
+      },
+      {
+        "placeName": "West York borough",
+        "population": "5110"
+      },
+      {
+        "placeName": "Whitaker borough",
+        "population": "1123"
+      },
+      {
+        "placeName": "Whitehall borough",
+        "population": "14521"
+      },
+      {
+        "placeName": "White Haven borough",
+        "population": "1203"
+      },
+      {
+        "placeName": "White Oak borough",
+        "population": "7286"
+      },
+      {
+        "placeName": "Wilkes-Barre city",
+        "population": "44523"
+      },
+      {
+        "placeName": "Wilkinsburg borough",
+        "population": "13602"
+      },
+      {
+        "placeName": "Williamsburg borough",
+        "population": "1196"
+      },
+      {
+        "placeName": "Williamsport city",
+        "population": "27384"
+      },
+      {
+        "placeName": "Williamstown borough",
+        "population": "1298"
+      },
+      {
+        "placeName": "Wilmerding borough",
+        "population": "1700"
+      },
+      {
+        "placeName": "Wilmore borough",
+        "population": "198"
+      },
+      {
+        "placeName": "Wilson borough",
+        "population": "8159"
+      },
+      {
+        "placeName": "Windber borough",
+        "population": "3780"
+      },
+      {
+        "placeName": "Wind Gap borough",
+        "population": "3630"
+      },
+      {
+        "placeName": "Windsor borough",
+        "population": "1420"
+      },
+      {
+        "placeName": "Winterstown borough",
+        "population": "607"
+      },
+      {
+        "placeName": "Womelsdorf borough",
+        "population": "2986"
+      },
+      {
+        "placeName": "Woodbury borough",
+        "population": "281"
+      },
+      {
+        "placeName": "Woodcock borough",
+        "population": "139"
+      },
+      {
+        "placeName": "Wormleysburg borough",
+        "population": "3078"
+      },
+      {
+        "placeName": "Worthington borough",
+        "population": "566"
+      },
+      {
+        "placeName": "Worthville borough",
+        "population": "72"
+      },
+      {
+        "placeName": "Wrightsville borough",
+        "population": "2259"
+      },
+      {
+        "placeName": "Wyalusing borough",
+        "population": "608"
+      },
+      {
+        "placeName": "Wyoming borough",
+        "population": "3163"
+      },
+      {
+        "placeName": "Wyomissing borough",
+        "population": "11285"
+      },
+      {
+        "placeName": "Yardley borough",
+        "population": "2577"
+      },
+      {
+        "placeName": "Yatesville borough",
+        "population": "649"
+      },
+      {
+        "placeName": "Yeadon borough",
+        "population": "12320"
+      },
+      {
+        "placeName": "Yoe borough",
+        "population": "1058"
+      },
+      {
+        "placeName": "York city",
+        "population": "45342"
+      },
+      {
+        "placeName": "Yorkana borough",
+        "population": "236"
+      },
+      {
+        "placeName": "York Haven borough",
+        "population": "687"
+      },
+      {
+        "placeName": "York Springs borough",
+        "population": "699"
+      },
+      {
+        "placeName": "Youngstown borough",
+        "population": "238"
+      },
+      {
+        "placeName": "Youngsville borough",
+        "population": "1639"
+      },
+      {
+        "placeName": "Youngwood borough",
+        "population": "2878"
+      },
+      {
+        "placeName": "Zelienople borough",
+        "population": "3752"
+      }
+    ]
+  }
+]

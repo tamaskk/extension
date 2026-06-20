@@ -1,0 +1,163 @@
+[
+  {
+    "state": "Vermont",
+    "places": [
+      {
+        "placeName": "Albany village",
+        "population": "176"
+      },
+      {
+        "placeName": "Alburgh village",
+        "population": "606"
+      },
+      {
+        "placeName": "Barre city",
+        "population": "8214"
+      },
+      {
+        "placeName": "Barton village",
+        "population": "715"
+      },
+      {
+        "placeName": "Bellows Falls village",
+        "population": "2706"
+      },
+      {
+        "placeName": "Burlington city",
+        "population": "44019"
+      },
+      {
+        "placeName": "Cambridge village",
+        "population": "192"
+      },
+      {
+        "placeName": "Derby Center village",
+        "population": "632"
+      },
+      {
+        "placeName": "Derby Line village",
+        "population": "663"
+      },
+      {
+        "placeName": "Enosburg Falls village",
+        "population": "1329"
+      },
+      {
+        "placeName": "Essex Junction city",
+        "population": "10921"
+      },
+      {
+        "placeName": "Hyde Park village",
+        "population": "424"
+      },
+      {
+        "placeName": "Jacksonville village",
+        "population": "214"
+      },
+      {
+        "placeName": "Jeffersonville village",
+        "population": "747"
+      },
+      {
+        "placeName": "Johnson village",
+        "population": "1326"
+      },
+      {
+        "placeName": "Ludlow village",
+        "population": "767"
+      },
+      {
+        "placeName": "Manchester village",
+        "population": "757"
+      },
+      {
+        "placeName": "Marshfield village",
+        "population": "267"
+      },
+      {
+        "placeName": "Montpelier city",
+        "population": "7823"
+      },
+      {
+        "placeName": "Morrisville village",
+        "population": "2404"
+      },
+      {
+        "placeName": "Newbury village",
+        "population": "459"
+      },
+      {
+        "placeName": "Newfane village",
+        "population": "92"
+      },
+      {
+        "placeName": "Newport city",
+        "population": "4274"
+      },
+      {
+        "placeName": "North Bennington village",
+        "population": "1688"
+      },
+      {
+        "placeName": "North Troy village",
+        "population": "600"
+      },
+      {
+        "placeName": "Old Bennington village",
+        "population": "122"
+      },
+      {
+        "placeName": "Orleans village",
+        "population": "761"
+      },
+      {
+        "placeName": "Poultney village",
+        "population": "1072"
+      },
+      {
+        "placeName": "Rutland city",
+        "population": "15363"
+      },
+      {
+        "placeName": "St. Albans city",
+        "population": "6939"
+      },
+      {
+        "placeName": "Saxtons River village",
+        "population": "464"
+      },
+      {
+        "placeName": "South Burlington city",
+        "population": "21394"
+      },
+      {
+        "placeName": "Swanton village",
+        "population": "2380"
+      },
+      {
+        "placeName": "Vergennes city",
+        "population": "2559"
+      },
+      {
+        "placeName": "Wells River village",
+        "population": "449"
+      },
+      {
+        "placeName": "West Burke village",
+        "population": "275"
+      },
+      {
+        "placeName": "Westminster village",
+        "population": "277"
+      },
+      {
+        "placeName": "Winooski city",
+        "population": "8239"
+      },
+      {
+        "placeName": "Woodstock village",
+        "population": "903"
+      }
+    ]
+  }
+]

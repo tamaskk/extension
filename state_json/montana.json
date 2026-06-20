@@ -1,0 +1,515 @@
+[
+  {
+    "state": "Montana",
+    "places": [
+      {
+        "placeName": "Alberton town",
+        "population": "551"
+      },
+      {
+        "placeName": "Anaconda-Deer Lodge County",
+        "population": "9709"
+      },
+      {
+        "placeName": "Bainville town",
+        "population": "266"
+      },
+      {
+        "placeName": "Baker city",
+        "population": "1776"
+      },
+      {
+        "placeName": "Bearcreek town",
+        "population": "106"
+      },
+      {
+        "placeName": "Belgrade city",
+        "population": "13107"
+      },
+      {
+        "placeName": "Belt town",
+        "population": "523"
+      },
+      {
+        "placeName": "Big Sandy town",
+        "population": "598"
+      },
+      {
+        "placeName": "Big Timber city",
+        "population": "1686"
+      },
+      {
+        "placeName": "Billings city",
+        "population": "121239"
+      },
+      {
+        "placeName": "Boulder city",
+        "population": "1305"
+      },
+      {
+        "placeName": "Bozeman city",
+        "population": "58814"
+      },
+      {
+        "placeName": "Bridger town",
+        "population": "709"
+      },
+      {
+        "placeName": "Broadus town",
+        "population": "477"
+      },
+      {
+        "placeName": "Broadview town",
+        "population": "136"
+      },
+      {
+        "placeName": "Butte-Silver Bow (balance)",
+        "population": "35469"
+      },
+      {
+        "placeName": "Cascade town",
+        "population": "577"
+      },
+      {
+        "placeName": "Chester town",
+        "population": "844"
+      },
+      {
+        "placeName": "Chinook city",
+        "population": "1155"
+      },
+      {
+        "placeName": "Choteau city",
+        "population": "1825"
+      },
+      {
+        "placeName": "Circle town",
+        "population": "590"
+      },
+      {
+        "placeName": "Clyde Park town",
+        "population": "348"
+      },
+      {
+        "placeName": "Colstrip city",
+        "population": "2091"
+      },
+      {
+        "placeName": "Columbia Falls city",
+        "population": "5753"
+      },
+      {
+        "placeName": "Columbus town",
+        "population": "1964"
+      },
+      {
+        "placeName": "Conrad city",
+        "population": "2393"
+      },
+      {
+        "placeName": "Culbertson town",
+        "population": "715"
+      },
+      {
+        "placeName": "Cut Bank city",
+        "population": "2976"
+      },
+      {
+        "placeName": "Darby town",
+        "population": "888"
+      },
+      {
+        "placeName": "Deer Lodge city",
+        "population": "3025"
+      },
+      {
+        "placeName": "Denton town",
+        "population": "207"
+      },
+      {
+        "placeName": "Dillon city",
+        "population": "4271"
+      },
+      {
+        "placeName": "Dodson town",
+        "population": "123"
+      },
+      {
+        "placeName": "Drummond town",
+        "population": "298"
+      },
+      {
+        "placeName": "Dutton town",
+        "population": "318"
+      },
+      {
+        "placeName": "East Helena city",
+        "population": "2325"
+      },
+      {
+        "placeName": "Ekalaka town",
+        "population": "398"
+      },
+      {
+        "placeName": "Ennis town",
+        "population": "1126"
+      },
+      {
+        "placeName": "Eureka town",
+        "population": "1562"
+      },
+      {
+        "placeName": "Fairfield town",
+        "population": "797"
+      },
+      {
+        "placeName": "Fairview town",
+        "population": "882"
+      },
+      {
+        "placeName": "Flaxville town",
+        "population": "58"
+      },
+      {
+        "placeName": "Forsyth city",
+        "population": "1652"
+      },
+      {
+        "placeName": "Fort Benton city",
+        "population": "1416"
+      },
+      {
+        "placeName": "Fort Peck town",
+        "population": "232"
+      },
+      {
+        "placeName": "Froid town",
+        "population": "184"
+      },
+      {
+        "placeName": "Fromberg town",
+        "population": "422"
+      },
+      {
+        "placeName": "Geraldine town",
+        "population": "204"
+      },
+      {
+        "placeName": "Glasgow city",
+        "population": "3145"
+      },
+      {
+        "placeName": "Glendive city",
+        "population": "4736"
+      },
+      {
+        "placeName": "Grass Range town",
+        "population": "114"
+      },
+      {
+        "placeName": "Great Falls city",
+        "population": "60208"
+      },
+      {
+        "placeName": "Hamilton city",
+        "population": "5451"
+      },
+      {
+        "placeName": "Hardin city",
+        "population": "3696"
+      },
+      {
+        "placeName": "Harlem city",
+        "population": "750"
+      },
+      {
+        "placeName": "Harlowton city",
+        "population": "976"
+      },
+      {
+        "placeName": "Havre city",
+        "population": "9264"
+      },
+      {
+        "placeName": "Helena city",
+        "population": "35138"
+      },
+      {
+        "placeName": "Hingham town",
+        "population": "127"
+      },
+      {
+        "placeName": "Hobson city",
+        "population": "191"
+      },
+      {
+        "placeName": "Hot Springs town",
+        "population": "630"
+      },
+      {
+        "placeName": "Hysham town",
+        "population": "262"
+      },
+      {
+        "placeName": "Ismay town",
+        "population": "21"
+      },
+      {
+        "placeName": "Joliet town",
+        "population": "613"
+      },
+      {
+        "placeName": "Jordan town",
+        "population": "348"
+      },
+      {
+        "placeName": "Judith Gap city",
+        "population": "111"
+      },
+      {
+        "placeName": "Kalispell city",
+        "population": "31851"
+      },
+      {
+        "placeName": "Kevin town",
+        "population": "164"
+      },
+      {
+        "placeName": "Laurel city",
+        "population": "7205"
+      },
+      {
+        "placeName": "Lavina town",
+        "population": "141"
+      },
+      {
+        "placeName": "Lewistown city",
+        "population": "6179"
+      },
+      {
+        "placeName": "Libby city",
+        "population": "3274"
+      },
+      {
+        "placeName": "Lima town",
+        "population": "221"
+      },
+      {
+        "placeName": "Livingston city",
+        "population": "9290"
+      },
+      {
+        "placeName": "Lodge Grass town",
+        "population": "422"
+      },
+      {
+        "placeName": "Malta city",
+        "population": "1846"
+      },
+      {
+        "placeName": "Manhattan town",
+        "population": "2073"
+      },
+      {
+        "placeName": "Medicine Lake town",
+        "population": "241"
+      },
+      {
+        "placeName": "Melstone town",
+        "population": "147"
+      },
+      {
+        "placeName": "Miles City city",
+        "population": "8450"
+      },
+      {
+        "placeName": "Missoula city",
+        "population": "78903"
+      },
+      {
+        "placeName": "Moore town",
+        "population": "203"
+      },
+      {
+        "placeName": "Nashua town",
+        "population": "292"
+      },
+      {
+        "placeName": "Neihart town",
+        "population": "41"
+      },
+      {
+        "placeName": "Opheim town",
+        "population": "73"
+      },
+      {
+        "placeName": "Outlook town",
+        "population": "83"
+      },
+      {
+        "placeName": "Philipsburg town",
+        "population": "926"
+      },
+      {
+        "placeName": "Pinesdale town",
+        "population": "882"
+      },
+      {
+        "placeName": "Plains town",
+        "population": "1261"
+      },
+      {
+        "placeName": "Plentywood city",
+        "population": "1619"
+      },
+      {
+        "placeName": "Plevna town",
+        "population": "171"
+      },
+      {
+        "placeName": "Polson city",
+        "population": "5653"
+      },
+      {
+        "placeName": "Poplar city",
+        "population": "722"
+      },
+      {
+        "placeName": "Red Lodge city",
+        "population": "2723"
+      },
+      {
+        "placeName": "Rexford town",
+        "population": "87"
+      },
+      {
+        "placeName": "Richey town",
+        "population": "160"
+      },
+      {
+        "placeName": "Ronan city",
+        "population": "2209"
+      },
+      {
+        "placeName": "Roundup city",
+        "population": "2075"
+      },
+      {
+        "placeName": "Ryegate town",
+        "population": "228"
+      },
+      {
+        "placeName": "Saco town",
+        "population": "159"
+      },
+      {
+        "placeName": "St. Ignatius town",
+        "population": "828"
+      },
+      {
+        "placeName": "Scobey city",
+        "population": "972"
+      },
+      {
+        "placeName": "Shelby city",
+        "population": "3313"
+      },
+      {
+        "placeName": "Sheridan town",
+        "population": "779"
+      },
+      {
+        "placeName": "Sidney city",
+        "population": "6217"
+      },
+      {
+        "placeName": "Stanford town",
+        "population": "427"
+      },
+      {
+        "placeName": "Stevensville town",
+        "population": "2259"
+      },
+      {
+        "placeName": "Sunburst town",
+        "population": "356"
+      },
+      {
+        "placeName": "Superior town",
+        "population": "935"
+      },
+      {
+        "placeName": "Terry town",
+        "population": "574"
+      },
+      {
+        "placeName": "Thompson Falls city",
+        "population": "1543"
+      },
+      {
+        "placeName": "Three Forks city",
+        "population": "1920"
+      },
+      {
+        "placeName": "Townsend city",
+        "population": "2272"
+      },
+      {
+        "placeName": "Troy city",
+        "population": "916"
+      },
+      {
+        "placeName": "Twin Bridges town",
+        "population": "430"
+      },
+      {
+        "placeName": "Valier town",
+        "population": "537"
+      },
+      {
+        "placeName": "Virginia City town",
+        "population": "260"
+      },
+      {
+        "placeName": "Walkerville town",
+        "population": "649"
+      },
+      {
+        "placeName": "Westby town",
+        "population": "162"
+      },
+      {
+        "placeName": "West Yellowstone town",
+        "population": "1191"
+      },
+      {
+        "placeName": "Whitefish city",
+        "population": "9358"
+      },
+      {
+        "placeName": "Whitehall town",
+        "population": "1131"
+      },
+      {
+        "placeName": "White Sulphur Springs city",
+        "population": "1056"
+      },
+      {
+        "placeName": "Wibaux town",
+        "population": "441"
+      },
+      {
+        "placeName": "Winifred town",
+        "population": "178"
+      },
+      {
+        "placeName": "Winnett town",
+        "population": "205"
+      },
+      {
+        "placeName": "Wolf Point city",
+        "population": "2531"
+      }
+    ]
+  }
+]
