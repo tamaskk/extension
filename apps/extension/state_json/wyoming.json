@@ -1,0 +1,403 @@
+[
+  {
+    "state": "Wyoming",
+    "places": [
+      {
+        "placeName": "Afton town",
+        "population": "2256"
+      },
+      {
+        "placeName": "Albin town",
+        "population": "161"
+      },
+      {
+        "placeName": "Alpine town",
+        "population": "1382"
+      },
+      {
+        "placeName": "Baggs town",
+        "population": "404"
+      },
+      {
+        "placeName": "Bairoil town",
+        "population": "66"
+      },
+      {
+        "placeName": "Bar Nunn town",
+        "population": "3012"
+      },
+      {
+        "placeName": "Basin town",
+        "population": "1334"
+      },
+      {
+        "placeName": "Bear River town",
+        "population": "524"
+      },
+      {
+        "placeName": "Big Piney town",
+        "population": "385"
+      },
+      {
+        "placeName": "Buffalo city",
+        "population": "4733"
+      },
+      {
+        "placeName": "Burlington town",
+        "population": "393"
+      },
+      {
+        "placeName": "Burns town",
+        "population": "399"
+      },
+      {
+        "placeName": "Byron town",
+        "population": "572"
+      },
+      {
+        "placeName": "Casper city",
+        "population": "58771"
+      },
+      {
+        "placeName": "Cheyenne city",
+        "population": "66507"
+      },
+      {
+        "placeName": "Chugwater town",
+        "population": "170"
+      },
+      {
+        "placeName": "Clearmont town",
+        "population": "123"
+      },
+      {
+        "placeName": "Cody city",
+        "population": "10377"
+      },
+      {
+        "placeName": "Cokeville town",
+        "population": "486"
+      },
+      {
+        "placeName": "Cowley town",
+        "population": "855"
+      },
+      {
+        "placeName": "Dayton town",
+        "population": "825"
+      },
+      {
+        "placeName": "Deaver town",
+        "population": "170"
+      },
+      {
+        "placeName": "Diamondville town",
+        "population": "513"
+      },
+      {
+        "placeName": "Dixon town",
+        "population": "74"
+      },
+      {
+        "placeName": "Douglas city",
+        "population": "6469"
+      },
+      {
+        "placeName": "Dubois town",
+        "population": "984"
+      },
+      {
+        "placeName": "East Thermopolis town",
+        "population": "231"
+      },
+      {
+        "placeName": "Edgerton town",
+        "population": "158"
+      },
+      {
+        "placeName": "Elk Mountain town",
+        "population": "146"
+      },
+      {
+        "placeName": "Encampment town",
+        "population": "446"
+      },
+      {
+        "placeName": "Evanston city",
+        "population": "11705"
+      },
+      {
+        "placeName": "Evansville town",
+        "population": "2875"
+      },
+      {
+        "placeName": "Fort Laramie town",
+        "population": "224"
+      },
+      {
+        "placeName": "Frannie town",
+        "population": "144"
+      },
+      {
+        "placeName": "Gillette city",
+        "population": "34024"
+      },
+      {
+        "placeName": "Glendo town",
+        "population": "243"
+      },
+      {
+        "placeName": "Glenrock town",
+        "population": "2418"
+      },
+      {
+        "placeName": "Granger town",
+        "population": "97"
+      },
+      {
+        "placeName": "Green River city",
+        "population": "11450"
+      },
+      {
+        "placeName": "Greybull town",
+        "population": "1700"
+      },
+      {
+        "placeName": "Guernsey town",
+        "population": "1104"
+      },
+      {
+        "placeName": "Hanna town",
+        "population": "645"
+      },
+      {
+        "placeName": "Hartville town",
+        "population": "71"
+      },
+      {
+        "placeName": "Hudson town",
+        "population": "436"
+      },
+      {
+        "placeName": "Hulett town",
+        "population": "349"
+      },
+      {
+        "placeName": "Jackson town",
+        "population": "10720"
+      },
+      {
+        "placeName": "Kaycee town",
+        "population": "285"
+      },
+      {
+        "placeName": "Kemmerer city",
+        "population": "2353"
+      },
+      {
+        "placeName": "Kirby town",
+        "population": "67"
+      },
+      {
+        "placeName": "La Barge town",
+        "population": "391"
+      },
+      {
+        "placeName": "LaGrange town",
+        "population": "382"
+      },
+      {
+        "placeName": "Lander city",
+        "population": "7379"
+      },
+      {
+        "placeName": "Laramie city",
+        "population": "32284"
+      },
+      {
+        "placeName": "Lingle town",
+        "population": "398"
+      },
+      {
+        "placeName": "Lost Springs town",
+        "population": "3"
+      },
+      {
+        "placeName": "Lovell town",
+        "population": "2351"
+      },
+      {
+        "placeName": "Lusk town",
+        "population": "1421"
+      },
+      {
+        "placeName": "Lyman town",
+        "population": "2216"
+      },
+      {
+        "placeName": "Manderson town",
+        "population": "90"
+      },
+      {
+        "placeName": "Manville town",
+        "population": "91"
+      },
+      {
+        "placeName": "Marbleton town",
+        "population": "824"
+      },
+      {
+        "placeName": "Medicine Bow town",
+        "population": "235"
+      },
+      {
+        "placeName": "Meeteetse town",
+        "population": "315"
+      },
+      {
+        "placeName": "Midwest town",
+        "population": "292"
+      },
+      {
+        "placeName": "Mills town",
+        "population": "4634"
+      },
+      {
+        "placeName": "Moorcroft town",
+        "population": "1023"
+      },
+      {
+        "placeName": "Mountain View town",
+        "population": "1264"
+      },
+      {
+        "placeName": "Newcastle city",
+        "population": "3349"
+      },
+      {
+        "placeName": "Opal town",
+        "population": "66"
+      },
+      {
+        "placeName": "Pavillion town",
+        "population": "228"
+      },
+      {
+        "placeName": "Pine Bluffs town",
+        "population": "1111"
+      },
+      {
+        "placeName": "Pinedale town",
+        "population": "1997"
+      },
+      {
+        "placeName": "Pine Haven town",
+        "population": "579"
+      },
+      {
+        "placeName": "Powell city",
+        "population": "6574"
+      },
+      {
+        "placeName": "Ranchester town",
+        "population": "1170"
+      },
+      {
+        "placeName": "Rawlins city",
+        "population": "7745"
+      },
+      {
+        "placeName": "Riverside town",
+        "population": "66"
+      },
+      {
+        "placeName": "Riverton city",
+        "population": "10910"
+      },
+      {
+        "placeName": "Rock River town",
+        "population": "217"
+      },
+      {
+        "placeName": "Rock Springs city",
+        "population": "22936"
+      },
+      {
+        "placeName": "Rolling Hills town",
+        "population": "428"
+      },
+      {
+        "placeName": "Saratoga town",
+        "population": "1766"
+      },
+      {
+        "placeName": "Sheridan city",
+        "population": "20015"
+      },
+      {
+        "placeName": "Shoshoni town",
+        "population": "509"
+      },
+      {
+        "placeName": "Sinclair town",
+        "population": "358"
+      },
+      {
+        "placeName": "Star Valley Ranch town",
+        "population": "2074"
+      },
+      {
+        "placeName": "Sundance town",
+        "population": "1141"
+      },
+      {
+        "placeName": "Superior town",
+        "population": "180"
+      },
+      {
+        "placeName": "Ten Sleep town",
+        "population": "260"
+      },
+      {
+        "placeName": "Thayne town",
+        "population": "436"
+      },
+      {
+        "placeName": "Thermopolis town",
+        "population": "2721"
+      },
+      {
+        "placeName": "Torrington city",
+        "population": "6205"
+      },
+      {
+        "placeName": "Upton town",
+        "population": "897"
+      },
+      {
+        "placeName": "Van Tassell town",
+        "population": "24"
+      },
+      {
+        "placeName": "Wamsutter town",
+        "population": "197"
+      },
+      {
+        "placeName": "Wheatland town",
+        "population": "3516"
+      },
+      {
+        "placeName": "Worland city",
+        "population": "4730"
+      },
+      {
+        "placeName": "Wright town",
+        "population": "1659"
+      },
+      {
+        "placeName": "Yoder town",
+        "population": "133"
+      }
+    ]
+  }
+]

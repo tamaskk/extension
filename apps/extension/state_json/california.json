@@ -1,0 +1,1939 @@
+[
+  {
+    "state": "California",
+    "places": [
+      {
+        "placeName": "Adelanto city",
+        "population": "38798"
+      },
+      {
+        "placeName": "Agoura Hills city",
+        "population": "19243"
+      },
+      {
+        "placeName": "Alameda city",
+        "population": "76876"
+      },
+      {
+        "placeName": "Albany city",
+        "population": "19195"
+      },
+      {
+        "placeName": "Alhambra city",
+        "population": "79820"
+      },
+      {
+        "placeName": "Aliso Viejo city",
+        "population": "49844"
+      },
+      {
+        "placeName": "Alturas city",
+        "population": "2634"
+      },
+      {
+        "placeName": "Amador City city",
+        "population": "204"
+      },
+      {
+        "placeName": "American Canyon city",
+        "population": "22773"
+      },
+      {
+        "placeName": "Anaheim city",
+        "population": "341008"
+      },
+      {
+        "placeName": "Anderson city",
+        "population": "11131"
+      },
+      {
+        "placeName": "Angels city",
+        "population": "3735"
+      },
+      {
+        "placeName": "Antioch city",
+        "population": "118958"
+      },
+      {
+        "placeName": "Apple Valley town",
+        "population": "75247"
+      },
+      {
+        "placeName": "Arcadia city",
+        "population": "54117"
+      },
+      {
+        "placeName": "Arcata city",
+        "population": "19047"
+      },
+      {
+        "placeName": "Arroyo Grande city",
+        "population": "18123"
+      },
+      {
+        "placeName": "Artesia city",
+        "population": "15789"
+      },
+      {
+        "placeName": "Arvin city",
+        "population": "19820"
+      },
+      {
+        "placeName": "Atascadero city",
+        "population": "29464"
+      },
+      {
+        "placeName": "Atherton town",
+        "population": "6960"
+      },
+      {
+        "placeName": "Atwater city",
+        "population": "32133"
+      },
+      {
+        "placeName": "Auburn city",
+        "population": "13847"
+      },
+      {
+        "placeName": "Avalon city",
+        "population": "3237"
+      },
+      {
+        "placeName": "Avenal city",
+        "population": "13479"
+      },
+      {
+        "placeName": "Azusa city",
+        "population": "47447"
+      },
+      {
+        "placeName": "Bakersfield city",
+        "population": "422165"
+      },
+      {
+        "placeName": "Baldwin Park city",
+        "population": "68880"
+      },
+      {
+        "placeName": "Banning city",
+        "population": "31852"
+      },
+      {
+        "placeName": "Barstow city",
+        "population": "24804"
+      },
+      {
+        "placeName": "Beaumont city",
+        "population": "60835"
+      },
+      {
+        "placeName": "Bell city",
+        "population": "31625"
+      },
+      {
+        "placeName": "Bellflower city",
+        "population": "74719"
+      },
+      {
+        "placeName": "Bell Gardens city",
+        "population": "37367"
+      },
+      {
+        "placeName": "Belmont city",
+        "population": "28752"
+      },
+      {
+        "placeName": "Belvedere city",
+        "population": "2066"
+      },
+      {
+        "placeName": "Benicia city",
+        "population": "26401"
+      },
+      {
+        "placeName": "Berkeley city",
+        "population": "121911"
+      },
+      {
+        "placeName": "Beverly Hills city",
+        "population": "30764"
+      },
+      {
+        "placeName": "Big Bear Lake city",
+        "population": "5018"
+      },
+      {
+        "placeName": "Biggs city",
+        "population": "1927"
+      },
+      {
+        "placeName": "Bishop city",
+        "population": "3696"
+      },
+      {
+        "placeName": "Blue Lake city",
+        "population": "1144"
+      },
+      {
+        "placeName": "Blythe city",
+        "population": "15042"
+      },
+      {
+        "placeName": "Bradbury city",
+        "population": "888"
+      },
+      {
+        "placeName": "Brawley city",
+        "population": "28008"
+      },
+      {
+        "placeName": "Brea city",
+        "population": "47260"
+      },
+      {
+        "placeName": "Brentwood city",
+        "population": "66607"
+      },
+      {
+        "placeName": "Brisbane city",
+        "population": "4656"
+      },
+      {
+        "placeName": "Buellton city",
+        "population": "5158"
+      },
+      {
+        "placeName": "Buena Park city",
+        "population": "81741"
+      },
+      {
+        "placeName": "Burbank city",
+        "population": "102988"
+      },
+      {
+        "placeName": "Burlingame city",
+        "population": "31929"
+      },
+      {
+        "placeName": "Calabasas city",
+        "population": "22027"
+      },
+      {
+        "placeName": "Calexico city",
+        "population": "38623"
+      },
+      {
+        "placeName": "California City city",
+        "population": "13300"
+      },
+      {
+        "placeName": "Calimesa city",
+        "population": "11111"
+      },
+      {
+        "placeName": "Calipatria city",
+        "population": "6012"
+      },
+      {
+        "placeName": "Calistoga city",
+        "population": "4954"
+      },
+      {
+        "placeName": "Camarillo city",
+        "population": "68652"
+      },
+      {
+        "placeName": "Campbell city",
+        "population": "42490"
+      },
+      {
+        "placeName": "Canyon Lake city",
+        "population": "11113"
+      },
+      {
+        "placeName": "Capitola city",
+        "population": "9340"
+      },
+      {
+        "placeName": "Carlsbad city",
+        "population": "112260"
+      },
+      {
+        "placeName": "Carmel-by-the-Sea city",
+        "population": "3105"
+      },
+      {
+        "placeName": "Carpinteria city",
+        "population": "12734"
+      },
+      {
+        "placeName": "Carson city",
+        "population": "90808"
+      },
+      {
+        "placeName": "Cathedral City city",
+        "population": "52375"
+      },
+      {
+        "placeName": "Ceres city",
+        "population": "48982"
+      },
+      {
+        "placeName": "Cerritos city",
+        "population": "46367"
+      },
+      {
+        "placeName": "Chico city",
+        "population": "105081"
+      },
+      {
+        "placeName": "Chino city",
+        "population": "96957"
+      },
+      {
+        "placeName": "Chino Hills city",
+        "population": "77519"
+      },
+      {
+        "placeName": "Chowchilla city",
+        "population": "18730"
+      },
+      {
+        "placeName": "Chula Vista city",
+        "population": "275533"
+      },
+      {
+        "placeName": "Citrus Heights city",
+        "population": "86348"
+      },
+      {
+        "placeName": "Claremont city",
+        "population": "35838"
+      },
+      {
+        "placeName": "Clayton city",
+        "population": "10842"
+      },
+      {
+        "placeName": "Clearlake city",
+        "population": "16893"
+      },
+      {
+        "placeName": "Cloverdale city",
+        "population": "8701"
+      },
+      {
+        "placeName": "Clovis city",
+        "population": "129347"
+      },
+      {
+        "placeName": "Coachella city",
+        "population": "45411"
+      },
+      {
+        "placeName": "Coalinga city",
+        "population": "17281"
+      },
+      {
+        "placeName": "Colfax city",
+        "population": "2043"
+      },
+      {
+        "placeName": "Colma town",
+        "population": "1385"
+      },
+      {
+        "placeName": "Colton city",
+        "population": "53383"
+      },
+      {
+        "placeName": "Colusa city",
+        "population": "6519"
+      },
+      {
+        "placeName": "Commerce city",
+        "population": "11688"
+      },
+      {
+        "placeName": "Compton city",
+        "population": "90500"
+      },
+      {
+        "placeName": "Concord city",
+        "population": "123261"
+      },
+      {
+        "placeName": "Corcoran city",
+        "population": "22358"
+      },
+      {
+        "placeName": "Corning city",
+        "population": "8260"
+      },
+      {
+        "placeName": "Corona city",
+        "population": "161734"
+      },
+      {
+        "placeName": "Coronado city",
+        "population": "21094"
+      },
+      {
+        "placeName": "Corte Madera town",
+        "population": "9929"
+      },
+      {
+        "placeName": "Costa Mesa city",
+        "population": "108881"
+      },
+      {
+        "placeName": "Cotati city",
+        "population": "7347"
+      },
+      {
+        "placeName": "Covina city",
+        "population": "49404"
+      },
+      {
+        "placeName": "Crescent City city",
+        "population": "6002"
+      },
+      {
+        "placeName": "Cudahy city",
+        "population": "21445"
+      },
+      {
+        "placeName": "Culver City city",
+        "population": "39452"
+      },
+      {
+        "placeName": "Cupertino city",
+        "population": "58333"
+      },
+      {
+        "placeName": "Cypress city",
+        "population": "48781"
+      },
+      {
+        "placeName": "Daly City city",
+        "population": "101261"
+      },
+      {
+        "placeName": "Dana Point city",
+        "population": "32232"
+      },
+      {
+        "placeName": "Danville town",
+        "population": "43302"
+      },
+      {
+        "placeName": "Davis city",
+        "population": "66110"
+      },
+      {
+        "placeName": "Delano city",
+        "population": "52334"
+      },
+      {
+        "placeName": "Del Mar city",
+        "population": "3858"
+      },
+      {
+        "placeName": "Del Rey Oaks city",
+        "population": "1536"
+      },
+      {
+        "placeName": "Desert Hot Springs city",
+        "population": "34009"
+      },
+      {
+        "placeName": "Diamond Bar city",
+        "population": "51884"
+      },
+      {
+        "placeName": "Dinuba city",
+        "population": "25949"
+      },
+      {
+        "placeName": "Dixon city",
+        "population": "21116"
+      },
+      {
+        "placeName": "Dorris city",
+        "population": "803"
+      },
+      {
+        "placeName": "Dos Palos city",
+        "population": "5697"
+      },
+      {
+        "placeName": "Downey city",
+        "population": "108468"
+      },
+      {
+        "placeName": "Duarte city",
+        "population": "22866"
+      },
+      {
+        "placeName": "Dublin city",
+        "population": "71602"
+      },
+      {
+        "placeName": "Dunsmuir city",
+        "population": "1587"
+      },
+      {
+        "placeName": "East Palo Alto city",
+        "population": "28872"
+      },
+      {
+        "placeName": "Eastvale city",
+        "population": "70594"
+      },
+      {
+        "placeName": "El Cajon city",
+        "population": "101755"
+      },
+      {
+        "placeName": "El Centro city",
+        "population": "44382"
+      },
+      {
+        "placeName": "El Cerrito city",
+        "population": "26121"
+      },
+      {
+        "placeName": "Elk Grove city",
+        "population": "185007"
+      },
+      {
+        "placeName": "El Monte city",
+        "population": "105075"
+      },
+      {
+        "placeName": "El Paso de Robles (Paso Robles) city",
+        "population": "31626"
+      },
+      {
+        "placeName": "El Segundo city",
+        "population": "16379"
+      },
+      {
+        "placeName": "Emeryville city",
+        "population": "13251"
+      },
+      {
+        "placeName": "Encinitas city",
+        "population": "60736"
+      },
+      {
+        "placeName": "Escalon city",
+        "population": "7394"
+      },
+      {
+        "placeName": "Escondido city",
+        "population": "146030"
+      },
+      {
+        "placeName": "Etna city",
+        "population": "631"
+      },
+      {
+        "placeName": "Eureka city",
+        "population": "25304"
+      },
+      {
+        "placeName": "Exeter city",
+        "population": "10122"
+      },
+      {
+        "placeName": "Fairfax town",
+        "population": "7417"
+      },
+      {
+        "placeName": "Fairfield city",
+        "population": "122489"
+      },
+      {
+        "placeName": "Farmersville city",
+        "population": "10326"
+      },
+      {
+        "placeName": "Ferndale city",
+        "population": "1348"
+      },
+      {
+        "placeName": "Fillmore city",
+        "population": "16937"
+      },
+      {
+        "placeName": "Firebaugh city",
+        "population": "8774"
+      },
+      {
+        "placeName": "Folsom city",
+        "population": "91983"
+      },
+      {
+        "placeName": "Fontana city",
+        "population": "221223"
+      },
+      {
+        "placeName": "Fort Bragg city",
+        "population": "6946"
+      },
+      {
+        "placeName": "Fort Jones city",
+        "population": "659"
+      },
+      {
+        "placeName": "Fortuna city",
+        "population": "12003"
+      },
+      {
+        "placeName": "Foster City city",
+        "population": "32411"
+      },
+      {
+        "placeName": "Fountain Valley city",
+        "population": "55508"
+      },
+      {
+        "placeName": "Fowler city",
+        "population": "7745"
+      },
+      {
+        "placeName": "Fremont city",
+        "population": "226442"
+      },
+      {
+        "placeName": "Fresno city",
+        "population": "555549"
+      },
+      {
+        "placeName": "Fullerton city",
+        "population": "138675"
+      },
+      {
+        "placeName": "Galt city",
+        "population": "26964"
+      },
+      {
+        "placeName": "Gardena city",
+        "population": "58460"
+      },
+      {
+        "placeName": "Garden Grove city",
+        "population": "170455"
+      },
+      {
+        "placeName": "Gilroy city",
+        "population": "60764"
+      },
+      {
+        "placeName": "Glendale city",
+        "population": "187160"
+      },
+      {
+        "placeName": "Glendora city",
+        "population": "49671"
+      },
+      {
+        "placeName": "Goleta city",
+        "population": "32401"
+      },
+      {
+        "placeName": "Gonzales city",
+        "population": "8313"
+      },
+      {
+        "placeName": "Grand Terrace city",
+        "population": "12936"
+      },
+      {
+        "placeName": "Grass Valley city",
+        "population": "14035"
+      },
+      {
+        "placeName": "Greenfield city",
+        "population": "21138"
+      },
+      {
+        "placeName": "Gridley city",
+        "population": "7258"
+      },
+      {
+        "placeName": "Grover Beach city",
+        "population": "12456"
+      },
+      {
+        "placeName": "Guadalupe city",
+        "population": "8846"
+      },
+      {
+        "placeName": "Gustine city",
+        "population": "6112"
+      },
+      {
+        "placeName": "Half Moon Bay city",
+        "population": "11287"
+      },
+      {
+        "placeName": "Hanford city",
+        "population": "62229"
+      },
+      {
+        "placeName": "Hawaiian Gardens city",
+        "population": "13373"
+      },
+      {
+        "placeName": "Hawthorne city",
+        "population": "82741"
+      },
+      {
+        "placeName": "Hayward city",
+        "population": "157113"
+      },
+      {
+        "placeName": "Healdsburg city",
+        "population": "11172"
+      },
+      {
+        "placeName": "Hemet city",
+        "population": "93649"
+      },
+      {
+        "placeName": "Hercules city",
+        "population": "26326"
+      },
+      {
+        "placeName": "Hermosa Beach city",
+        "population": "18513"
+      },
+      {
+        "placeName": "Hesperia city",
+        "population": "102605"
+      },
+      {
+        "placeName": "Hidden Hills city",
+        "population": "1675"
+      },
+      {
+        "placeName": "Highland city",
+        "population": "57614"
+      },
+      {
+        "placeName": "Hillsborough town",
+        "population": "11206"
+      },
+      {
+        "placeName": "Hollister city",
+        "population": "45695"
+      },
+      {
+        "placeName": "Holtville city",
+        "population": "5591"
+      },
+      {
+        "placeName": "Hughson city",
+        "population": "8051"
+      },
+      {
+        "placeName": "Huntington Beach city",
+        "population": "191451"
+      },
+      {
+        "placeName": "Huntington Park city",
+        "population": "51544"
+      },
+      {
+        "placeName": "Huron city",
+        "population": "7394"
+      },
+      {
+        "placeName": "Imperial city",
+        "population": "22330"
+      },
+      {
+        "placeName": "Imperial Beach city",
+        "population": "25206"
+      },
+      {
+        "placeName": "Indian Wells city",
+        "population": "4992"
+      },
+      {
+        "placeName": "Indio city",
+        "population": "94269"
+      },
+      {
+        "placeName": "Industry city",
+        "population": "199"
+      },
+      {
+        "placeName": "Inglewood city",
+        "population": "101662"
+      },
+      {
+        "placeName": "Ione city",
+        "population": "9282"
+      },
+      {
+        "placeName": "Irvine city",
+        "population": "318764"
+      },
+      {
+        "placeName": "Irwindale city",
+        "population": "1439"
+      },
+      {
+        "placeName": "Isleton city",
+        "population": "775"
+      },
+      {
+        "placeName": "Jackson city",
+        "population": "5100"
+      },
+      {
+        "placeName": "Jurupa Valley city",
+        "population": "107311"
+      },
+      {
+        "placeName": "Kerman city",
+        "population": "17553"
+      },
+      {
+        "placeName": "King City city",
+        "population": "14002"
+      },
+      {
+        "placeName": "Kingsburg city",
+        "population": "13249"
+      },
+      {
+        "placeName": "La CaÃ±ada Flintridge city",
+        "population": "19480"
+      },
+      {
+        "placeName": "Lafayette city",
+        "population": "25313"
+      },
+      {
+        "placeName": "Laguna Beach city",
+        "population": "22391"
+      },
+      {
+        "placeName": "Laguna Hills city",
+        "population": "30020"
+      },
+      {
+        "placeName": "Laguna Niguel city",
+        "population": "64107"
+      },
+      {
+        "placeName": "Laguna Woods city",
+        "population": "16844"
+      },
+      {
+        "placeName": "La Habra city",
+        "population": "60908"
+      },
+      {
+        "placeName": "La Habra Heights city",
+        "population": "5327"
+      },
+      {
+        "placeName": "Lake Elsinore city",
+        "population": "75067"
+      },
+      {
+        "placeName": "Lake Forest city",
+        "population": "86333"
+      },
+      {
+        "placeName": "Lakeport city",
+        "population": "5059"
+      },
+      {
+        "placeName": "Lakewood city",
+        "population": "78010"
+      },
+      {
+        "placeName": "La Mesa city",
+        "population": "59914"
+      },
+      {
+        "placeName": "La Mirada city",
+        "population": "45952"
+      },
+      {
+        "placeName": "Lancaster city",
+        "population": "170084"
+      },
+      {
+        "placeName": "La Palma city",
+        "population": "14907"
+      },
+      {
+        "placeName": "La Puente city",
+        "population": "36423"
+      },
+      {
+        "placeName": "La Quinta city",
+        "population": "39440"
+      },
+      {
+        "placeName": "Larkspur city",
+        "population": "12620"
+      },
+      {
+        "placeName": "Lathrop city",
+        "population": "42783"
+      },
+      {
+        "placeName": "La Verne city",
+        "population": "30178"
+      },
+      {
+        "placeName": "Lawndale city",
+        "population": "29892"
+      },
+      {
+        "placeName": "Lemon Grove city",
+        "population": "27936"
+      },
+      {
+        "placeName": "Lemoore city",
+        "population": "27291"
+      },
+      {
+        "placeName": "Lincoln city",
+        "population": "57367"
+      },
+      {
+        "placeName": "Lindsay city",
+        "population": "12578"
+      },
+      {
+        "placeName": "Live Oak city",
+        "population": "9466"
+      },
+      {
+        "placeName": "Livermore city",
+        "population": "83457"
+      },
+      {
+        "placeName": "Livingston city",
+        "population": "14690"
+      },
+      {
+        "placeName": "Lodi city",
+        "population": "69100"
+      },
+      {
+        "placeName": "Loma Linda city",
+        "population": "25221"
+      },
+      {
+        "placeName": "Lomita city",
+        "population": "19724"
+      },
+      {
+        "placeName": "Lompoc city",
+        "population": "43315"
+      },
+      {
+        "placeName": "Long Beach city",
+        "population": "450469"
+      },
+      {
+        "placeName": "Loomis town",
+        "population": "7004"
+      },
+      {
+        "placeName": "Los Alamitos city",
+        "population": "11702"
+      },
+      {
+        "placeName": "Los Altos city",
+        "population": "30965"
+      },
+      {
+        "placeName": "Los Altos Hills town",
+        "population": "8419"
+      },
+      {
+        "placeName": "Los Angeles city",
+        "population": "3869089"
+      },
+      {
+        "placeName": "Los Banos city",
+        "population": "49614"
+      },
+      {
+        "placeName": "Los Gatos town",
+        "population": "32576"
+      },
+      {
+        "placeName": "Loyalton city",
+        "population": "709"
+      },
+      {
+        "placeName": "Lynwood city",
+        "population": "63512"
+      },
+      {
+        "placeName": "McFarland city",
+        "population": "14709"
+      },
+      {
+        "placeName": "Madera city",
+        "population": "69017"
+      },
+      {
+        "placeName": "Malibu city",
+        "population": "9574"
+      },
+      {
+        "placeName": "Mammoth Lakes town",
+        "population": "6867"
+      },
+      {
+        "placeName": "Manhattan Beach city",
+        "population": "33122"
+      },
+      {
+        "placeName": "Manteca city",
+        "population": "96693"
+      },
+      {
+        "placeName": "Maricopa city",
+        "population": "1018"
+      },
+      {
+        "placeName": "Marina city",
+        "population": "23256"
+      },
+      {
+        "placeName": "Martinez city",
+        "population": "36849"
+      },
+      {
+        "placeName": "Marysville city",
+        "population": "12738"
+      },
+      {
+        "placeName": "Maywood city",
+        "population": "23600"
+      },
+      {
+        "placeName": "Mendota city",
+        "population": "12778"
+      },
+      {
+        "placeName": "Menifee city",
+        "population": "118592"
+      },
+      {
+        "placeName": "Menlo Park city",
+        "population": "32713"
+      },
+      {
+        "placeName": "Merced city",
+        "population": "99724"
+      },
+      {
+        "placeName": "Millbrae city",
+        "population": "22869"
+      },
+      {
+        "placeName": "Mill Valley city",
+        "population": "13799"
+      },
+      {
+        "placeName": "Milpitas city",
+        "population": "78596"
+      },
+      {
+        "placeName": "Mission Viejo city",
+        "population": "90484"
+      },
+      {
+        "placeName": "Modesto city",
+        "population": "219652"
+      },
+      {
+        "placeName": "Monrovia city",
+        "population": "38264"
+      },
+      {
+        "placeName": "Montague city",
+        "population": "1157"
+      },
+      {
+        "placeName": "Montclair city",
+        "population": "37563"
+      },
+      {
+        "placeName": "Montebello city",
+        "population": "60693"
+      },
+      {
+        "placeName": "Monterey city",
+        "population": "28953"
+      },
+      {
+        "placeName": "Monterey Park city",
+        "population": "57457"
+      },
+      {
+        "placeName": "Monte Sereno city",
+        "population": "3566"
+      },
+      {
+        "placeName": "Moorpark city",
+        "population": "35023"
+      },
+      {
+        "placeName": "Moraga town",
+        "population": "16322"
+      },
+      {
+        "placeName": "Moreno Valley city",
+        "population": "214263"
+      },
+      {
+        "placeName": "Morgan Hill city",
+        "population": "45625"
+      },
+      {
+        "placeName": "Morro Bay city",
+        "population": "10613"
+      },
+      {
+        "placeName": "Mountain House city",
+        "population": "25315"
+      },
+      {
+        "placeName": "Mountain View city",
+        "population": "85438"
+      },
+      {
+        "placeName": "Mount Shasta city",
+        "population": "3071"
+      },
+      {
+        "placeName": "Murrieta city",
+        "population": "114124"
+      },
+      {
+        "placeName": "Napa city",
+        "population": "76562"
+      },
+      {
+        "placeName": "National City city",
+        "population": "57807"
+      },
+      {
+        "placeName": "Needles city",
+        "population": "4821"
+      },
+      {
+        "placeName": "Nevada City city",
+        "population": "3174"
+      },
+      {
+        "placeName": "Newark city",
+        "population": "47895"
+      },
+      {
+        "placeName": "Newman city",
+        "population": "12453"
+      },
+      {
+        "placeName": "Newport Beach city",
+        "population": "81977"
+      },
+      {
+        "placeName": "Norco city",
+        "population": "25081"
+      },
+      {
+        "placeName": "Norwalk city",
+        "population": "97104"
+      },
+      {
+        "placeName": "Novato city",
+        "population": "51947"
+      },
+      {
+        "placeName": "Oakdale city",
+        "population": "23246"
+      },
+      {
+        "placeName": "Oakland city",
+        "population": "440838"
+      },
+      {
+        "placeName": "Oakley city",
+        "population": "47583"
+      },
+      {
+        "placeName": "Oceanside city",
+        "population": "170483"
+      },
+      {
+        "placeName": "Ojai city",
+        "population": "7474"
+      },
+      {
+        "placeName": "Ontario city",
+        "population": "187013"
+      },
+      {
+        "placeName": "Orange city",
+        "population": "138365"
+      },
+      {
+        "placeName": "Orange Cove city",
+        "population": "9811"
+      },
+      {
+        "placeName": "Orinda city",
+        "population": "19507"
+      },
+      {
+        "placeName": "Orland city",
+        "population": "8381"
+      },
+      {
+        "placeName": "Oroville city",
+        "population": "20451"
+      },
+      {
+        "placeName": "Oxnard city",
+        "population": "199651"
+      },
+      {
+        "placeName": "Pacifica city",
+        "population": "36890"
+      },
+      {
+        "placeName": "Pacific Grove city",
+        "population": "14659"
+      },
+      {
+        "placeName": "Palmdale city",
+        "population": "161845"
+      },
+      {
+        "placeName": "Palm Desert city",
+        "population": "53259"
+      },
+      {
+        "placeName": "Palm Springs city",
+        "population": "45315"
+      },
+      {
+        "placeName": "Palo Alto city",
+        "population": "67609"
+      },
+      {
+        "placeName": "Palos Verdes Estates city",
+        "population": "12559"
+      },
+      {
+        "placeName": "Paradise town",
+        "population": "10023"
+      },
+      {
+        "placeName": "Paramount city",
+        "population": "50755"
+      },
+      {
+        "placeName": "Parlier city",
+        "population": "14622"
+      },
+      {
+        "placeName": "Pasadena city",
+        "population": "135804"
+      },
+      {
+        "placeName": "Patterson city",
+        "population": "26587"
+      },
+      {
+        "placeName": "Perris city",
+        "population": "83237"
+      },
+      {
+        "placeName": "Petaluma city",
+        "population": "59688"
+      },
+      {
+        "placeName": "Pico Rivera city",
+        "population": "58915"
+      },
+      {
+        "placeName": "Piedmont city",
+        "population": "10642"
+      },
+      {
+        "placeName": "Pinole city",
+        "population": "18543"
+      },
+      {
+        "placeName": "Pismo Beach city",
+        "population": "7911"
+      },
+      {
+        "placeName": "Pittsburg city",
+        "population": "77542"
+      },
+      {
+        "placeName": "Placentia city",
+        "population": "54911"
+      },
+      {
+        "placeName": "Placerville city",
+        "population": "10685"
+      },
+      {
+        "placeName": "Pleasant Hill city",
+        "population": "34017"
+      },
+      {
+        "placeName": "Pleasanton city",
+        "population": "74556"
+      },
+      {
+        "placeName": "Plymouth city",
+        "population": "1174"
+      },
+      {
+        "placeName": "Point Arena city",
+        "population": "453"
+      },
+      {
+        "placeName": "Pomona city",
+        "population": "147807"
+      },
+      {
+        "placeName": "Porterville city",
+        "population": "63088"
+      },
+      {
+        "placeName": "Port Hueneme city",
+        "population": "20987"
+      },
+      {
+        "placeName": "Portola city",
+        "population": "2024"
+      },
+      {
+        "placeName": "Portola Valley town",
+        "population": "4292"
+      },
+      {
+        "placeName": "Poway city",
+        "population": "49180"
+      },
+      {
+        "placeName": "Rancho Cordova city",
+        "population": "87554"
+      },
+      {
+        "placeName": "Rancho Cucamonga city",
+        "population": "177856"
+      },
+      {
+        "placeName": "Rancho Mirage city",
+        "population": "17876"
+      },
+      {
+        "placeName": "Rancho Palos Verdes city",
+        "population": "39654"
+      },
+      {
+        "placeName": "Rancho Santa Margarita city",
+        "population": "45779"
+      },
+      {
+        "placeName": "Red Bluff city",
+        "population": "14404"
+      },
+      {
+        "placeName": "Redding city",
+        "population": "94092"
+      },
+      {
+        "placeName": "Redlands city",
+        "population": "74128"
+      },
+      {
+        "placeName": "Redondo Beach city",
+        "population": "67281"
+      },
+      {
+        "placeName": "Redwood City city",
+        "population": "82178"
+      },
+      {
+        "placeName": "Reedley city",
+        "population": "26982"
+      },
+      {
+        "placeName": "Rialto city",
+        "population": "106554"
+      },
+      {
+        "placeName": "Richmond city",
+        "population": "114861"
+      },
+      {
+        "placeName": "Ridgecrest city",
+        "population": "28333"
+      },
+      {
+        "placeName": "Rio Dell city",
+        "population": "3211"
+      },
+      {
+        "placeName": "Rio Vista city",
+        "population": "10523"
+      },
+      {
+        "placeName": "Ripon city",
+        "population": "16140"
+      },
+      {
+        "placeName": "Riverbank city",
+        "population": "26557"
+      },
+      {
+        "placeName": "Riverside city",
+        "population": "323057"
+      },
+      {
+        "placeName": "Rocklin city",
+        "population": "76821"
+      },
+      {
+        "placeName": "Rohnert Park city",
+        "population": "44811"
+      },
+      {
+        "placeName": "Rolling Hills city",
+        "population": "1641"
+      },
+      {
+        "placeName": "Rolling Hills Estates city",
+        "population": "7948"
+      },
+      {
+        "placeName": "Rosemead city",
+        "population": "49410"
+      },
+      {
+        "placeName": "Roseville city",
+        "population": "167302"
+      },
+      {
+        "placeName": "Ross town",
+        "population": "2304"
+      },
+      {
+        "placeName": "Sacramento city",
+        "population": "536449"
+      },
+      {
+        "placeName": "St. Helena city",
+        "population": "5194"
+      },
+      {
+        "placeName": "Salinas city",
+        "population": "159134"
+      },
+      {
+        "placeName": "San Anselmo town",
+        "population": "12555"
+      },
+      {
+        "placeName": "San Bernardino city",
+        "population": "222044"
+      },
+      {
+        "placeName": "San Bruno city",
+        "population": "42305"
+      },
+      {
+        "placeName": "San Buenaventura (Ventura) city",
+        "population": "109914"
+      },
+      {
+        "placeName": "San Carlos city",
+        "population": "29261"
+      },
+      {
+        "placeName": "San Clemente city",
+        "population": "62226"
+      },
+      {
+        "placeName": "Sand City city",
+        "population": "323"
+      },
+      {
+        "placeName": "San Diego city",
+        "population": "1406106"
+      },
+      {
+        "placeName": "San Dimas city",
+        "population": "32978"
+      },
+      {
+        "placeName": "San Fernando city",
+        "population": "23449"
+      },
+      {
+        "placeName": "San Francisco city",
+        "population": "826079"
+      },
+      {
+        "placeName": "San Gabriel city",
+        "population": "38186"
+      },
+      {
+        "placeName": "Sanger city",
+        "population": "27228"
+      },
+      {
+        "placeName": "San Jacinto city",
+        "population": "56014"
+      },
+      {
+        "placeName": "San Joaquin city",
+        "population": "3688"
+      },
+      {
+        "placeName": "San Jose city",
+        "population": "989814"
+      },
+      {
+        "placeName": "San Juan Bautista city",
+        "population": "2122"
+      },
+      {
+        "placeName": "San Juan Capistrano city",
+        "population": "35119"
+      },
+      {
+        "placeName": "San Leandro city",
+        "population": "85353"
+      },
+      {
+        "placeName": "San Luis Obispo city",
+        "population": "50636"
+      },
+      {
+        "placeName": "San Marcos city",
+        "population": "94908"
+      },
+      {
+        "placeName": "San Marino city",
+        "population": "11964"
+      },
+      {
+        "placeName": "San Mateo city",
+        "population": "103337"
+      },
+      {
+        "placeName": "San Pablo city",
+        "population": "31678"
+      },
+      {
+        "placeName": "San Rafael city",
+        "population": "59410"
+      },
+      {
+        "placeName": "San Ramon city",
+        "population": "86209"
+      },
+      {
+        "placeName": "Santa Ana city",
+        "population": "315586"
+      },
+      {
+        "placeName": "Santa Barbara city",
+        "population": "86422"
+      },
+      {
+        "placeName": "Santa Clara city",
+        "population": "133446"
+      },
+      {
+        "placeName": "Santa Clarita city",
+        "population": "228430"
+      },
+      {
+        "placeName": "Santa Cruz city",
+        "population": "61797"
+      },
+      {
+        "placeName": "Santa Fe Springs city",
+        "population": "18793"
+      },
+      {
+        "placeName": "Santa Maria city",
+        "population": "111390"
+      },
+      {
+        "placeName": "Santa Monica city",
+        "population": "90082"
+      },
+      {
+        "placeName": "Santa Paula city",
+        "population": "31774"
+      },
+      {
+        "placeName": "Santa Rosa city",
+        "population": "179437"
+      },
+      {
+        "placeName": "Santee city",
+        "population": "58205"
+      },
+      {
+        "placeName": "Saratoga city",
+        "population": "30418"
+      },
+      {
+        "placeName": "Sausalito city",
+        "population": "7019"
+      },
+      {
+        "placeName": "Scotts Valley city",
+        "population": "11652"
+      },
+      {
+        "placeName": "Seal Beach city",
+        "population": "24075"
+      },
+      {
+        "placeName": "Seaside city",
+        "population": "31636"
+      },
+      {
+        "placeName": "Sebastopol city",
+        "population": "7532"
+      },
+      {
+        "placeName": "Selma city",
+        "population": "24702"
+      },
+      {
+        "placeName": "Shafter city",
+        "population": "23871"
+      },
+      {
+        "placeName": "Shasta Lake city",
+        "population": "10208"
+      },
+      {
+        "placeName": "Sierra Madre city",
+        "population": "10620"
+      },
+      {
+        "placeName": "Signal Hill city",
+        "population": "11153"
+      },
+      {
+        "placeName": "Simi Valley city",
+        "population": "124861"
+      },
+      {
+        "placeName": "Solana Beach city",
+        "population": "12602"
+      },
+      {
+        "placeName": "Soledad city",
+        "population": "26357"
+      },
+      {
+        "placeName": "Solvang city",
+        "population": "5944"
+      },
+      {
+        "placeName": "Sonoma city",
+        "population": "10537"
+      },
+      {
+        "placeName": "Sonora city",
+        "population": "4866"
+      },
+      {
+        "placeName": "South El Monte city",
+        "population": "18963"
+      },
+      {
+        "placeName": "South Gate city",
+        "population": "90071"
+      },
+      {
+        "placeName": "South Lake Tahoe city",
+        "population": "21115"
+      },
+      {
+        "placeName": "South Pasadena city",
+        "population": "25503"
+      },
+      {
+        "placeName": "South San Francisco city",
+        "population": "64941"
+      },
+      {
+        "placeName": "Stanton city",
+        "population": "40161"
+      },
+      {
+        "placeName": "Stockton city",
+        "population": "324597"
+      },
+      {
+        "placeName": "Suisun City city",
+        "population": "29454"
+      },
+      {
+        "placeName": "Sunnyvale city",
+        "population": "156577"
+      },
+      {
+        "placeName": "Susanville city",
+        "population": "12816"
+      },
+      {
+        "placeName": "Sutter Creek city",
+        "population": "2701"
+      },
+      {
+        "placeName": "Taft city",
+        "population": "6995"
+      },
+      {
+        "placeName": "Tehachapi city",
+        "population": "11852"
+      },
+      {
+        "placeName": "Tehama city",
+        "population": "441"
+      },
+      {
+        "placeName": "Temecula city",
+        "population": "114865"
+      },
+      {
+        "placeName": "Temple City city",
+        "population": "35125"
+      },
+      {
+        "placeName": "Thousand Oaks city",
+        "population": "122230"
+      },
+      {
+        "placeName": "Tiburon town",
+        "population": "8881"
+      },
+      {
+        "placeName": "Torrance city",
+        "population": "138391"
+      },
+      {
+        "placeName": "Tracy city",
+        "population": "101901"
+      },
+      {
+        "placeName": "Trinidad city",
+        "population": "317"
+      },
+      {
+        "placeName": "Truckee town",
+        "population": "17278"
+      },
+      {
+        "placeName": "Tulare city",
+        "population": "73907"
+      },
+      {
+        "placeName": "Tulelake city",
+        "population": "833"
+      },
+      {
+        "placeName": "Turlock city",
+        "population": "72864"
+      },
+      {
+        "placeName": "Tustin city",
+        "population": "77843"
+      },
+      {
+        "placeName": "Twentynine Palms city",
+        "population": "25939"
+      },
+      {
+        "placeName": "Ukiah city",
+        "population": "16068"
+      },
+      {
+        "placeName": "Union City city",
+        "population": "65282"
+      },
+      {
+        "placeName": "Upland city",
+        "population": "79446"
+      },
+      {
+        "placeName": "Vacaville city",
+        "population": "103850"
+      },
+      {
+        "placeName": "Vallejo city",
+        "population": "123287"
+      },
+      {
+        "placeName": "Vernon city",
+        "population": "207"
+      },
+      {
+        "placeName": "Victorville city",
+        "population": "141395"
+      },
+      {
+        "placeName": "Villa Park city",
+        "population": "5645"
+      },
+      {
+        "placeName": "Visalia city",
+        "population": "146541"
+      },
+      {
+        "placeName": "Vista city",
+        "population": "98274"
+      },
+      {
+        "placeName": "Walnut city",
+        "population": "27316"
+      },
+      {
+        "placeName": "Walnut Creek city",
+        "population": "70012"
+      },
+      {
+        "placeName": "Wasco city",
+        "population": "26525"
+      },
+      {
+        "placeName": "Waterford city",
+        "population": "9258"
+      },
+      {
+        "placeName": "Watsonville city",
+        "population": "50716"
+      },
+      {
+        "placeName": "Weed city",
+        "population": "2603"
+      },
+      {
+        "placeName": "West Covina city",
+        "population": "105301"
+      },
+      {
+        "placeName": "West Hollywood city",
+        "population": "34231"
+      },
+      {
+        "placeName": "Westlake Village city",
+        "population": "7505"
+      },
+      {
+        "placeName": "Westminster city",
+        "population": "88966"
+      },
+      {
+        "placeName": "Westmorland city",
+        "population": "2015"
+      },
+      {
+        "placeName": "West Sacramento city",
+        "population": "56216"
+      },
+      {
+        "placeName": "Wheatland city",
+        "population": "4267"
+      },
+      {
+        "placeName": "Whittier city",
+        "population": "85815"
+      },
+      {
+        "placeName": "Wildomar city",
+        "population": "37889"
+      },
+      {
+        "placeName": "Williams city",
+        "population": "5529"
+      },
+      {
+        "placeName": "Willits city",
+        "population": "4760"
+      },
+      {
+        "placeName": "Willows city",
+        "population": "6116"
+      },
+      {
+        "placeName": "Windsor town",
+        "population": "25864"
+      },
+      {
+        "placeName": "Winters city",
+        "population": "8214"
+      },
+      {
+        "placeName": "Woodlake city",
+        "population": "8073"
+      },
+      {
+        "placeName": "Woodland city",
+        "population": "62513"
+      },
+      {
+        "placeName": "Woodside town",
+        "population": "5181"
+      },
+      {
+        "placeName": "Yorba Linda city",
+        "population": "65632"
+      },
+      {
+        "placeName": "Yountville city",
+        "population": "3198"
+      },
+      {
+        "placeName": "Yreka city",
+        "population": "7714"
+      },
+      {
+        "placeName": "Yuba City city",
+        "population": "69485"
+      },
+      {
+        "placeName": "Yucaipa city",
+        "population": "54953"
+      },
+      {
+        "placeName": "Yucca Valley town",
+        "population": "21887"
+      }
+    ]
+  }
+]

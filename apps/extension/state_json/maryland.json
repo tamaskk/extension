@@ -1,0 +1,635 @@
+[
+  {
+    "state": "Maryland",
+    "places": [
+      {
+        "placeName": "Aberdeen city",
+        "population": "18374"
+      },
+      {
+        "placeName": "Accident town",
+        "population": "330"
+      },
+      {
+        "placeName": "Annapolis city",
+        "population": "40634"
+      },
+      {
+        "placeName": "Baltimore city",
+        "population": "569997"
+      },
+      {
+        "placeName": "Barclay town",
+        "population": "187"
+      },
+      {
+        "placeName": "Barnesville town",
+        "population": "143"
+      },
+      {
+        "placeName": "Barton town",
+        "population": "454"
+      },
+      {
+        "placeName": "Bel Air town",
+        "population": "10507"
+      },
+      {
+        "placeName": "Berlin town",
+        "population": "5335"
+      },
+      {
+        "placeName": "Berwyn Heights town",
+        "population": "3338"
+      },
+      {
+        "placeName": "Betterton town",
+        "population": "283"
+      },
+      {
+        "placeName": "Bladensburg town",
+        "population": "9671"
+      },
+      {
+        "placeName": "Boonsboro town",
+        "population": "3867"
+      },
+      {
+        "placeName": "Bowie city",
+        "population": "58383"
+      },
+      {
+        "placeName": "Brentwood town",
+        "population": "3828"
+      },
+      {
+        "placeName": "Brookeville town",
+        "population": "157"
+      },
+      {
+        "placeName": "Brookview town",
+        "population": "46"
+      },
+      {
+        "placeName": "Brunswick city",
+        "population": "9380"
+      },
+      {
+        "placeName": "Burkittsville town",
+        "population": "145"
+      },
+      {
+        "placeName": "Cambridge city",
+        "population": "13457"
+      },
+      {
+        "placeName": "Capitol Heights town",
+        "population": "4044"
+      },
+      {
+        "placeName": "Cecilton town",
+        "population": "691"
+      },
+      {
+        "placeName": "Centreville town",
+        "population": "4782"
+      },
+      {
+        "placeName": "Charlestown town",
+        "population": "1553"
+      },
+      {
+        "placeName": "Chesapeake Beach town",
+        "population": "6466"
+      },
+      {
+        "placeName": "Chesapeake City town",
+        "population": "749"
+      },
+      {
+        "placeName": "Chestertown town",
+        "population": "5658"
+      },
+      {
+        "placeName": "Cheverly town",
+        "population": "6164"
+      },
+      {
+        "placeName": "Chevy Chase town",
+        "population": "2804"
+      },
+      {
+        "placeName": "Chevy Chase Section Five village",
+        "population": "657"
+      },
+      {
+        "placeName": "Chevy Chase Section Three village",
+        "population": "773"
+      },
+      {
+        "placeName": "Chevy Chase View town",
+        "population": "952"
+      },
+      {
+        "placeName": "Chevy Chase Village town",
+        "population": "1978"
+      },
+      {
+        "placeName": "Church Creek town",
+        "population": "104"
+      },
+      {
+        "placeName": "Church Hill town",
+        "population": "817"
+      },
+      {
+        "placeName": "Clear Spring town",
+        "population": "378"
+      },
+      {
+        "placeName": "College Park city",
+        "population": "35418"
+      },
+      {
+        "placeName": "Colmar Manor town",
+        "population": "1590"
+      },
+      {
+        "placeName": "Cottage City town",
+        "population": "1329"
+      },
+      {
+        "placeName": "Crisfield city",
+        "population": "2555"
+      },
+      {
+        "placeName": "Cumberland city",
+        "population": "18799"
+      },
+      {
+        "placeName": "Deer Park town",
+        "population": "301"
+      },
+      {
+        "placeName": "Delmar town",
+        "population": "4896"
+      },
+      {
+        "placeName": "Denton town",
+        "population": "5075"
+      },
+      {
+        "placeName": "District Heights city",
+        "population": "5938"
+      },
+      {
+        "placeName": "Eagle Harbor town",
+        "population": "68"
+      },
+      {
+        "placeName": "East New Market town",
+        "population": "416"
+      },
+      {
+        "placeName": "Easton town",
+        "population": "17293"
+      },
+      {
+        "placeName": "Edmonston town",
+        "population": "1621"
+      },
+      {
+        "placeName": "Eldorado town",
+        "population": "46"
+      },
+      {
+        "placeName": "Elkton town",
+        "population": "16670"
+      },
+      {
+        "placeName": "Emmitsburg town",
+        "population": "2910"
+      },
+      {
+        "placeName": "Fairmount Heights town",
+        "population": "1528"
+      },
+      {
+        "placeName": "Federalsburg town",
+        "population": "2864"
+      },
+      {
+        "placeName": "Forest Heights town",
+        "population": "2618"
+      },
+      {
+        "placeName": "Frederick city",
+        "population": "92059"
+      },
+      {
+        "placeName": "Friendsville town",
+        "population": "426"
+      },
+      {
+        "placeName": "Frostburg city",
+        "population": "6979"
+      },
+      {
+        "placeName": "Fruitland city",
+        "population": "6007"
+      },
+      {
+        "placeName": "Funkstown town",
+        "population": "863"
+      },
+      {
+        "placeName": "Gaithersburg city",
+        "population": "71113"
+      },
+      {
+        "placeName": "Galena town",
+        "population": "541"
+      },
+      {
+        "placeName": "Galestown town",
+        "population": "117"
+      },
+      {
+        "placeName": "Garrett Park town",
+        "population": "959"
+      },
+      {
+        "placeName": "Glenarden city",
+        "population": "6422"
+      },
+      {
+        "placeName": "Glen Echo town",
+        "population": "277"
+      },
+      {
+        "placeName": "Goldsboro town",
+        "population": "215"
+      },
+      {
+        "placeName": "Grantsville town",
+        "population": "954"
+      },
+      {
+        "placeName": "Greenbelt city",
+        "population": "24948"
+      },
+      {
+        "placeName": "Greensboro town",
+        "population": "1962"
+      },
+      {
+        "placeName": "Hagerstown city",
+        "population": "44228"
+      },
+      {
+        "placeName": "Hampstead town",
+        "population": "6281"
+      },
+      {
+        "placeName": "Hancock town",
+        "population": "1581"
+      },
+      {
+        "placeName": "Havre de Grace city",
+        "population": "15630"
+      },
+      {
+        "placeName": "Hebron town",
+        "population": "1119"
+      },
+      {
+        "placeName": "Henderson town",
+        "population": "161"
+      },
+      {
+        "placeName": "Highland Beach town",
+        "population": "104"
+      },
+      {
+        "placeName": "Hillsboro town",
+        "population": "133"
+      },
+      {
+        "placeName": "Hurlock town",
+        "population": "2123"
+      },
+      {
+        "placeName": "Hyattsville city",
+        "population": "21158"
+      },
+      {
+        "placeName": "Indian Head town",
+        "population": "4202"
+      },
+      {
+        "placeName": "Keedysville town",
+        "population": "1225"
+      },
+      {
+        "placeName": "Kensington town",
+        "population": "2652"
+      },
+      {
+        "placeName": "Kitzmiller town",
+        "population": "292"
+      },
+      {
+        "placeName": "Landover Hills town",
+        "population": "1811"
+      },
+      {
+        "placeName": "La Plata town",
+        "population": "12137"
+      },
+      {
+        "placeName": "Laurel city",
+        "population": "30254"
+      },
+      {
+        "placeName": "Laytonsville town",
+        "population": "611"
+      },
+      {
+        "placeName": "Leonardtown town",
+        "population": "5033"
+      },
+      {
+        "placeName": "Loch Lynn Heights town",
+        "population": "482"
+      },
+      {
+        "placeName": "Lonaconing town",
+        "population": "978"
+      },
+      {
+        "placeName": "Luke town",
+        "population": "82"
+      },
+      {
+        "placeName": "Manchester town",
+        "population": "5426"
+      },
+      {
+        "placeName": "Mardela Springs town",
+        "population": "346"
+      },
+      {
+        "placeName": "Martin's Additions village",
+        "population": "879"
+      },
+      {
+        "placeName": "Marydel town",
+        "population": "177"
+      },
+      {
+        "placeName": "Middletown town",
+        "population": "5056"
+      },
+      {
+        "placeName": "Midland town",
+        "population": "470"
+      },
+      {
+        "placeName": "Millington town",
+        "population": "544"
+      },
+      {
+        "placeName": "Morningside town",
+        "population": "1232"
+      },
+      {
+        "placeName": "Mountain Lake Park town",
+        "population": "2101"
+      },
+      {
+        "placeName": "Mount Airy town",
+        "population": "9857"
+      },
+      {
+        "placeName": "Mount Rainier city",
+        "population": "8307"
+      },
+      {
+        "placeName": "Myersville town",
+        "population": "1885"
+      },
+      {
+        "placeName": "New Carrollton city",
+        "population": "13644"
+      },
+      {
+        "placeName": "New Market town",
+        "population": "1609"
+      },
+      {
+        "placeName": "New Windsor town",
+        "population": "1749"
+      },
+      {
+        "placeName": "North Beach town",
+        "population": "2179"
+      },
+      {
+        "placeName": "North Brentwood town",
+        "population": "589"
+      },
+      {
+        "placeName": "North Chevy Chase village",
+        "population": "664"
+      },
+      {
+        "placeName": "North East town",
+        "population": "4237"
+      },
+      {
+        "placeName": "Oakland town",
+        "population": "1808"
+      },
+      {
+        "placeName": "Ocean City town",
+        "population": "6840"
+      },
+      {
+        "placeName": "Oxford town",
+        "population": "591"
+      },
+      {
+        "placeName": "Perryville town",
+        "population": "4592"
+      },
+      {
+        "placeName": "Pittsville town",
+        "population": "1659"
+      },
+      {
+        "placeName": "Pocomoke City city",
+        "population": "4421"
+      },
+      {
+        "placeName": "Poolesville town",
+        "population": "5942"
+      },
+      {
+        "placeName": "Port Deposit town",
+        "population": "633"
+      },
+      {
+        "placeName": "Port Tobacco Village town",
+        "population": "23"
+      },
+      {
+        "placeName": "Preston town",
+        "population": "684"
+      },
+      {
+        "placeName": "Princess Anne town",
+        "population": "3642"
+      },
+      {
+        "placeName": "Queen Anne town",
+        "population": "190"
+      },
+      {
+        "placeName": "Queenstown town",
+        "population": "711"
+      },
+      {
+        "placeName": "Ridgely town",
+        "population": "1630"
+      },
+      {
+        "placeName": "Rising Sun town",
+        "population": "2761"
+      },
+      {
+        "placeName": "Riverdale Park town",
+        "population": "7343"
+      },
+      {
+        "placeName": "Rock Hall town",
+        "population": "1208"
+      },
+      {
+        "placeName": "Rockville city",
+        "population": "67563"
+      },
+      {
+        "placeName": "Rosemont village",
+        "population": "258"
+      },
+      {
+        "placeName": "St. Michaels town",
+        "population": "1083"
+      },
+      {
+        "placeName": "Salisbury city",
+        "population": "33845"
+      },
+      {
+        "placeName": "Seat Pleasant city",
+        "population": "4524"
+      },
+      {
+        "placeName": "Secretary town",
+        "population": "473"
+      },
+      {
+        "placeName": "Sharpsburg town",
+        "population": "573"
+      },
+      {
+        "placeName": "Sharptown town",
+        "population": "692"
+      },
+      {
+        "placeName": "Smithsburg town",
+        "population": "3212"
+      },
+      {
+        "placeName": "Snow Hill town",
+        "population": "2237"
+      },
+      {
+        "placeName": "Somerset town",
+        "population": "1151"
+      },
+      {
+        "placeName": "Sudlersville town",
+        "population": "515"
+      },
+      {
+        "placeName": "Sykesville town",
+        "population": "4602"
+      },
+      {
+        "placeName": "Takoma Park city",
+        "population": "17260"
+      },
+      {
+        "placeName": "Taneytown city",
+        "population": "8259"
+      },
+      {
+        "placeName": "Templeville town",
+        "population": "117"
+      },
+      {
+        "placeName": "Thurmont town",
+        "population": "6337"
+      },
+      {
+        "placeName": "Trappe town",
+        "population": "1517"
+      },
+      {
+        "placeName": "Union Bridge town",
+        "population": "941"
+      },
+      {
+        "placeName": "University Park town",
+        "population": "2440"
+      },
+      {
+        "placeName": "Upper Marlboro town",
+        "population": "708"
+      },
+      {
+        "placeName": "Vienna town",
+        "population": "279"
+      },
+      {
+        "placeName": "Walkersville town",
+        "population": "6501"
+      },
+      {
+        "placeName": "Washington Grove town",
+        "population": "495"
+      },
+      {
+        "placeName": "Westernport town",
+        "population": "1759"
+      },
+      {
+        "placeName": "Westminster city",
+        "population": "20589"
+      },
+      {
+        "placeName": "Willards town",
+        "population": "1018"
+      },
+      {
+        "placeName": "Williamsport town",
+        "population": "2112"
+      },
+      {
+        "placeName": "Woodsboro town",
+        "population": "1136"
+      }
+    ]
+  }
+]

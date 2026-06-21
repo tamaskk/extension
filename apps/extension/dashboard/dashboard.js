@@ -811,13 +811,60 @@ const BIZ_TYPES = [
   'auto detailing near', 'car rental near', 'limo services near', 'taxi services near',
 ];
 
+// Packaged data files (apps/extension/countries + state_json).
+const COUNTRY_FILES = ['austria', 'belgium', 'canada', 'france', 'greece', 'hongkong', 'hungary', 'italy', 'netherlands', 'portugal', 'spain', 'switzerland', 'taipei', 'uk', 'usa'];
+const STATE_FILES = ['alamaba', 'alaska', 'arizona', 'arkansas', 'california', 'colorado', 'connecticut', 'delaware', 'district of columbia', 'florida', 'georgia', 'hawaii', 'idaho', 'illinois', 'indiana', 'iowa', 'kansas', 'kentucky', 'louisiana', 'maine', 'maryland', 'massachusetts', 'michigan', 'minnesota', 'mississippi', 'missouri', 'montana', 'nebraska', 'nevada', 'new hampshire', 'new jersey', 'new mexico', 'new york', 'north carolina', 'north dakota', 'ohio', 'oklahoma', 'oregon', 'pennsylvania', 'rhode island', 'south carolina', 'south dakota', 'tennessee', 'texas', 'utah', 'vermont', 'virginia', 'washington', 'west virginia', 'wisconsin', 'wyoming'];
+const COUNTRY_LABEL = { usa: 'USA', uk: 'UK', hongkong: 'Hong Kong', taipei: 'Taipei' };
+const titleCase = (s) => String(s || '').replace(/\b\w/g, (c) => c.toUpperCase());
+const countryLabel = (f) => COUNTRY_LABEL[f] || titleCase(f);
+
 // Country / State segmented switch (top of the batch modal). Persisted.
 let bdGeo = 'country';
 let bdStatePop = null; // { [placeName]: population } from the last loaded state file
+function fillSourceDropdown() {
+  const sel = $('bd_source'); if (!sel) return;
+  const files = bdGeo === 'state' ? STATE_FILES : COUNTRY_FILES;
+  const label = bdGeo === 'state' ? 'state' : 'country';
+  sel.innerHTML = `<option value="">⤵ Load a ${label} file…</option>`
+    + files.map((f) => `<option value="${esc(f)}">${esc(bdGeo === 'state' ? titleCase(f) : countryLabel(f))}</option>`).join('');
+}
 function applyBdGeo(geo) {
   bdGeo = geo === 'state' ? 'state' : 'country';
   if (bdGeo !== 'state') bdStatePop = null;
   document.querySelectorAll('#bd_geo .seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.geo === bdGeo));
+  fillSourceDropdown();
+}
+
+// Pick a packaged file → auto-fill the middle (list) + suffix inputs.
+async function loadSourceFile(file) {
+  if (!file) return;
+  const dir = bdGeo === 'state' ? 'state_json' : 'countries';
+  let data;
+  try { data = await (await fetch(chrome.runtime.getURL(`${dir}/${encodeURIComponent(file)}.json`))).json(); }
+  catch { $('bd_preview').textContent = '⚠ Could not load that file.'; return; }
+  if (!Array.isArray(data)) { $('bd_preview').textContent = '⚠ Unexpected file format.'; return; }
+
+  if (bdGeo === 'state') {
+    const places = []; let stateName = titleCase(file);
+    for (const entry of data) {
+      if (entry && entry.state) stateName = entry.state;
+      for (const p of (entry && entry.places) || []) { const nm = String((p && p.placeName) || '').trim(); if (nm) places.push({ name: nm, pop: p && p.population }); }
+    }
+    if (!places.length) { $('bd_preview').textContent = '⚠ No places in this file.'; return; }
+    bdStatePop = {}; places.forEach((p) => { bdStatePop[p.name] = p.pop; });
+    $('bd_middle').value = places.map((p) => p.name).join(', ');
+    $('bd_suffix').value = stateName;
+    bdPreview(); bdSave();
+    $('bd_preview').innerHTML = `✓ Loaded <b>${places.length}</b> places from <b>${esc(stateName)}</b> (with population) — review & “Add to queue”.`;
+  } else {
+    const cities = [...new Set(data.map((e) => String((e && e.city) || '').trim()).filter(Boolean))];
+    if (!cities.length) { $('bd_preview').textContent = '⚠ No cities in this file.'; return; }
+    bdStatePop = null;
+    $('bd_middle').value = cities.join(', ');
+    $('bd_suffix').value = countryLabel(file);
+    bdPreview(); bdSave();
+    $('bd_preview').innerHTML = `✓ Loaded <b>${cities.length}</b> cities from <b>${esc(countryLabel(file))}</b> — review & “Add to queue”.`;
+  }
 }
 // Prefix autocomplete — a custom, scrollable, styled dropdown of business types.
 (function setupPrefixAC() {
@@ -851,6 +898,7 @@ chrome.storage.local.get('gridleads_batch_geo', (o) => applyBdGeo(o.gridleads_ba
 document.querySelectorAll('#bd_geo .seg-btn').forEach((b) => {
   b.addEventListener('click', () => { applyBdGeo(b.dataset.geo); chrome.storage.local.set({ gridleads_batch_geo: bdGeo }); });
 });
+$('bd_source').addEventListener('change', async (e) => { const f = e.target.value; if (f) await loadSourceFile(f); e.target.value = ''; });
 
 // Batch mode switch (shared persisted setting; same as the popup).
 const bdModeHint = (on) => { $('bd_modeHint').textContent = on ? 'On — upload each batch to DB, free browser storage' : 'Off — keep everything in the browser'; };

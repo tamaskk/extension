@@ -1,0 +1,59 @@
+[
+  {
+    "state": "New Hampshire",
+    "places": [
+      {
+        "placeName": "Berlin city",
+        "population": "9502"
+      },
+      {
+        "placeName": "Claremont city",
+        "population": "13032"
+      },
+      {
+        "placeName": "Concord city",
+        "population": "44597"
+      },
+      {
+        "placeName": "Dover city",
+        "population": "34623"
+      },
+      {
+        "placeName": "Franklin city",
+        "population": "8839"
+      },
+      {
+        "placeName": "Keene city",
+        "population": "23072"
+      },
+      {
+        "placeName": "Laconia city",
+        "population": "17246"
+      },
+      {
+        "placeName": "Lebanon city",
+        "population": "15481"
+      },
+      {
+        "placeName": "Manchester city",
+        "population": "116818"
+      },
+      {
+        "placeName": "Nashua city",
+        "population": "92435"
+      },
+      {
+        "placeName": "Portsmouth city",
+        "population": "23028"
+      },
+      {
+        "placeName": "Rochester city",
+        "population": "33716"
+      },
+      {
+        "placeName": "Somersworth city",
+        "population": "12171"
+      }
+    ]
+  }
+]

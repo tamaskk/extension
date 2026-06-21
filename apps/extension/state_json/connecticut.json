@@ -1,0 +1,127 @@
+[
+  {
+    "state": "Connecticut",
+    "places": [
+      {
+        "placeName": "Ansonia city",
+        "population": "19216"
+      },
+      {
+        "placeName": "Bantam borough",
+        "population": "772"
+      },
+      {
+        "placeName": "Bridgeport city",
+        "population": "152273"
+      },
+      {
+        "placeName": "Bristol city",
+        "population": "62341"
+      },
+      {
+        "placeName": "Danbury city",
+        "population": "89033"
+      },
+      {
+        "placeName": "Danielson borough",
+        "population": "4265"
+      },
+      {
+        "placeName": "Derby city",
+        "population": "12925"
+      },
+      {
+        "placeName": "Fenwick borough",
+        "population": "44"
+      },
+      {
+        "placeName": "Groton city",
+        "population": "10160"
+      },
+      {
+        "placeName": "Groton Long Point borough",
+        "population": "522"
+      },
+      {
+        "placeName": "Hartford city",
+        "population": "121981"
+      },
+      {
+        "placeName": "Jewett City borough",
+        "population": "3456"
+      },
+      {
+        "placeName": "Litchfield borough",
+        "population": "1220"
+      },
+      {
+        "placeName": "Meriden city",
+        "population": "60810"
+      },
+      {
+        "placeName": "Middletown city",
+        "population": "48439"
+      },
+      {
+        "placeName": "Milford city (balance)",
+        "population": "51215"
+      },
+      {
+        "placeName": "Naugatuck borough",
+        "population": "32230"
+      },
+      {
+        "placeName": "New Britain city",
+        "population": "76286"
+      },
+      {
+        "placeName": "New Haven city",
+        "population": "138774"
+      },
+      {
+        "placeName": "New London city",
+        "population": "28003"
+      },
+      {
+        "placeName": "Newtown borough",
+        "population": "1980"
+      },
+      {
+        "placeName": "Norwalk city",
+        "population": "94508"
+      },
+      {
+        "placeName": "Norwich city",
+        "population": "40001"
+      },
+      {
+        "placeName": "Shelton city",
+        "population": "42880"
+      },
+      {
+        "placeName": "Stamford city",
+        "population": "139535"
+      },
+      {
+        "placeName": "Stonington borough",
+        "population": "1017"
+      },
+      {
+        "placeName": "Torrington city",
+        "population": "35796"
+      },
+      {
+        "placeName": "Waterbury city",
+        "population": "115771"
+      },
+      {
+        "placeName": "West Haven city",
+        "population": "55351"
+      },
+      {
+        "placeName": "Woodmont borough",
+        "population": "2391"
+      }
+    ]
+  }
+]

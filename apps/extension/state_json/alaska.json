@@ -1,0 +1,603 @@
+[
+  {
+    "state": "Alaska",
+    "places": [
+      {
+        "placeName": "Adak city",
+        "population": "112"
+      },
+      {
+        "placeName": "Akhiok city",
+        "population": "63"
+      },
+      {
+        "placeName": "Akiak city",
+        "population": "443"
+      },
+      {
+        "placeName": "Akutan city",
+        "population": "1591"
+      },
+      {
+        "placeName": "Alakanuk city",
+        "population": "718"
+      },
+      {
+        "placeName": "Aleknagik city",
+        "population": "193"
+      },
+      {
+        "placeName": "Allakaket city",
+        "population": "168"
+      },
+      {
+        "placeName": "Ambler city",
+        "population": "246"
+      },
+      {
+        "placeName": "Anaktuvuk Pass city",
+        "population": "401"
+      },
+      {
+        "placeName": "Anchorage municipality",
+        "population": "287155"
+      },
+      {
+        "placeName": "Anderson city",
+        "population": "177"
+      },
+      {
+        "placeName": "Angoon city",
+        "population": "332"
+      },
+      {
+        "placeName": "Aniak city",
+        "population": "487"
+      },
+      {
+        "placeName": "Anvik city",
+        "population": "70"
+      },
+      {
+        "placeName": "Atka city",
+        "population": "58"
+      },
+      {
+        "placeName": "Atqasuk city",
+        "population": "258"
+      },
+      {
+        "placeName": "Bethel city",
+        "population": "6626"
+      },
+      {
+        "placeName": "Bettles city",
+        "population": "23"
+      },
+      {
+        "placeName": "Brevig Mission city",
+        "population": "421"
+      },
+      {
+        "placeName": "Buckland city",
+        "population": "496"
+      },
+      {
+        "placeName": "Chefornak city",
+        "population": "486"
+      },
+      {
+        "placeName": "Chevak city",
+        "population": "898"
+      },
+      {
+        "placeName": "Chignik city",
+        "population": "87"
+      },
+      {
+        "placeName": "Chuathbaluk city",
+        "population": "97"
+      },
+      {
+        "placeName": "Clark's Point city",
+        "population": "61"
+      },
+      {
+        "placeName": "Coffman Cove city",
+        "population": "127"
+      },
+      {
+        "placeName": "Cold Bay city",
+        "population": "54"
+      },
+      {
+        "placeName": "Cordova city",
+        "population": "2401"
+      },
+      {
+        "placeName": "Craig city",
+        "population": "1062"
+      },
+      {
+        "placeName": "Deering city",
+        "population": "161"
+      },
+      {
+        "placeName": "Delta Junction city",
+        "population": "977"
+      },
+      {
+        "placeName": "Dillingham city",
+        "population": "2075"
+      },
+      {
+        "placeName": "Diomede city",
+        "population": "81"
+      },
+      {
+        "placeName": "Eagle city",
+        "population": "89"
+      },
+      {
+        "placeName": "Edna Bay city",
+        "population": "26"
+      },
+      {
+        "placeName": "Eek city",
+        "population": "384"
+      },
+      {
+        "placeName": "Egegik city",
+        "population": "35"
+      },
+      {
+        "placeName": "Ekwok city",
+        "population": "99"
+      },
+      {
+        "placeName": "Elim city",
+        "population": "363"
+      },
+      {
+        "placeName": "Emmonak city",
+        "population": "785"
+      },
+      {
+        "placeName": "Fairbanks city",
+        "population": "31468"
+      },
+      {
+        "placeName": "False Pass city",
+        "population": "398"
+      },
+      {
+        "placeName": "Fort Yukon city",
+        "population": "405"
+      },
+      {
+        "placeName": "Galena city",
+        "population": "450"
+      },
+      {
+        "placeName": "Gambell city",
+        "population": "625"
+      },
+      {
+        "placeName": "Golovin city",
+        "population": "167"
+      },
+      {
+        "placeName": "Goodnews Bay city",
+        "population": "248"
+      },
+      {
+        "placeName": "Grayling city",
+        "population": "197"
+      },
+      {
+        "placeName": "Gustavus city",
+        "population": "610"
+      },
+      {
+        "placeName": "Holy Cross city",
+        "population": "167"
+      },
+      {
+        "placeName": "Homer city",
+        "population": "6331"
+      },
+      {
+        "placeName": "Hoonah city",
+        "population": "960"
+      },
+      {
+        "placeName": "Hooper Bay city",
+        "population": "1297"
+      },
+      {
+        "placeName": "Houston city",
+        "population": "2267"
+      },
+      {
+        "placeName": "Hughes city",
+        "population": "81"
+      },
+      {
+        "placeName": "Huslia city",
+        "population": "287"
+      },
+      {
+        "placeName": "Hydaburg city",
+        "population": "378"
+      },
+      {
+        "placeName": "Juneau city and borough",
+        "population": "31609"
+      },
+      {
+        "placeName": "Kachemak city",
+        "population": "589"
+      },
+      {
+        "placeName": "Kake city",
+        "population": "544"
+      },
+      {
+        "placeName": "Kaktovik city",
+        "population": "269"
+      },
+      {
+        "placeName": "Kaltag city",
+        "population": "151"
+      },
+      {
+        "placeName": "Kasaan city",
+        "population": "29"
+      },
+      {
+        "placeName": "Kenai city",
+        "population": "7924"
+      },
+      {
+        "placeName": "Ketchikan city",
+        "population": "7939"
+      },
+      {
+        "placeName": "Kiana city",
+        "population": "408"
+      },
+      {
+        "placeName": "King Cove city",
+        "population": "781"
+      },
+      {
+        "placeName": "Kivalina city",
+        "population": "399"
+      },
+      {
+        "placeName": "Klawock city",
+        "population": "720"
+      },
+      {
+        "placeName": "Kobuk city",
+        "population": "166"
+      },
+      {
+        "placeName": "Kodiak city",
+        "population": "5281"
+      },
+      {
+        "placeName": "Kotlik city",
+        "population": "624"
+      },
+      {
+        "placeName": "Kotzebue city",
+        "population": "2876"
+      },
+      {
+        "placeName": "Koyuk city",
+        "population": "298"
+      },
+      {
+        "placeName": "Koyukuk city",
+        "population": "92"
+      },
+      {
+        "placeName": "Kupreanof city",
+        "population": "18"
+      },
+      {
+        "placeName": "Kwethluk city",
+        "population": "771"
+      },
+      {
+        "placeName": "Larsen Bay city",
+        "population": "32"
+      },
+      {
+        "placeName": "Lower Kalskag city",
+        "population": "266"
+      },
+      {
+        "placeName": "McGrath city",
+        "population": "278"
+      },
+      {
+        "placeName": "Manokotak city",
+        "population": "451"
+      },
+      {
+        "placeName": "Marshall city",
+        "population": "468"
+      },
+      {
+        "placeName": "Mekoryuk city",
+        "population": "198"
+      },
+      {
+        "placeName": "Mountain Village city",
+        "population": "585"
+      },
+      {
+        "placeName": "Napakiak city",
+        "population": "338"
+      },
+      {
+        "placeName": "Napaskiak city",
+        "population": "486"
+      },
+      {
+        "placeName": "Nenana city",
+        "population": "333"
+      },
+      {
+        "placeName": "Newhalen city",
+        "population": "154"
+      },
+      {
+        "placeName": "New Stuyahok city",
+        "population": "477"
+      },
+      {
+        "placeName": "Nightmute city",
+        "population": "291"
+      },
+      {
+        "placeName": "Nikolai city",
+        "population": "81"
+      },
+      {
+        "placeName": "Nome city",
+        "population": "3653"
+      },
+      {
+        "placeName": "Nondalton city",
+        "population": "122"
+      },
+      {
+        "placeName": "Noorvik city",
+        "population": "621"
+      },
+      {
+        "placeName": "North Pole city",
+        "population": "2477"
+      },
+      {
+        "placeName": "Nuiqsut city",
+        "population": "481"
+      },
+      {
+        "placeName": "Nulato city",
+        "population": "222"
+      },
+      {
+        "placeName": "Nunam Iqua city",
+        "population": "207"
+      },
+      {
+        "placeName": "Nunapitchuk city",
+        "population": "571"
+      },
+      {
+        "placeName": "Old Harbor city",
+        "population": "202"
+      },
+      {
+        "placeName": "Ouzinkie city",
+        "population": "101"
+      },
+      {
+        "placeName": "Palmer city",
+        "population": "6710"
+      },
+      {
+        "placeName": "Pelican city",
+        "population": "93"
+      },
+      {
+        "placeName": "Pilot Point city",
+        "population": "62"
+      },
+      {
+        "placeName": "Pilot Station city",
+        "population": "587"
+      },
+      {
+        "placeName": "Platinum city",
+        "population": "53"
+      },
+      {
+        "placeName": "Point Hope city",
+        "population": "776"
+      },
+      {
+        "placeName": "Port Alexander city",
+        "population": "74"
+      },
+      {
+        "placeName": "Port Heiden city",
+        "population": "93"
+      },
+      {
+        "placeName": "Port Lions city",
+        "population": "162"
+      },
+      {
+        "placeName": "Quinhagak city",
+        "population": "737"
+      },
+      {
+        "placeName": "Ruby city",
+        "population": "131"
+      },
+      {
+        "placeName": "Russian Mission city",
+        "population": "402"
+      },
+      {
+        "placeName": "St. George city",
+        "population": "63"
+      },
+      {
+        "placeName": "St. Mary's city",
+        "population": "567"
+      },
+      {
+        "placeName": "St. Michael city",
+        "population": "444"
+      },
+      {
+        "placeName": "St. Paul city",
+        "population": "418"
+      },
+      {
+        "placeName": "Sand Point city",
+        "population": "607"
+      },
+      {
+        "placeName": "Savoonga city",
+        "population": "810"
+      },
+      {
+        "placeName": "Saxman city",
+        "population": "376"
+      },
+      {
+        "placeName": "Scammon Bay city",
+        "population": "574"
+      },
+      {
+        "placeName": "Selawik city",
+        "population": "729"
+      },
+      {
+        "placeName": "Seldovia city",
+        "population": "251"
+      },
+      {
+        "placeName": "Seward city",
+        "population": "2892"
+      },
+      {
+        "placeName": "Shageluk city",
+        "population": "93"
+      },
+      {
+        "placeName": "Shaktoolik city",
+        "population": "209"
+      },
+      {
+        "placeName": "Shishmaref city",
+        "population": "555"
+      },
+      {
+        "placeName": "Shungnak city",
+        "population": "245"
+      },
+      {
+        "placeName": "Sitka city and borough",
+        "population": "8319"
+      },
+      {
+        "placeName": "Soldotna city",
+        "population": "4615"
+      },
+      {
+        "placeName": "Stebbins city",
+        "population": "617"
+      },
+      {
+        "placeName": "Tanana city",
+        "population": "234"
+      },
+      {
+        "placeName": "Teller city",
+        "population": "241"
+      },
+      {
+        "placeName": "Tenakee Springs city",
+        "population": "112"
+      },
+      {
+        "placeName": "Thorne Bay city",
+        "population": "477"
+      },
+      {
+        "placeName": "Togiak city",
+        "population": "756"
+      },
+      {
+        "placeName": "Toksook Bay city",
+        "population": "625"
+      },
+      {
+        "placeName": "Unalakleet city",
+        "population": "748"
+      },
+      {
+        "placeName": "Unalaska city",
+        "population": "4306"
+      },
+      {
+        "placeName": "Upper Kalskag city",
+        "population": "207"
+      },
+      {
+        "placeName": "Utqiagvik city",
+        "population": "4640"
+      },
+      {
+        "placeName": "Valdez city",
+        "population": "3681"
+      },
+      {
+        "placeName": "Wainwright city",
+        "population": "586"
+      },
+      {
+        "placeName": "Wales city",
+        "population": "163"
+      },
+      {
+        "placeName": "Wasilla city",
+        "population": "10556"
+      },
+      {
+        "placeName": "Whale Pass city",
+        "population": "88"
+      },
+      {
+        "placeName": "White Mountain city",
+        "population": "179"
+      },
+      {
+        "placeName": "Whittier city",
+        "population": "249"
+      },
+      {
+        "placeName": "Wrangell city and borough",
+        "population": "2007"
+      }
+    ]
+  }
+]

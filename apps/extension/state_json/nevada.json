@@ -1,0 +1,83 @@
+[
+  {
+    "state": "Nevada",
+    "places": [
+      {
+        "placeName": "Boulder City city",
+        "population": "14884"
+      },
+      {
+        "placeName": "Caliente city",
+        "population": "943"
+      },
+      {
+        "placeName": "Carlin city",
+        "population": "2011"
+      },
+      {
+        "placeName": "Carson City",
+        "population": "58571"
+      },
+      {
+        "placeName": "Elko city",
+        "population": "21019"
+      },
+      {
+        "placeName": "Ely city",
+        "population": "3946"
+      },
+      {
+        "placeName": "Fallon city",
+        "population": "9570"
+      },
+      {
+        "placeName": "Fernley city",
+        "population": "26214"
+      },
+      {
+        "placeName": "Henderson city",
+        "population": "353289"
+      },
+      {
+        "placeName": "Las Vegas city",
+        "population": "679817"
+      },
+      {
+        "placeName": "Lovelock city",
+        "population": "1771"
+      },
+      {
+        "placeName": "Mesquite city",
+        "population": "24001"
+      },
+      {
+        "placeName": "North Las Vegas city",
+        "population": "296653"
+      },
+      {
+        "placeName": "Reno city",
+        "population": "283621"
+      },
+      {
+        "placeName": "Sparks city",
+        "population": "111902"
+      },
+      {
+        "placeName": "Wells city",
+        "population": "1245"
+      },
+      {
+        "placeName": "West Wendover city",
+        "population": "4576"
+      },
+      {
+        "placeName": "Winnemucca city",
+        "population": "8307"
+      },
+      {
+        "placeName": "Yerington city",
+        "population": "3227"
+      }
+    ]
+  }
+]

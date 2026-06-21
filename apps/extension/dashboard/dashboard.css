@@ -198,6 +198,11 @@ a.mlink:hover { text-decoration: underline; }
 .batch-preview { font-size: 12px; color: var(--muted); margin-bottom: 10px; min-height: 16px; }
 .batch-preview b { color: #a5b4fc; }
 .batch-add { width: 100%; }
+/* country/state file source dropdown */
+.bd-source { cursor: pointer; appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
+.bd-source:focus { border-color: var(--accent); }
+.bd-source option { background: var(--panel2, #14161c); color: var(--text); }
+
 /* Prefix business-type autocomplete */
 .ac-wrap { position: relative; }
 .ac-pop { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 60; max-height: 280px; overflow-y: auto; background: var(--panel2, #14161c); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 14px 36px rgba(0,0,0,.5); padding: 4px; }

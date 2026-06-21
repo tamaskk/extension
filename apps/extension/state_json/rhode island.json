@@ -1,0 +1,39 @@
+[
+  {
+    "state": "Rhode Island",
+    "places": [
+      {
+        "placeName": "Central Falls city",
+        "population": "23124"
+      },
+      {
+        "placeName": "Cranston city",
+        "population": "84647"
+      },
+      {
+        "placeName": "East Providence city",
+        "population": "48249"
+      },
+      {
+        "placeName": "Newport city",
+        "population": "24251"
+      },
+      {
+        "placeName": "Pawtucket city",
+        "population": "77065"
+      },
+      {
+        "placeName": "Providence city",
+        "population": "195310"
+      },
+      {
+        "placeName": "Warwick city",
+        "population": "84187"
+      },
+      {
+        "placeName": "Woonsocket city",
+        "population": "44580"
+      }
+    ]
+  }
+]
