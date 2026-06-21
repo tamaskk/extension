@@ -779,6 +779,38 @@ async function renderQueue(force) {
   });
 }
 
+// Google business types for the Prefix autocomplete (ready-to-use "<type> near" prefixes).
+const BIZ_TYPES = [
+  'restaurants near', 'cafes near', 'coffee shops near', 'bars near', 'pubs near', 'bakeries near', 'pizzerias near', 'fast food near',
+  'food trucks near', 'ice cream shops near', 'breweries near', 'wineries near', 'caterers near', 'delis near', 'diners near',
+  'plumbers near', 'electricians near', 'hvac contractors near', 'roofers near', 'painters near', 'carpenters near', 'handyman services near',
+  'general contractors near', 'landscapers near', 'lawn care near', 'tree services near', 'pest control near', 'cleaning services near',
+  'maid services near', 'window cleaners near', 'pool services near', 'locksmiths near', 'movers near', 'junk removal near', 'flooring contractors near',
+  'fencing contractors near', 'concrete contractors near', 'masons near', 'drywall contractors near', 'garage door services near', 'pressure washing near',
+  'auto repair near', 'mechanics near', 'car dealers near', 'used car dealers near', 'tire shops near', 'car washes near', 'auto body shops near',
+  'gas stations near', 'towing services near', 'motorcycle dealers near', 'rv dealers near',
+  'dentists near', 'doctors near', 'clinics near', 'pharmacies near', 'chiropractors near', 'physical therapists near', 'optometrists near',
+  'dermatologists near', 'pediatricians near', 'veterinarians near', 'urgent care near', 'medical spas near', 'mental health counselors near',
+  'hair salons near', 'barbers near', 'nail salons near', 'spas near', 'massage therapists near', 'tattoo shops near', 'tanning salons near',
+  'beauty salons near', 'makeup artists near', 'lash technicians near',
+  'gyms near', 'fitness centers near', 'yoga studios near', 'pilates studios near', 'martial arts schools near', 'personal trainers near',
+  'crossfit gyms near', 'dance studios near',
+  'lawyers near', 'accountants near', 'financial advisors near', 'insurance agents near', 'real estate agents near', 'mortgage brokers near',
+  'marketing agencies near', 'web designers near', 'architects near', 'engineers near', 'notaries near', 'bookkeepers near', 'consultants near',
+  'hotels near', 'motels near', 'bed and breakfasts near', 'event venues near', 'wedding venues near', 'banquet halls near',
+  'photographers near', 'videographers near', 'dj services near', 'event planners near', 'florists near',
+  'grocery stores near', 'convenience stores near', 'supermarkets near', 'liquor stores near', 'clothing stores near', 'shoe stores near',
+  'jewelry stores near', 'furniture stores near', 'hardware stores near', 'pet stores near', 'bookstores near', 'gift shops near',
+  'electronics stores near', 'thrift stores near', 'pawn shops near', 'bike shops near', 'sporting goods stores near',
+  'daycares near', 'preschools near', 'tutoring services near', 'driving schools near', 'music schools near', 'language schools near',
+  'dry cleaners near', 'laundromats near', 'tailors near', 'shoe repair near', 'print shops near', 'sign shops near', 'storage facilities near',
+  'banks near', 'credit unions near', 'atms near', 'check cashing near',
+  'churches near', 'funeral homes near', 'cemeteries near', 'nonprofits near',
+  'opticians near', 'hearing aid providers near', 'medical supply stores near', 'home health care near', 'assisted living near', 'nursing homes near',
+  'solar installers near', 'security companies near', 'it services near', 'computer repair near', 'phone repair near', 'appliance repair near',
+  'auto detailing near', 'car rental near', 'limo services near', 'taxi services near',
+];
+
 // Country / State segmented switch (top of the batch modal). Persisted.
 let bdGeo = 'country';
 let bdStatePop = null; // { [placeName]: population } from the last loaded state file
@@ -787,6 +819,8 @@ function applyBdGeo(geo) {
   if (bdGeo !== 'state') bdStatePop = null;
   document.querySelectorAll('#bd_geo .seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.geo === bdGeo));
 }
+// populate the Prefix autocomplete
+(function fillBizTypes() { const dl = $('gl_biztypes'); if (dl) dl.innerHTML = BIZ_TYPES.map((t) => `<option value="${esc(t)}"></option>`).join(''); })();
 chrome.storage.local.get('gridleads_batch_geo', (o) => applyBdGeo(o.gridleads_batch_geo || 'country'));
 document.querySelectorAll('#bd_geo .seg-btn').forEach((b) => {
   b.addEventListener('click', () => { applyBdGeo(b.dataset.geo); chrome.storage.local.set({ gridleads_batch_geo: bdGeo }); });
