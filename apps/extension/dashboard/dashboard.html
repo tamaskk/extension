@@ -160,8 +160,10 @@
           <button class="seg-btn" data-geo="state" type="button">📍 State</button>
         </div>
         <div class="batch-form">
-          <input id="bd_prefix" class="binput" type="text" placeholder="Prefix — e.g. restaurants near" list="gl_biztypes" autocomplete="off" />
-          <datalist id="gl_biztypes"></datalist>
+          <div class="ac-wrap">
+            <input id="bd_prefix" class="binput" type="text" placeholder="Prefix — type a business type (e.g. restaurants near)" autocomplete="off" />
+            <div id="bd_ac" class="ac-pop hidden"></div>
+          </div>
           <input id="bd_middle" class="binput" type="text" placeholder="List, comma-separated — Corona, Manhattan, Brooklyn" />
           <input id="bd_suffix" class="binput" type="text" placeholder="Suffix — e.g. newyork" />
           <div id="bd_preview" class="batch-preview"></div>

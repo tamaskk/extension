@@ -819,8 +819,34 @@ function applyBdGeo(geo) {
   if (bdGeo !== 'state') bdStatePop = null;
   document.querySelectorAll('#bd_geo .seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.geo === bdGeo));
 }
-// populate the Prefix autocomplete
-(function fillBizTypes() { const dl = $('gl_biztypes'); if (dl) dl.innerHTML = BIZ_TYPES.map((t) => `<option value="${esc(t)}"></option>`).join(''); })();
+// Prefix autocomplete — a custom, scrollable, styled dropdown of business types.
+(function setupPrefixAC() {
+  const input = $('bd_prefix'); const pop = $('bd_ac');
+  if (!input || !pop) return;
+  let items = []; let active = -1;
+  const paint = () => { [...pop.children].forEach((c, i) => c.classList.toggle('active', i === active)); if (active >= 0 && pop.children[active]) pop.children[active].scrollIntoView({ block: 'nearest' }); };
+  const close = () => { pop.classList.add('hidden'); active = -1; };
+  const choose = (t) => { input.value = t; bdPreview(); bdSave(); close(); input.focus(); };
+  const render = () => {
+    const q = input.value.trim().toLowerCase();
+    items = q ? BIZ_TYPES.filter((t) => t.toLowerCase().includes(q)) : BIZ_TYPES.slice();
+    active = -1;
+    if (!items.length) { close(); return; }
+    pop.innerHTML = items.map((t, i) => `<div class="ac-opt" data-i="${i}">${esc(t)}</div>`).join('');
+    pop.classList.remove('hidden');
+  };
+  input.addEventListener('focus', render);
+  input.addEventListener('input', render);
+  input.addEventListener('keydown', (e) => {
+    if (pop.classList.contains('hidden')) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(items.length - 1, active + 1); paint(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(0, active - 1); paint(); }
+    else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); choose(items[active]); }
+    else if (e.key === 'Escape') { close(); }
+  });
+  pop.addEventListener('mousedown', (e) => { const o = e.target.closest('.ac-opt'); if (o) { e.preventDefault(); choose(items[+o.dataset.i]); } });
+  document.addEventListener('mousedown', (e) => { if (!input.contains(e.target) && !pop.contains(e.target)) close(); });
+})();
 chrome.storage.local.get('gridleads_batch_geo', (o) => applyBdGeo(o.gridleads_batch_geo || 'country'));
 document.querySelectorAll('#bd_geo .seg-btn').forEach((b) => {
   b.addEventListener('click', () => { applyBdGeo(b.dataset.geo); chrome.storage.local.set({ gridleads_batch_geo: bdGeo }); });

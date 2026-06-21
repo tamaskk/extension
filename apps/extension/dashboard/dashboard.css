@@ -198,6 +198,14 @@ a.mlink:hover { text-decoration: underline; }
 .batch-preview { font-size: 12px; color: var(--muted); margin-bottom: 10px; min-height: 16px; }
 .batch-preview b { color: #a5b4fc; }
 .batch-add { width: 100%; }
+/* Prefix business-type autocomplete */
+.ac-wrap { position: relative; }
+.ac-pop { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 60; max-height: 280px; overflow-y: auto; background: var(--panel2, #14161c); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 14px 36px rgba(0,0,0,.5); padding: 4px; }
+.ac-opt { padding: 9px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-opt:hover, .ac-opt.active { background: rgba(99,102,241,.22); color: #fff; }
+.ac-pop::-webkit-scrollbar { width: 10px; }
+.ac-pop::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; border: 2px solid var(--panel2, #14161c); }
+
 /* country/state segmented switch */
 .seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; margin-bottom: 14px; }
 .seg-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 600; padding: 7px 18px; border-radius: 8px; }
