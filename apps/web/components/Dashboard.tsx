@@ -371,9 +371,6 @@ export default function Dashboard() {
   const exportJsonScope = async (opts: { queries?: string[]; folderId?: string }, hint: string) => {
     const bundle = await api.exportBundle(opts); downloadJson(bundle, hint);
   };
-  const exportCsvScope = async (opts: { queries?: string[]; folderId?: string }, hint: string) => {
-    const bundle = await api.exportBundle(opts); downloadText(exportCsv(bundleToRows(bundle)), 'text/csv;charset=utf-8', hint, 'csv');
-  };
 
   const moveSelected = (folderId: string | null) => { if (!selected.size) return; actions.moveProjects([...selected], folderId); setSelected(new Set()); };
   const setChecked = (r: LeadRow, checked: boolean) => {
@@ -676,7 +673,6 @@ export default function Dashboard() {
           <button className="btn" onClick={() => setDupesOpen(true)}>⧉ Duplicates</button>
           <button className="btn" onClick={() => setMapOpen(true)}>🗺 Map</button>
           <button className="btn" onClick={() => exportJsonScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export JSON</button>
-          <button className="btn primary" onClick={() => exportCsvScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export CSV</button>
         </header>
 
         <div className="filters">
