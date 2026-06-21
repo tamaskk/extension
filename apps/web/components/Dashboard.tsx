@@ -91,6 +91,7 @@ const ALL_COLUMNS: { key: string; label: string; sortable: boolean }[] = [
   { key: 'opportunityScore', label: 'Opportunity', sortable: true }, { key: 'leadTemperature', label: 'Temp', sortable: true },
   { key: 'address', label: 'Location', sortable: true }, { key: 'tags', label: 'Tags', sortable: false },
   { key: 'salesStatus', label: 'Status', sortable: true }, { key: 'maps', label: 'Maps', sortable: false },
+  { key: 'online', label: 'OP', sortable: false },
 ];
 const COL_BY_KEY: Record<string, { key: string; label: string; sortable: boolean }> = Object.fromEntries(ALL_COLUMNS.map((c) => [c.key, c]));
 const DEFAULT_COLS = ALL_COLUMNS.map((c) => c.key);
@@ -506,6 +507,7 @@ export default function Dashboard() {
       case 'tags': return <td key={key} className="tagstd"><TagsCell tags={r.tags || []} registry={tagReg} allNames={tagNames} onAdd={(name) => addRowTag(r, name)} onRemove={(name) => removeRowTag(r, name)} onCreate={createTag} /></td>;
       case 'salesStatus': return <td key={key}><div className="sales-cell"><SalesSelect value={r.salesStatus || ''} onChange={(s) => setRowSales(r, s)} />{SALES_NEEDS_DATE.has(r.salesStatus || '') && <input type="datetime-local" className="sales-date" value={r.salesDate || ''} onClick={(e) => e.stopPropagation()} onChange={(e) => setRowSalesDate(r, e.target.value)} />}{r.salesDate && SALES_NEEDS_DATE.has(r.salesStatus || '') && <a className="cal-btn" href={googleCalendarUrl({ title: `${r.salesStatus} — ${r.name}`, when: r.salesDate, location: r.address })} target="_blank" rel="noreferrer" title="Add to Google Calendar" onClick={(e) => e.stopPropagation()}>📅</a>}</div></td>;
       case 'maps': return <td key={key}>{r.mapsUrl ? <a className="mlink" href={r.mapsUrl} target="_blank" rel="noreferrer">open ↗</a> : ''}</td>;
+      case 'online': return <td key={key}>{r.website ? <a className="mlink" href={r.website} target="_blank" rel="noreferrer" title={r.website} onClick={(e) => e.stopPropagation()}>open ↗</a> : ''}</td>;
       default: return null;
     }
   };
