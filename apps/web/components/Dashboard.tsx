@@ -250,6 +250,15 @@ export default function Dashboard() {
       descOf[f.id] = set; return set;
     };
     roots.forEach(computeDesc);
+    // per-folder counts of nested sub-folders and projects (for the sidebar badges)
+    const folderCountOf: Record<string, number> = {};
+    const projCountOf: Record<string, number> = {};
+    for (const id of Object.keys(descOf)) {
+      const set = descOf[id];
+      folderCountOf[id] = set.size - 1; // descendants, excluding self
+      let pc = 0; set.forEach((did) => { pc += (projsOf[did] || []).length; });
+      projCountOf[id] = pc;
+    }
     // visible project order (respects collapse) — for shift-click range select
     const order: string[] = [];
     const walk = (f: typeof folderList[number]) => {
@@ -263,7 +272,7 @@ export default function Dashboard() {
     const flat: { f: typeof folderList[number]; depth: number }[] = [];
     const flatten = (f: typeof folderList[number], depth: number) => { flat.push({ f, depth }); (childrenOf[f.id] || []).forEach((c) => flatten(c, depth + 1)); };
     roots.forEach((f) => flatten(f, 0));
-    return { childrenOf, roots, projsOf, ungrouped, totalOf, descOf, order, flat };
+    return { childrenOf, roots, projsOf, ungrouped, totalOf, descOf, folderCountOf, projCountOf, order, flat };
   }, [summariesArr, folderList]);
 
   // ----- sidebar text filter (matches folder & project names; reveals matches) -----
@@ -536,6 +545,8 @@ export default function Dashboard() {
           <span className="fname" title={f.name}>{f.icon || '📁'} {f.name}</span>
           <span className="ni-right">
             <span className="badge">{tree.totalOf[f.id] ?? 0}</span>
+            {(tree.folderCountOf[f.id] || 0) > 0 && <span className="cnt-badge gold" title={`${tree.folderCountOf[f.id]} sub-folder(s)`}>{tree.folderCountOf[f.id]}</span>}
+            {(tree.projCountOf[f.id] || 0) > 0 && <span className="cnt-badge green" title={`${tree.projCountOf[f.id]} project(s)`}>{tree.projCountOf[f.id]}</span>}
             <IconPicker trigger={<span className="ficon" title="Change folder icon">🎨</span>} onPick={(ic) => actions.setFolderIcon(f.id, ic)} />
             <span className="finfo" title="City coverage — which cities are missing?" onClick={(e) => { e.stopPropagation(); openFolderInfo(f); }}>ⓘ</span>
             <span className="fadd" title="New sub-folder" onClick={(e) => { e.stopPropagation(); const n = prompt(`New folder inside "${f.name}":`); if (n && n.trim()) { actions.createFolder(n.trim(), f.id); if (f.collapsed) actions.setFolderCollapsed(f.id, false); } }}>＋</span>
