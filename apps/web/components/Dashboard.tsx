@@ -240,14 +240,13 @@ export default function Dashboard() {
     api.getCheckedCount().then((r) => setCheckedCount(r.total || 0)).catch(() => {});
   }, []);
   useEffect(() => { if (hydrated) refreshCallCount(); }, [hydrated, reloadKey, refreshCallCount]);
-  const deleteCheckedLeads = async () => {
+  const uncheckAllLeads = async () => {
     if (!checkedCount) return;
-    if (!confirm(`Delete ALL ${checkedCount.toLocaleString()} checked lead(s) from the database? This cannot be undone.`)) return;
-    const r = await api.deleteCheckedLeads().catch(() => null);
+    if (!confirm(`Clear the Checked status on all ${checkedCount.toLocaleString()} checked lead(s)?`)) return;
+    setPageRows((rows) => rows.map((x) => (x.checked ? { ...x, checked: false } : x)));
     setCheckedCount(0);
-    actions.refresh().catch(() => {});
+    await api.uncheckAll().catch(() => {});
     setReloadKey((k) => k + 1);
-    if (r) alert(`Deleted ${(r.deleted || 0).toLocaleString()} checked lead(s).`);
   };
 
   const catsKey = selectedCats.join('');
@@ -736,7 +735,7 @@ export default function Dashboard() {
             {recalc?.running ? `⏳ ${recalc.total ? Math.round((recalc.done / recalc.total) * 100) : 0}%` : '★ Recalc scores'}
           </button>
           <button className={`btn ${callCount ? 'primary' : ''}`} onClick={() => setCallsOpen(true)} title="Leads flagged for calling">📞 {callCount.toLocaleString()} leads</button>
-          {checkedCount > 0 && <button className="btn danger" onClick={deleteCheckedLeads} title="Delete every checked lead">🗑 Delete {checkedCount.toLocaleString()} checked</button>}
+          {checkedCount > 0 && <button className="btn" onClick={uncheckAllLeads} title="Clear the Checked status on all checked leads">☐ Uncheck {checkedCount.toLocaleString()}</button>}
           <button className="btn" onClick={() => setDupesOpen(true)}>⧉ Duplicates</button>
           <button className="btn" onClick={() => setMapOpen(true)}>🗺 Map</button>
           <button className="btn" onClick={() => exportJsonScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export JSON</button>

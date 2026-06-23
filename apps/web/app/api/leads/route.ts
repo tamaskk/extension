@@ -77,6 +77,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   await dbConnect();
   const b = await req.json();
+  if (b.uncheckAll) { const r = await Lead.updateMany({ checked: true }, { $set: { checked: false } }); return json({ ok: true, updated: r.modifiedCount || 0 }); }
   const set: Record<string, unknown> = {};
   if ('checked' in b) set.checked = !!b.checked;
   if ('call' in b) set.call = !!b.call;
