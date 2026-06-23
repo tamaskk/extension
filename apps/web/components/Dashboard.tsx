@@ -12,6 +12,7 @@ import FolderInfoModal from './FolderInfoModal';
 import CategoryFilter from './CategoryFilter';
 import LeadDetailModal from './LeadDetailModal';
 import IconPicker from './IconPicker';
+import CallsModal from './CallsModal';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
 const cityFromFolderName = (name: string) => { const p = String(name || '').trim().split(/\s+/); return p.length > 1 ? p.slice(0, -1).join(' ') : (name || ''); };
@@ -91,7 +92,7 @@ const ALL_COLUMNS: { key: string; label: string; sortable: boolean }[] = [
   { key: 'opportunityScore', label: 'Opportunity', sortable: true }, { key: 'leadTemperature', label: 'Temp', sortable: true },
   { key: 'address', label: 'Location', sortable: true }, { key: 'tags', label: 'Tags', sortable: false },
   { key: 'salesStatus', label: 'Status', sortable: true }, { key: 'maps', label: 'Maps', sortable: false },
-  { key: 'online', label: 'OP', sortable: false },
+  { key: 'online', label: 'OP', sortable: false }, { key: 'call', label: 'Call', sortable: true },
 ];
 const COL_BY_KEY: Record<string, { key: string; label: string; sortable: boolean }> = Object.fromEntries(ALL_COLUMNS.map((c) => [c.key, c]));
 const DEFAULT_COLS = ALL_COLUMNS.map((c) => c.key);
@@ -157,6 +158,8 @@ export default function Dashboard() {
   const [mapOpen, setMapOpen] = useState(false);
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
+  const [callsOpen, setCallsOpen] = useState(false);
+  const [callCount, setCallCount] = useState(0);
   const [recalc, setRecalc] = useState<{ running: boolean; done: number; total: number } | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -231,6 +234,8 @@ export default function Dashboard() {
   useEffect(() => { setPage(1); }, [activeProject, activeFolder, filter, debTerm, sortKey, sortDir, pageSize, selectedCats]);
   // category options are scope-specific, so reset the picks when the scope changes
   useEffect(() => { setSelectedCats([]); }, [activeProject, activeFolder]);
+  const refreshCallCount = useCallback(() => { api.getCallCount().then((r) => setCallCount(r.total || 0)).catch(() => {}); }, []);
+  useEffect(() => { if (hydrated) refreshCallCount(); }, [hydrated, reloadKey, refreshCallCount]);
 
   const catsKey = selectedCats.join('');
   // ----- server-side page fetch -----
@@ -417,6 +422,11 @@ export default function Dashboard() {
     setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, checked } : x)));
     api.setChecked(r._project, r._key, checked).catch(() => {});
   };
+  const setCall = (r: LeadRow, call: boolean) => {
+    setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, call } : x)));
+    setCallCount((c) => Math.max(0, c + (call ? 1 : -1)));
+    api.setCall(r._project, r._key, call).catch(() => {});
+  };
   const setRowStatus = (r: LeadRow, websiteStatus: WebsiteStatus) => {
     setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, websiteStatus } : x)));
     api.setWebsiteStatus(r._project, r._key, websiteStatus).catch(() => {});
@@ -545,6 +555,7 @@ export default function Dashboard() {
       case 'salesStatus': return <td key={key}><div className="sales-cell"><SalesSelect value={r.salesStatus || ''} onChange={(s) => setRowSales(r, s)} />{SALES_NEEDS_DATE.has(r.salesStatus || '') && <input type="datetime-local" className="sales-date" value={r.salesDate || ''} onClick={(e) => e.stopPropagation()} onChange={(e) => setRowSalesDate(r, e.target.value)} />}{r.salesDate && SALES_NEEDS_DATE.has(r.salesStatus || '') && <a className="cal-btn" href={googleCalendarUrl({ title: `${r.salesStatus} — ${r.name}`, when: r.salesDate, location: r.address })} target="_blank" rel="noreferrer" title="Add to Google Calendar" onClick={(e) => e.stopPropagation()}>📅</a>}</div></td>;
       case 'maps': return <td key={key}>{r.mapsUrl ? <a className="mlink" href={r.mapsUrl} target="_blank" rel="noreferrer">open ↗</a> : ''}</td>;
       case 'online': return <td key={key}>{r.website ? <a className="mlink" href={r.website} target="_blank" rel="noreferrer" title={r.website} onClick={(e) => e.stopPropagation()}>open ↗</a> : ''}</td>;
+      case 'call': return <td key={key} className="cb"><input type="checkbox" className="callcheck" checked={!!r.call} onChange={(e) => setCall(r, (e.target as HTMLInputElement).checked)} /></td>;
       default: return null;
     }
   };
@@ -710,6 +721,7 @@ export default function Dashboard() {
           <button className="btn" onClick={runRecalc} disabled={!!recalc?.running} title="Recompute opportunity scores for all leads with the new ranking">
             {recalc?.running ? `⏳ ${recalc.total ? Math.round((recalc.done / recalc.total) * 100) : 0}%` : '★ Recalc scores'}
           </button>
+          <button className={`btn ${callCount ? 'primary' : ''}`} onClick={() => setCallsOpen(true)} title="Leads flagged for calling">📞 {callCount.toLocaleString()} leads</button>
           <button className="btn" onClick={() => setDupesOpen(true)}>⧉ Duplicates</button>
           <button className="btn" onClick={() => setMapOpen(true)}>🗺 Map</button>
           <button className="btn" onClick={() => exportJsonScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export JSON</button>
@@ -772,7 +784,7 @@ export default function Dashboard() {
               {pageRows.map((r) => {
                 const id = `${r._project}|${r._key}`;
                 return (
-                  <tr key={id} title={r.topPitch || undefined}>
+                  <tr key={id} title={r.topPitch || undefined} className={r.call ? 'callrow' : undefined}>
                     <td className="cb"><input type="checkbox" className="selcheck" checked={rowSel.has(id)} onChange={(e) => setRowSel((s) => { const n = new Set(s); if ((e.target as HTMLInputElement).checked) n.add(id); else n.delete(id); return n; })} /></td>
                     {visibleKeys.map((k) => renderCell(k, r))}
                   </tr>
@@ -805,6 +817,12 @@ export default function Dashboard() {
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
 
       {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} names={infoFolder.names} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
+
+      {callsOpen && <CallsModal onClose={() => setCallsOpen(false)} onToggleCall={(r, call) => {
+        setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, call } : x)));
+        setCallCount((c) => Math.max(0, c + (call ? 1 : -1)));
+        api.setCall(r._project, r._key, call).catch(() => {});
+      }} />}
 
       {detailRow && (
         <LeadDetailModal

@@ -78,6 +78,7 @@ export async function PATCH(req: Request) {
   const b = await req.json();
   const set: Record<string, unknown> = {};
   if ('checked' in b) set.checked = !!b.checked;
+  if ('call' in b) set.call = !!b.call;
   if ('tags' in b && Array.isArray(b.tags)) set.tags = b.tags.map((t: unknown) => String(t));
   if (typeof b.websiteStatus === 'string' && b.websiteStatus) set.websiteStatus = b.websiteStatus;
   if (b.opportunityScore != null && b.opportunityScore !== '' && !isNaN(Number(b.opportunityScore))) {

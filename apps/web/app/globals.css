@@ -109,6 +109,15 @@ body.resizing { cursor: col-resize; user-select: none; }
 .cnt-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; font-size: 10px; font-weight: 700; margin-left: 4px; flex-shrink: 0; }
 .cnt-badge.gold { background: rgba(245,158,11,.2); color: #fcd34d; }
 .cnt-badge.green { background: rgba(34,197,94,.2); color: #86efac; }
+
+/* call-flagged rows + calls modal */
+.table tbody tr.callrow { background: rgba(34,197,94,.07); box-shadow: inset 3px 0 0 #22c55e; }
+.table tbody tr.callrow:hover { background: rgba(34,197,94,.12); }
+.callcheck { accent-color: #22c55e; cursor: pointer; }
+.calls-table { font-size: 13px; }
+.calls-table thead th { background: #0e1117; }
+.calls-rm { color: var(--muted); cursor: pointer; padding: 0 6px; }
+.calls-rm:hover { color: var(--hot); }
 .side-foot { margin-top: auto; color: var(--muted); font-size: 10px; }
 
 /* Main */

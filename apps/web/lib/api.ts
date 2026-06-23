@@ -81,6 +81,9 @@ export const api = {
   deleteProjects: (queries: string[]) => jsend('/api/projects', 'DELETE', { queries }),
 
   setChecked: (project: string, dedupKey: string, checked: boolean) => jsend('/api/leads', 'PATCH', { project, dedupKey, checked }),
+  setCall: (project: string, dedupKey: string, call: boolean) => jsend('/api/leads', 'PATCH', { project, dedupKey, call }),
+  getCallCount: (): Promise<{ total: number }> => jget('/api/calls?count=1'),
+  getCalls: (): Promise<{ rows: LeadRow[]; total: number; capped?: boolean }> => jget('/api/calls'),
   setWebsiteStatus: (project: string, dedupKey: string, websiteStatus: string) => jsend('/api/leads', 'PATCH', { project, dedupKey, websiteStatus }),
   setOpportunity: (project: string, dedupKey: string, opportunityScore: number) => jsend('/api/leads', 'PATCH', { project, dedupKey, opportunityScore }),
   updateLeadField: (project: string, dedupKey: string, field: string, value: unknown) => jsend('/api/leads', 'PATCH', { project, dedupKey, field, value }),

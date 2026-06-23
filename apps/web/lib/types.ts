@@ -26,6 +26,7 @@ export interface Lead {
   opportunityScore: number;
   topPitch?: string;
   checked?: boolean;
+  call?: boolean;
   tags?: string[];
   salesStatus?: string;
   salesDate?: string; // YYYY-MM-DD for date-bound stages (callback, follow-up, meeting…)

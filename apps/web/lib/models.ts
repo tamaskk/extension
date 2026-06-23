@@ -43,6 +43,7 @@ const LeadSchema = new Schema({
   opportunityScore: Number,
   topPitch: String,
   checked: { type: Boolean, default: false },
+  call: { type: Boolean, default: false }, // flagged for calling — shown in the Calls modal
   tags: { type: [String], default: [] },
   salesStatus: { type: String, default: '' }, // sales pipeline stage
   salesDate: { type: String, default: '' },   // date for callback / follow-up / meeting stages
@@ -67,6 +68,7 @@ LeadSchema.index({ leadScore: 1 });
 LeadSchema.index({ rating: 1 });
 LeadSchema.index({ reviewCount: 1 });
 LeadSchema.index({ tags: 1 }); // tag filtering
+LeadSchema.index({ call: 1 }); // calls modal
 
 export const Folder = models.Folder || model('Folder', FolderSchema);
 export const Project = models.Project || model('Project', ProjectSchema);
