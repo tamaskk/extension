@@ -160,6 +160,7 @@ export default function Dashboard() {
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [callsOpen, setCallsOpen] = useState(false);
   const [callCount, setCallCount] = useState(0);
+  const [checkedCount, setCheckedCount] = useState(0);
   const [recalc, setRecalc] = useState<{ running: boolean; done: number; total: number } | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -234,8 +235,20 @@ export default function Dashboard() {
   useEffect(() => { setPage(1); }, [activeProject, activeFolder, filter, debTerm, sortKey, sortDir, pageSize, selectedCats]);
   // category options are scope-specific, so reset the picks when the scope changes
   useEffect(() => { setSelectedCats([]); }, [activeProject, activeFolder]);
-  const refreshCallCount = useCallback(() => { api.getCallCount().then((r) => setCallCount(r.total || 0)).catch(() => {}); }, []);
+  const refreshCallCount = useCallback(() => {
+    api.getCallCount().then((r) => setCallCount(r.total || 0)).catch(() => {});
+    api.getCheckedCount().then((r) => setCheckedCount(r.total || 0)).catch(() => {});
+  }, []);
   useEffect(() => { if (hydrated) refreshCallCount(); }, [hydrated, reloadKey, refreshCallCount]);
+  const deleteCheckedLeads = async () => {
+    if (!checkedCount) return;
+    if (!confirm(`Delete ALL ${checkedCount.toLocaleString()} checked lead(s) from the database? This cannot be undone.`)) return;
+    const r = await api.deleteCheckedLeads().catch(() => null);
+    setCheckedCount(0);
+    actions.refresh().catch(() => {});
+    setReloadKey((k) => k + 1);
+    if (r) alert(`Deleted ${(r.deleted || 0).toLocaleString()} checked lead(s).`);
+  };
 
   const catsKey = selectedCats.join('');
   // ----- server-side page fetch -----
@@ -420,6 +433,7 @@ export default function Dashboard() {
   const moveSelected = (folderId: string | null) => { if (!selected.size) return; actions.moveProjects([...selected], folderId); setSelected(new Set()); };
   const setChecked = (r: LeadRow, checked: boolean) => {
     setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, checked } : x)));
+    if (!!r.checked !== checked) setCheckedCount((c) => Math.max(0, c + (checked ? 1 : -1)));
     api.setChecked(r._project, r._key, checked).catch(() => {});
   };
   const setCall = (r: LeadRow, call: boolean) => {
@@ -722,6 +736,7 @@ export default function Dashboard() {
             {recalc?.running ? `⏳ ${recalc.total ? Math.round((recalc.done / recalc.total) * 100) : 0}%` : '★ Recalc scores'}
           </button>
           <button className={`btn ${callCount ? 'primary' : ''}`} onClick={() => setCallsOpen(true)} title="Leads flagged for calling">📞 {callCount.toLocaleString()} leads</button>
+          {checkedCount > 0 && <button className="btn danger" onClick={deleteCheckedLeads} title="Delete every checked lead">🗑 Delete {checkedCount.toLocaleString()} checked</button>}
           <button className="btn" onClick={() => setDupesOpen(true)}>⧉ Duplicates</button>
           <button className="btn" onClick={() => setMapOpen(true)}>🗺 Map</button>
           <button className="btn" onClick={() => exportJsonScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export JSON</button>

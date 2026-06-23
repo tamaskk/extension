@@ -18,6 +18,7 @@ export async function GET(req: Request) {
   try {
     await dbConnect();
     const u = new URL(req.url).searchParams;
+    if (u.get('countChecked')) return json({ total: await Lead.countDocuments({ checked: true }) });
     const project = u.get('project') || '';
     const folder = u.get('folder') || '';
     const filter = u.get('filter') || 'all';
@@ -105,10 +106,11 @@ export async function PATCH(req: Request) {
   return json({ ok: true });
 }
 
-// Delete leads: { items: [{ query, key }] }
+// Delete leads: { items: [{ query, key }] } OR { allChecked: true } (every checked lead)
 export async function DELETE(req: Request) {
   await dbConnect();
   const b = await req.json();
+  if (b.allChecked) { const r = await Lead.deleteMany({ checked: true }); return json({ ok: true, deleted: r.deletedCount || 0 }); }
   const items: { query: string; key: string }[] = b.items || [];
   if (items.length) await Lead.bulkWrite(items.map((it) => ({ deleteOne: { filter: { project: it.query, dedupKey: it.key } } })), { ordered: false });
   return json({ ok: true });
