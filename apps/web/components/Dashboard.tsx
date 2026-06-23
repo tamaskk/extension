@@ -96,6 +96,40 @@ const ALL_COLUMNS: { key: string; label: string; sortable: boolean }[] = [
 const COL_BY_KEY: Record<string, { key: string; label: string; sortable: boolean }> = Object.fromEntries(ALL_COLUMNS.map((c) => [c.key, c]));
 const DEFAULT_COLS = ALL_COLUMNS.map((c) => c.key);
 const COLS_LS = 'gridleads_cols';
+const HIDDEN_LS = 'gridleads_hidden_cols';
+
+// dropdown to show/hide table columns
+function ColumnsMenu({ order, hidden, onToggle, onAll, onReset }:
+  { order: string[]; hidden: Set<string>; onToggle: (k: string) => void; onAll: (show: boolean) => void; onReset: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
+  const shown = order.filter((k) => !hidden.has(k)).length;
+  return (
+    <div className="colmenu" ref={ref}>
+      <button className={`chipbtn ${hidden.size ? 'active' : ''}`} onClick={() => setOpen((o) => !o)} title="Show / hide columns">⚙ Columns{hidden.size ? ` (${shown})` : ''}</button>
+      {open && (
+        <div className="colmenu-pop" onClick={(e) => e.stopPropagation()}>
+          <div className="colmenu-bar"><span>Show columns</span><span className="colmenu-links"><button className="cf-link" onClick={() => onAll(true)}>All</button><button className="cf-link" onClick={() => onAll(false)}>None</button></span></div>
+          <div className="colmenu-list">
+            {order.map((k) => { const c = COL_BY_KEY[k]; if (!c) return null; return (
+              <label key={k} className="colmenu-row">
+                <input type="checkbox" checked={!hidden.has(k)} onChange={() => onToggle(k)} />
+                <span>{c.label}</span>
+              </label>
+            ); })}
+          </div>
+          <button className="colmenu-reset" onClick={onReset}>↺ Reset order &amp; show all</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const folders = useGrid((s) => s.folders);
@@ -132,6 +166,7 @@ export default function Dashboard() {
   const [reloadKey, setReloadKey] = useState(0);
   const [tagReg, setTagReg] = useState<Record<string, string>>({}); // tag name → color
   const [columnOrder, setColumnOrder] = useState<string[]>(DEFAULT_COLS);
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
   const lastChecked = useRef<string | null>(null);
   const lastCheckedFolder = useRef<string | null>(null);
@@ -152,11 +187,16 @@ export default function Dashboard() {
         setColumnOrder([...filtered, ...DEFAULT_COLS.filter((k) => !filtered.includes(k))]);
       }
     } catch { /* keep default */ }
+    try { const h = JSON.parse(localStorage.getItem(HIDDEN_LS) || 'null'); if (Array.isArray(h)) setHiddenCols(new Set(h.filter((k: string) => COL_BY_KEY[k]))); } catch { /* */ }
     useGrid.getState().hydrate().catch(() => {});
     api.getTags().then((r) => { const m: Record<string, string> = {}; (r.tags || []).forEach((t) => { m[t.name] = t.color; }); setTagReg(m); }).catch(() => {});
   }, []);
 
-  const orderedColumns = useMemo(() => columnOrder.map((k) => COL_BY_KEY[k]).filter(Boolean), [columnOrder]);
+  const orderedColumns = useMemo(() => columnOrder.map((k) => COL_BY_KEY[k]).filter((c) => c && !hiddenCols.has(c.key)), [columnOrder, hiddenCols]);
+  const visibleKeys = useMemo(() => columnOrder.filter((k) => !hiddenCols.has(k)), [columnOrder, hiddenCols]);
+  const persistHidden = (next: Set<string>) => { setHiddenCols(next); localStorage.setItem(HIDDEN_LS, JSON.stringify([...next])); };
+  const toggleColumn = (k: string) => { const n = new Set(hiddenCols); if (n.has(k)) n.delete(k); else n.add(k); persistHidden(n); };
+  const setAllColumns = (show: boolean) => persistHidden(show ? new Set() : new Set(columnOrder));
   const dropColumn = (targetKey: string) => {
     const from = dragColKey.current; dragColKey.current = null; setDragOverCol(null);
     if (!from || from === targetKey) return;
@@ -171,7 +211,7 @@ export default function Dashboard() {
       return ids;
     });
   };
-  const resetColumns = () => { setColumnOrder(DEFAULT_COLS); localStorage.removeItem(COLS_LS); };
+  const resetColumns = () => { setColumnOrder(DEFAULT_COLS); localStorage.removeItem(COLS_LS); persistHidden(new Set()); };
 
   const tagNames = useMemo(() => Object.keys(tagReg).sort((a, b) => a.localeCompare(b)), [tagReg]);
   const createTag = useCallback((name: string, color: string) => {
@@ -693,7 +733,7 @@ export default function Dashboard() {
               {recalc.running ? `Recalculating… ${recalc.done.toLocaleString()}${recalc.total ? ` / ${recalc.total.toLocaleString()}` : ''}` : `✓ Recalculated ${recalc.done.toLocaleString()} leads`}
             </span>
           )}
-          {columnOrder.join() !== DEFAULT_COLS.join() && <button className="chipbtn reset-cols" title="Reset column order" onClick={resetColumns}>↺ Columns</button>}
+          <ColumnsMenu order={columnOrder} hidden={hiddenCols} onToggle={toggleColumn} onAll={setAllColumns} onReset={resetColumns} />
           <span className="title">{title}</span>
         </div>
 
@@ -734,7 +774,7 @@ export default function Dashboard() {
                 return (
                   <tr key={id} title={r.topPitch || undefined}>
                     <td className="cb"><input type="checkbox" className="selcheck" checked={rowSel.has(id)} onChange={(e) => setRowSel((s) => { const n = new Set(s); if ((e.target as HTMLInputElement).checked) n.add(id); else n.delete(id); return n; })} /></td>
-                    {columnOrder.map((k) => renderCell(k, r))}
+                    {visibleKeys.map((k) => renderCell(k, r))}
                   </tr>
                 );
               })}

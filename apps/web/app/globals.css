@@ -301,6 +301,18 @@ a.mlink { color: #93c5fd; text-decoration: none; }
 .cf-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cf-count { color: var(--muted); font-size: 11px; flex-shrink: 0; }
 .cf-empty { padding: 10px 6px; }
+
+/* show/hide columns menu */
+.colmenu { position: relative; }
+.colmenu-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 50; width: 220px; max-height: 420px; overflow-y: auto; background: var(--panel2, #14161c); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.45); padding: 8px; }
+.colmenu-bar { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); padding: 4px 4px 6px; }
+.colmenu-links { display: flex; gap: 8px; }
+.colmenu-list { display: flex; flex-direction: column; }
+.colmenu-row { display: flex; align-items: center; gap: 8px; padding: 6px 6px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.colmenu-row:hover { background: var(--panel); }
+.colmenu-row input { cursor: pointer; }
+.colmenu-reset { width: 100%; margin-top: 6px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); border-radius: 7px; padding: 7px; font-size: 12px; cursor: pointer; }
+.colmenu-reset:hover { color: var(--text); border-color: var(--accent); }
 a.mlink:hover { text-decoration: underline; }
 .empty { padding: 40px; text-align: center; color: var(--muted); }
 .hidden { display: none; }
