@@ -12,6 +12,7 @@ import ImportModal from './ImportModal';
 import MapModal from './MapModal';
 import FolderInfoModal from './FolderInfoModal';
 import CategoryFilter from './CategoryFilter';
+import ComboFilter from './ComboFilter';
 import LeadDetailModal from './LeadDetailModal';
 import IconPicker from './IconPicker';
 import CallsModal from './CallsModal';
@@ -294,12 +295,11 @@ export default function Dashboard() {
   // from the canonical batch lists (BIZ_TYPES + countries/state_json), merged with
   // anything actually present in the data so old/typo values stay selectable.
   const projFacets = useMemo(() => {
-    const meta: Record<string, { type: string; region: string }> = {};
     const dataTypes = new Set<string>(); const dataRegions = new Set<string>();
-    for (const p of summariesArr) { const r = parseProject(p.query); meta[p.query] = r; if (r.type) dataTypes.add(r.type); if (r.region) dataRegions.add(r.region); }
+    for (const p of summariesArr) { const r = parseProject(p.query); if (r.type) dataTypes.add(r.type); if (r.region) dataRegions.add(r.region); }
     const types = [...new Set([...BIZ_TYPES, ...dataTypes])].sort((a, b) => a.localeCompare(b));
     const regions = [...new Set([...ALL_REGIONS, ...dataRegions])].sort((a, b) => a.localeCompare(b));
-    return { meta, types, regions };
+    return { types, regions };
   }, [summariesArr]);
   const typeSel = selTypes[0] || '';
   const regionSel = selRegions[0] || '';
@@ -372,7 +372,8 @@ export default function Dashboard() {
     if (!sideQuery && !typeSel && !regionSel) return null;
     const showFolder = new Set<string>();
     const showProject = new Set<string>();
-    const facetOk = (q: string) => { if (!typeSel && !regionSel) return true; const m = projFacets.meta[q] || parseProject(q); return (!typeSel || m.type === typeSel) && (!regionSel || m.region === regionSel); };
+    const tl = typeSel.toLowerCase(); const rl = regionSel.toLowerCase();
+    const facetOk = (q: string) => { if (!typeSel && !regionSel) return true; const lc = q.toLowerCase(); return (!typeSel || lc.startsWith(tl)) && (!regionSel || lc === rl || lc.endsWith(' ' + rl)); };
     const projOk = (p: ProjectSummary, textFromAncestor: boolean) => {
       const textOk = textFromAncestor || !sideQuery || p.name.toLowerCase().includes(sideQuery) || p.query.toLowerCase().includes(sideQuery);
       return textOk && facetOk(p.query);
@@ -684,14 +685,8 @@ export default function Dashboard() {
           {sideFilter && <span className="side-filter-x" title="Clear" onClick={() => setSideFilter('')}>✕</span>}
         </div>
         <div className="side-facets">
-          <select className="side-facet" value={typeSel} onChange={(e) => setSelTypes(e.target.value ? [e.target.value] : [])} title="Filter by business type">
-            <option value="">All business types</option>
-            {projFacets.types.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <select className="side-facet" value={regionSel} onChange={(e) => setSelRegions(e.target.value ? [e.target.value] : [])} title="Filter by state / country">
-            <option value="">All states / countries</option>
-            {projFacets.regions.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
+          <ComboFilter value={typeSel} options={projFacets.types} placeholder="All business types" onChange={(v) => setSelTypes(v ? [v] : [])} />
+          <ComboFilter value={regionSel} options={projFacets.regions} placeholder="All states / countries" onChange={(v) => setSelRegions(v ? [v] : [])} />
         </div>
         {filtered && filtered.showProject.size > 0 && (() => {
           const projs = [...filtered.showProject];
