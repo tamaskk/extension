@@ -1,5 +1,5 @@
 import { dbConnect } from '@/lib/db';
-import { Lead, Project, NO_SITE, CORS, json, descendantFolderIds } from '@/lib/models';
+import { Lead, Project, NO_SITE, CORS, json, descendantFolderIds, applyProjectFacets } from '@/lib/models';
 
 export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
@@ -27,6 +27,7 @@ export async function GET(req: Request) {
     }
     const cats = u.getAll('cat').filter(Boolean);
     if (cats.length) match.category = { $in: cats };
+    applyProjectFacets(match, u.getAll('ptype').filter(Boolean), u.getAll('pregion').filter(Boolean));
     if (filter === 'nowebsite') match.websiteStatus = { $in: NO_SITE };
     else if (filter === 'haswebsite') match.websiteStatus = 'HAS_WEBSITE';
     else if (filter === 'hot') match.leadTemperature = 'HOT';

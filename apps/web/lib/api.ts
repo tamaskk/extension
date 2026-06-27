@@ -14,6 +14,8 @@ export interface LeadsQuery {
   filter?: string;
   search?: string;
   categories?: string[];
+  ptypes?: string[];
+  pregions?: string[];
   sort?: string;
   dir?: number;
   page?: number;
@@ -40,6 +42,8 @@ export const api = {
     if (q.filter) p.set('filter', q.filter);
     if (q.search) p.set('search', q.search);
     (q.categories || []).forEach((c) => p.append('cat', c));
+    (q.ptypes || []).forEach((t) => p.append('ptype', t));
+    (q.pregions || []).forEach((r) => p.append('pregion', r));
     if (q.sort) p.set('sort', q.sort);
     if (q.dir) p.set('dir', String(q.dir));
     if (q.page) p.set('page', String(q.page));
@@ -54,14 +58,22 @@ export const api = {
     if (q.folder) p.set('folder', q.folder);
     return jget('/api/categories?' + p.toString());
   },
-  getGeo: (q: { project?: string | null; folder?: string | null; filter?: string; search?: string; categories?: string[] }): Promise<{ points: GeoPoint[]; total: number; capped: boolean }> => {
+  getGeo: (q: { project?: string | null; folder?: string | null; filter?: string; search?: string; categories?: string[]; ptypes?: string[]; pregions?: string[] }): Promise<{ points: GeoPoint[]; total: number; capped: boolean }> => {
     const p = new URLSearchParams();
     if (q.project) p.set('project', q.project);
     if (q.folder) p.set('folder', q.folder);
     if (q.filter) p.set('filter', q.filter);
     if (q.search) p.set('search', q.search);
     (q.categories || []).forEach((c) => p.append('cat', c));
+    (q.ptypes || []).forEach((t) => p.append('ptype', t));
+    (q.pregions || []).forEach((r) => p.append('pregion', r));
     return jget('/api/geo?' + p.toString());
+  },
+  getProjectFacets: (q: { project?: string | null; folder?: string | null }): Promise<{ types: { value: string; count: number }[]; regions: { value: string; count: number }[] }> => {
+    const p = new URLSearchParams();
+    if (q.project) p.set('project', q.project);
+    if (q.folder) p.set('folder', q.folder);
+    return jget('/api/projectfacets?' + p.toString());
   },
   exportBundle: (opts: { queries?: string[]; folderId?: string }) => jsend('/api/export', 'POST', opts),
 

@@ -79,8 +79,8 @@ function popupHtml(p: any) {
 
 type Scope = { type: 'all' | 'folder' | 'project'; id: string };
 
-export default function MapModal({ onClose, project, folder, filter, search, categories }:
-  { onClose: () => void; title?: string; project: string | null; folder: string | null; filter: string; search: string; categories?: string[] }) {
+export default function MapModal({ onClose, project, folder, filter, search, categories, ptypes, pregions }:
+  { onClose: () => void; title?: string; project: string | null; folder: string | null; filter: string; search: string; categories?: string[]; ptypes?: string[]; pregions?: string[] }) {
   const mapEl = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const clusterRef = useRef<any>(null);
@@ -123,7 +123,7 @@ export default function MapModal({ onClose, project, folder, filter, search, cat
       const L = window.L;
       setStatus('Loading leads…');
       const q = scope.type === 'folder' ? { folder: scope.id } : scope.type === 'project' ? { project: scope.id } : {};
-      const geo = await api.getGeo({ ...q, filter, search, categories }).catch(() => ({ points: [], total: 0, capped: false }));
+      const geo = await api.getGeo({ ...q, filter, search, categories, ptypes, pregions }).catch(() => ({ points: [], total: 0, capped: false }));
       if (cancelled || !mapInstance.current) return;
       if (clusterRef.current) { mapInstance.current.removeLayer(clusterRef.current); clusterRef.current = null; }
       const cluster = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50 });
@@ -175,7 +175,7 @@ export default function MapModal({ onClose, project, folder, filter, search, cat
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, scope, filter, search, (categories || []).join('')]);
+  }, [ready, scope, filter, search, (categories || []).join(''), (ptypes || []).join('|'), (pregions || []).join('|')]);
 
   const onPick = (v: string) => {
     if (v === 'all') setScope({ type: 'all', id: '' });

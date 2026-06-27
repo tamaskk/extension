@@ -1,5 +1,5 @@
 import { dbConnect } from '@/lib/db';
-import { Lead, Project, NO_SITE, CORS, json, descendantFolderIds } from '@/lib/models';
+import { Lead, Project, NO_SITE, CORS, json, descendantFolderIds, applyProjectFacets } from '@/lib/models';
 
 export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
@@ -42,6 +42,7 @@ export async function GET(req: Request) {
     else if (filter === 'email') match.email = { $nin: ['', null] };
     const cats = u.getAll('cat').filter(Boolean);
     if (cats.length) match.category = { $in: cats };
+    applyProjectFacets(match, u.getAll('ptype').filter(Boolean), u.getAll('pregion').filter(Boolean));
     if (search) {
       const rx = new RegExp(escapeRegex(search), 'i');
       match.$or = [{ name: rx }, { category: rx }, { address: rx }, { phone: rx }, { email: rx }];

@@ -10,6 +10,7 @@ import ImportModal from './ImportModal';
 import MapModal from './MapModal';
 import FolderInfoModal from './FolderInfoModal';
 import CategoryFilter from './CategoryFilter';
+import ProjectFilter from './ProjectFilter';
 import LeadDetailModal from './LeadDetailModal';
 import IconPicker from './IconPicker';
 import CallsModal from './CallsModal';
@@ -143,6 +144,8 @@ export default function Dashboard() {
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email'>('all');
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
+  const [selTypes, setSelTypes] = useState<string[]>([]);
+  const [selRegions, setSelRegions] = useState<string[]>([]);
   const [term, setTerm] = useState('');
   const [debTerm, setDebTerm] = useState('');
   const [sortKey, setSortKey] = useState('opportunityScore');
@@ -232,9 +235,9 @@ export default function Dashboard() {
   // debounce the search box
   useEffect(() => { const t = setTimeout(() => setDebTerm(term.trim()), 300); return () => clearTimeout(t); }, [term]);
   // any change that affects the result set goes back to page 1
-  useEffect(() => { setPage(1); }, [activeProject, activeFolder, filter, debTerm, sortKey, sortDir, pageSize, selectedCats]);
+  useEffect(() => { setPage(1); }, [activeProject, activeFolder, filter, debTerm, sortKey, sortDir, pageSize, selectedCats, selTypes, selRegions]);
   // category options are scope-specific, so reset the picks when the scope changes
-  useEffect(() => { setSelectedCats([]); }, [activeProject, activeFolder]);
+  useEffect(() => { setSelectedCats([]); setSelTypes([]); setSelRegions([]); }, [activeProject, activeFolder]);
   const refreshCallCount = useCallback(() => {
     api.getCallCount().then((r) => setCallCount(r.total || 0)).catch(() => {});
     api.getCheckedCount().then((r) => setCheckedCount(r.total || 0)).catch(() => {});
@@ -255,7 +258,7 @@ export default function Dashboard() {
     if (!hydrated) return;
     let cancelled = false;
     setLoading(true);
-    api.getLeads({ project: activeProject, folder: activeFolder, filter, search: debTerm, categories: selectedCats, sort: sortKey, dir: sortDir, page, pageSize })
+    api.getLeads({ project: activeProject, folder: activeFolder, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, sort: sortKey, dir: sortDir, page, pageSize })
       .then((res) => {
         if (cancelled) return;
         const rows = (res.rows || []).map((r: any) => ({ ...r, _project: r.project, _key: r.dedupKey })) as LeadRow[];
@@ -266,7 +269,7 @@ export default function Dashboard() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, activeProject, activeFolder, filter, debTerm, catsKey, sortKey, sortDir, page, pageSize, reloadKey]);
+  }, [hydrated, activeProject, activeFolder, filter, debTerm, catsKey, selTypes.join('|'), selRegions.join('|'), sortKey, sortDir, page, pageSize, reloadKey]);
 
   const summariesArr = useMemo(() => Object.values(summaries), [summaries]);
   const folderList = useMemo(() => Object.values(folders), [folders]);
@@ -746,6 +749,7 @@ export default function Dashboard() {
             <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
           ))}
           <CategoryFilter project={activeProject} folder={activeFolder} value={selectedCats} onChange={setSelectedCats} />
+          <ProjectFilter project={activeProject} folder={activeFolder} types={selTypes} regions={selRegions} onChange={(t, r) => { setSelTypes(t); setSelRegions(r); }} />
           {rowSel.size > 0 && (
             <span className="rowsel-bar">
               <b>{rowSel.size}</b>&nbsp;selected
@@ -858,6 +862,8 @@ export default function Dashboard() {
           filter={filter}
           search={debTerm}
           categories={selectedCats}
+          ptypes={selTypes}
+          pregions={selRegions}
         />
       )}
 

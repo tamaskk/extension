@@ -310,6 +310,11 @@ a.mlink { color: #93c5fd; text-decoration: none; }
 .cf-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cf-count { color: var(--muted); font-size: 11px; flex-shrink: 0; }
 .cf-empty { padding: 10px 6px; }
+.projfilter-pop { width: 460px; }
+.pf-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pf-col { min-width: 0; display: flex; flex-direction: column; }
+.pf-col .catfilter-list { max-height: 280px; }
+@media (max-width: 560px) { .projfilter-pop { width: 280px; } .pf-cols { grid-template-columns: 1fr; } }
 
 /* show/hide columns menu */
 .colmenu { position: relative; }
