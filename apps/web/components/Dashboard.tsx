@@ -5,6 +5,8 @@ import { useGrid, downloadJson, downloadText, exportCsv, bundleToRows } from '@/
 import { api } from '@/lib/api';
 import { type LeadRow, type ProjectSummary, type WebsiteStatus, SALES_STATUSES, SALES_COLOR, SALES_NEEDS_DATE } from '@/lib/types';
 import { googleCalendarUrl } from '@/lib/gcal';
+import { BIZ_TYPES } from '@/lib/bizTypes';
+import { ALL_REGIONS } from '@/lib/regionNames';
 import DuplicatesModal from './DuplicatesModal';
 import ImportModal from './ImportModal';
 import MapModal from './MapModal';
@@ -288,12 +290,16 @@ export default function Dashboard() {
   const summariesArr = useMemo(() => Object.values(summaries), [summaries]);
   const folderList = useMemo(() => Object.values(folders), [folders]);
 
-  // parse every project into {type, region} once → drives the sidebar dropdowns
+  // parse every project into {type, region} for matching; dropdown options come
+  // from the canonical batch lists (BIZ_TYPES + countries/state_json), merged with
+  // anything actually present in the data so old/typo values stay selectable.
   const projFacets = useMemo(() => {
     const meta: Record<string, { type: string; region: string }> = {};
-    const types = new Set<string>(); const regions = new Set<string>();
-    for (const p of summariesArr) { const r = parseProject(p.query); meta[p.query] = r; if (r.type) types.add(r.type); if (r.region) regions.add(r.region); }
-    return { meta, types: [...types].sort((a, b) => a.localeCompare(b)), regions: [...regions].sort((a, b) => a.localeCompare(b)) };
+    const dataTypes = new Set<string>(); const dataRegions = new Set<string>();
+    for (const p of summariesArr) { const r = parseProject(p.query); meta[p.query] = r; if (r.type) dataTypes.add(r.type); if (r.region) dataRegions.add(r.region); }
+    const types = [...new Set([...BIZ_TYPES, ...dataTypes])].sort((a, b) => a.localeCompare(b));
+    const regions = [...new Set([...ALL_REGIONS, ...dataRegions])].sort((a, b) => a.localeCompare(b));
+    return { meta, types, regions };
   }, [summariesArr]);
   const typeSel = selTypes[0] || '';
   const regionSel = selRegions[0] || '';
