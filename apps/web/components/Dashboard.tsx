@@ -10,13 +10,27 @@ import ImportModal from './ImportModal';
 import MapModal from './MapModal';
 import FolderInfoModal from './FolderInfoModal';
 import CategoryFilter from './CategoryFilter';
-import ProjectFilter from './ProjectFilter';
 import LeadDetailModal from './LeadDetailModal';
 import IconPicker from './IconPicker';
 import CallsModal from './CallsModal';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
 const cityFromFolderName = (name: string) => { const p = String(name || '').trim().split(/\s+/); return p.length > 1 ? p.slice(0, -1).join(' ') : (name || ''); };
+
+// project query = "<business type> near <city...> <state/country>" → parse type + region
+const MULTI_REGIONS = ['New York', 'New Jersey', 'New Mexico', 'New Hampshire', 'North Carolina', 'North Dakota', 'South Carolina', 'South Dakota', 'Rhode Island', 'West Virginia', 'District of Columbia', 'Hong Kong', 'Costa Rica', 'Puerto Rico', 'New Orleans'];
+const MULTI_REGIONS_LC = MULTI_REGIONS.map((m) => m.toLowerCase());
+function parseProject(q: string): { type: string; region: string } {
+  const s = String(q || '').trim();
+  if (!s) return { type: '', region: '' };
+  const lc = s.toLowerCase();
+  const ni = lc.indexOf(' near ');
+  const type = ni >= 0 ? s.slice(0, ni + 5) : s.split(/\s+/).slice(0, 2).join(' ');
+  let region = '';
+  for (let i = 0; i < MULTI_REGIONS_LC.length; i++) { if (lc === MULTI_REGIONS_LC[i] || lc.endsWith(' ' + MULTI_REGIONS_LC[i])) { region = MULTI_REGIONS[i]; break; } }
+  if (!region) { const w = s.split(/\s+/); region = w[w.length - 1]; }
+  return { type: type.trim(), region: region.trim() };
+}
 import TagsCell from './TagsCell';
 
 type SortType = 'has' | 'str' | 'num' | 'temp';
@@ -237,7 +251,7 @@ export default function Dashboard() {
   // any change that affects the result set goes back to page 1
   useEffect(() => { setPage(1); }, [activeProject, activeFolder, filter, debTerm, sortKey, sortDir, pageSize, selectedCats, selTypes, selRegions]);
   // category options are scope-specific, so reset the picks when the scope changes
-  useEffect(() => { setSelectedCats([]); setSelTypes([]); setSelRegions([]); }, [activeProject, activeFolder]);
+  useEffect(() => { setSelectedCats([]); }, [activeProject, activeFolder]);
   const refreshCallCount = useCallback(() => {
     api.getCallCount().then((r) => setCallCount(r.total || 0)).catch(() => {});
     api.getCheckedCount().then((r) => setCheckedCount(r.total || 0)).catch(() => {});
@@ -273,6 +287,16 @@ export default function Dashboard() {
 
   const summariesArr = useMemo(() => Object.values(summaries), [summaries]);
   const folderList = useMemo(() => Object.values(folders), [folders]);
+
+  // parse every project into {type, region} once → drives the sidebar dropdowns
+  const projFacets = useMemo(() => {
+    const meta: Record<string, { type: string; region: string }> = {};
+    const types = new Set<string>(); const regions = new Set<string>();
+    for (const p of summariesArr) { const r = parseProject(p.query); meta[p.query] = r; if (r.type) types.add(r.type); if (r.region) regions.add(r.region); }
+    return { meta, types: [...types].sort((a, b) => a.localeCompare(b)), regions: [...regions].sort((a, b) => a.localeCompare(b)) };
+  }, [summariesArr]);
+  const typeSel = selTypes[0] || '';
+  const regionSel = selRegions[0] || '';
 
   // ----- sidebar tree (folders can nest inside folders) -----
   const tree = useMemo(() => {
@@ -336,27 +360,28 @@ export default function Dashboard() {
     return { childrenOf, roots, projsOf, ungrouped, totalOf, descOf, folderCountOf, projCountOf, order, flat };
   }, [summariesArr, folderList]);
 
-  // ----- sidebar text filter (matches folder & project names; reveals matches) -----
+  // ----- sidebar filter: text + business-type + state/country (reveals matches) -----
   const sideQuery = sideFilter.trim().toLowerCase();
   const filtered = useMemo(() => {
-    if (!sideQuery) return null;
+    if (!sideQuery && !typeSel && !regionSel) return null;
     const showFolder = new Set<string>();
     const showProject = new Set<string>();
+    const facetOk = (q: string) => { if (!typeSel && !regionSel) return true; const m = projFacets.meta[q] || parseProject(q); return (!typeSel || m.type === typeSel) && (!regionSel || m.region === regionSel); };
+    const projOk = (p: ProjectSummary, textFromAncestor: boolean) => {
+      const textOk = textFromAncestor || !sideQuery || p.name.toLowerCase().includes(sideQuery) || p.query.toLowerCase().includes(sideQuery);
+      return textOk && facetOk(p.query);
+    };
     const visit = (f: typeof folderList[number], ancestorMatched: boolean): boolean => {
-      const nameMatch = f.name.toLowerCase().includes(sideQuery);
-      const sub = ancestorMatched || nameMatch; // matched folder → show everything inside it
+      const nameMatch = !!sideQuery && f.name.toLowerCase().includes(sideQuery);
+      const sub = ancestorMatched || nameMatch; // matched folder name → its projects pass the text test
       let anyDesc = false;
       for (const c of (tree.childrenOf[f.id] || [])) if (visit(c, sub)) anyDesc = true;
-      for (const p of (tree.projsOf[f.id] || [])) {
-        if (sub || p.name.toLowerCase().includes(sideQuery) || p.query.toLowerCase().includes(sideQuery)) { showProject.add(p.query); anyDesc = true; }
-      }
-      const shown = nameMatch || anyDesc || ancestorMatched;
-      if (shown) showFolder.add(f.id);
-      return shown;
+      for (const p of (tree.projsOf[f.id] || [])) if (projOk(p, sub)) { showProject.add(p.query); anyDesc = true; }
+      if (anyDesc) showFolder.add(f.id);
+      return anyDesc;
     };
     tree.roots.forEach((f) => visit(f, false));
-    tree.ungrouped.forEach((p) => { if (p.name.toLowerCase().includes(sideQuery) || p.query.toLowerCase().includes(sideQuery)) showProject.add(p.query); });
-    // visible project order in RENDER order (folders force-expanded) — for shift-range select
+    tree.ungrouped.forEach((p) => { if (projOk(p, false)) showProject.add(p.query); });
     const order: string[] = [];
     const collect = (f: typeof folderList[number]) => {
       if (!showFolder.has(f.id)) return;
@@ -366,7 +391,7 @@ export default function Dashboard() {
     tree.roots.forEach(collect);
     tree.ungrouped.forEach((p) => { if (showProject.has(p.query)) order.push(p.query); });
     return { showFolder, showProject, order };
-  }, [sideQuery, tree]);
+  }, [sideQuery, typeSel, regionSel, tree, projFacets]);
 
   // ----- widgets (full scope, from summaries) -----
   const stats = useMemo(() => {
@@ -652,6 +677,16 @@ export default function Dashboard() {
           <input className="side-filter" type="search" placeholder="Filter folders & projects…" value={sideFilter} onChange={(e) => setSideFilter(e.target.value)} />
           {sideFilter && <span className="side-filter-x" title="Clear" onClick={() => setSideFilter('')}>✕</span>}
         </div>
+        <div className="side-facets">
+          <select className="side-facet" value={typeSel} onChange={(e) => setSelTypes(e.target.value ? [e.target.value] : [])} title="Filter by business type">
+            <option value="">All business types</option>
+            {projFacets.types.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <select className="side-facet" value={regionSel} onChange={(e) => setSelRegions(e.target.value ? [e.target.value] : [])} title="Filter by state / country">
+            <option value="">All states / countries</option>
+            {projFacets.regions.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
         {filtered && filtered.showProject.size > 0 && (() => {
           const projs = [...filtered.showProject];
           const allSel = projs.every((q) => selected.has(q));
@@ -749,7 +784,6 @@ export default function Dashboard() {
             <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
           ))}
           <CategoryFilter project={activeProject} folder={activeFolder} value={selectedCats} onChange={setSelectedCats} />
-          <ProjectFilter project={activeProject} folder={activeFolder} types={selTypes} regions={selRegions} onChange={(t, r) => { setSelTypes(t); setSelRegions(r); }} />
           {rowSel.size > 0 && (
             <span className="rowsel-bar">
               <b>{rowSel.size}</b>&nbsp;selected
