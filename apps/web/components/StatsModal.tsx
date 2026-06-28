@@ -20,6 +20,7 @@ const niceMax = (m: number) => { if (m <= 5) return 5; const p = Math.pow(10, Ma
 const mmdd = (s: string) => s.slice(5);
 
 function Chart({ data, type }: { data: Day[]; type: 'bar' | 'line' }) {
+  const [hover, setHover] = useState<number | null>(null);
   const W = 920, H = 340, padL = 52, padR = 18, padT = 18, padB = 52;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const n = data.length;
@@ -33,8 +34,7 @@ function Chart({ data, type }: { data: Day[]; type: 'bar' | 'line' }) {
   const pts = data.map((d, i) => `${cx(i)},${yOf(d.count)}`).join(' ');
 
   return (
-    <svg className="stats-svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet">
-      {/* grid + y labels */}
+    <svg className="stats-svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" onMouseLeave={() => setHover(null)}>
       {Array.from({ length: ticks + 1 }, (_, k) => {
         const v = (yMax / ticks) * k; const y = yOf(v);
         return <g key={k}>
@@ -42,18 +42,29 @@ function Chart({ data, type }: { data: Day[]; type: 'bar' | 'line' }) {
           <text x={padL - 8} y={y + 4} textAnchor="end" className="stats-axis">{Math.round(v)}</text>
         </g>;
       })}
-      {/* x axis */}
       <line x1={padL} y1={padT + plotH} x2={W - padR} y2={padT + plotH} stroke="var(--muted)" strokeWidth="1" />
+      {hover != null && <line x1={cx(hover)} y1={padT} x2={cx(hover)} y2={padT + plotH} stroke="var(--accent)" strokeWidth="1" strokeDasharray="3 3" opacity="0.5" />}
       {type === 'bar'
-        ? data.map((d, i) => <rect key={i} x={cx(i) - barW / 2} y={yOf(d.count)} width={barW} height={padT + plotH - yOf(d.count)} rx="2" fill="#2bb3c0">
-            <title>{d.date}: {d.count}</title>
-          </rect>)
+        ? data.map((d, i) => <rect key={i} x={cx(i) - barW / 2} y={yOf(d.count)} width={barW} height={padT + plotH - yOf(d.count)} rx="2" fill={i === hover ? '#5cd2dd' : '#2bb3c0'} />)
         : <>
             <polyline points={pts} fill="none" stroke="#e23b3b" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-            {data.map((d, i) => <circle key={i} cx={cx(i)} cy={yOf(d.count)} r="3" fill="#e23b3b"><title>{d.date}: {d.count}</title></circle>)}
+            {data.map((d, i) => <circle key={i} cx={cx(i)} cy={yOf(d.count)} r={i === hover ? 5 : 3} fill="#e23b3b" />)}
           </>}
-      {/* x labels */}
       {data.map((d, i) => (i % labelEvery === 0 ? <text key={i} x={cx(i)} y={padT + plotH + 20} textAnchor="middle" className="stats-axis">{mmdd(d.date)}</text> : null))}
+      {/* transparent hit areas for hover */}
+      {data.map((_, i) => <rect key={'h' + i} x={padL + i * slot} y={padT} width={slot} height={plotH} fill="transparent" onMouseEnter={() => setHover(i)} />)}
+      {/* tooltip */}
+      {hover != null && (() => {
+        const d = data[hover]; const label = d.count.toLocaleString();
+        const w = Math.max(70, label.length * 9 + 20, d.date.length * 7 + 16); const h = 40;
+        let bx = cx(hover) - w / 2; bx = Math.max(padL, Math.min(W - padR - w, bx));
+        let by = yOf(d.count) - h - 10; if (by < padT) by = yOf(d.count) + 12;
+        return <g pointerEvents="none">
+          <rect x={bx} y={by} width={w} height={h} rx="7" fill="#0b0d12" stroke="var(--accent)" strokeWidth="1" />
+          <text x={bx + w / 2} y={by + 18} textAnchor="middle" fill="var(--text)" fontSize="15" fontWeight="700">{label}</text>
+          <text x={bx + w / 2} y={by + 32} textAnchor="middle" fill="var(--muted)" fontSize="11">{d.date}</text>
+        </g>;
+      })()}
     </svg>
   );
 }
