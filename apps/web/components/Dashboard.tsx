@@ -173,6 +173,7 @@ export default function Dashboard() {
   const [rowSel, setRowSel] = useState<Set<string>>(new Set());
   const [sidebarW, setSidebarW] = useState(264);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile drawer
+  const [compact, setCompact] = useState(false); // collapse the stats + filters bar
   const [dupesOpen, setDupesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -213,6 +214,7 @@ export default function Dashboard() {
       }
     } catch { /* keep default */ }
     try { const h = JSON.parse(localStorage.getItem(HIDDEN_LS) || 'null'); if (Array.isArray(h)) setHiddenCols(new Set(h.filter((k: string) => COL_BY_KEY[k]))); } catch { /* */ }
+    if (localStorage.getItem('gridleads_compact') === '1') setCompact(true);
     useGrid.getState().hydrate().catch(() => {});
     api.getTags().then((r) => { const m: Record<string, string> = {}; (r.tags || []).forEach((t) => { m[t.name] = t.color; }); setTagReg(m); }).catch(() => {});
   }, []);
@@ -768,6 +770,7 @@ export default function Dashboard() {
       <main className="main">
         <header className="topbar">
           <button className="hamburger" title="Projects" onClick={() => setSidebarOpen((o) => !o)}>☰</button>
+          <button className="btn compact-toggle" title={compact ? 'Show stats & filters' : 'Hide stats & filters'} onClick={() => setCompact((c) => { const n = !c; try { localStorage.setItem('gridleads_compact', n ? '1' : '0'); } catch { /* */ } return n; })}>{compact ? '▾' : '▴'}</button>
           <input className="search" type="search" placeholder="Search businesses, category, city, phone…" value={term} onChange={(e) => setTerm(e.target.value)} />
           <select className="select" onChange={(e) => { const m = DROPDOWN_SORT[e.target.value]; if (m) { setSortKey(m[0]); setSortDir(m[1]); } }}>
             <option value="opportunity_desc">Sort: Opportunity ↓</option>
@@ -788,7 +791,7 @@ export default function Dashboard() {
           <button className="btn" onClick={() => exportJsonScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export JSON</button>
         </header>
 
-        <div className="filters">
+        {!compact && <div className="filters">
           {([['all', 'All'], ['nowebsite', 'No website'], ['haswebsite', 'Has website'], ['hot', '🔥 Hot'], ['email', 'Email found']] as const).map(([key, label]) => (
             <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
           ))}
@@ -808,15 +811,15 @@ export default function Dashboard() {
           )}
           <ColumnsMenu order={columnOrder} hidden={hiddenCols} onToggle={toggleColumn} onAll={setAllColumns} onReset={resetColumns} />
           <span className="title">{title}</span>
-        </div>
+        </div>}
 
-        <section className="widgets">
+        {!compact && <section className="widgets">
           <div className="widget"><div className="w-num">{stats.total}</div><div className="w-label">Total leads</div></div>
           <div className="widget"><div className="w-num accent">{stats.noweb}</div><div className="w-label">No website</div></div>
           <div className="widget"><div className="w-num hot">{stats.hot}</div><div className="w-label">Hot leads</div></div>
           <div className="widget"><div className="w-num">{stats.email}</div><div className="w-label">Emails found</div></div>
           <div className="widget"><div className="w-num">{stats.avg}</div><div className="w-label">Avg opportunity</div></div>
-        </section>
+        </section>}
 
         <section className="tablewrap">
           <table className="table">
