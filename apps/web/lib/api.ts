@@ -69,10 +69,11 @@ export const api = {
     (q.pregions || []).forEach((r) => p.append('pregion', r));
     return jget('/api/geo?' + p.toString());
   },
-  getStats: (q: { project?: string | null; folder?: string | null }): Promise<{ days: { date: string; count: number }[]; total: number }> => {
+  getStats: (q: { project?: string | null; folder?: string | null; granularity?: 'day' | 'hour' }): Promise<{ buckets: { key: string; count: number }[]; gran: string; total: number }> => {
     const p = new URLSearchParams();
     if (q.project) p.set('project', q.project);
     if (q.folder) p.set('folder', q.folder);
+    if (q.granularity) p.set('granularity', q.granularity);
     return jget('/api/stats?' + p.toString());
   },
   getProjectFacets: (q: { project?: string | null; folder?: string | null }): Promise<{ types: { value: string; count: number }[]; regions: { value: string; count: number }[] }> => {
