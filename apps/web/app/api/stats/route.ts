@@ -25,14 +25,14 @@ export async function GET(req: Request) {
       match.project = project;
     }
 
-    const idExpr = gran === 'hour' ? { $substrBytes: ['$scrapedAt', 11, 2] } : { $substrBytes: ['$scrapedAt', 0, 10] };
+    const idExpr = gran === 'hour' ? { $substrBytes: ['$scrapedAt', 0, 13] } : { $substrBytes: ['$scrapedAt', 0, 10] };
     const rows = await Lead.aggregate([
       { $match: match },
       { $group: { _id: idExpr, count: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ]).allowDiskUse(true);
 
-    const valid = gran === 'hour' ? /^\d{2}$/ : /^\d{4}-\d{2}-\d{2}$/;
+    const valid = gran === 'hour' ? /^\d{4}-\d{2}-\d{2}T\d{2}$/ : /^\d{4}-\d{2}-\d{2}$/;
     const buckets = (rows as { _id: string; count: number }[])
       .filter((r) => r._id && valid.test(r._id))
       .map((r) => ({ key: r._id, count: r.count }));

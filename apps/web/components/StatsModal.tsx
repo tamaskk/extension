@@ -9,16 +9,22 @@ type Point = { label: string; full: string; count: number };
 
 const niceMax = (m: number) => { if (m <= 5) return 5; const p = Math.pow(10, Math.floor(Math.log10(m))); const n = m / p; const s = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10; return s * p; };
 
-// day mode → fill every calendar day between first & last; hour mode → 0..23
+// fill every bucket between the first and last — day-by-day, or hour-by-hour
 function toPoints(buckets: Bucket[], gran: 'day' | 'hour'): Point[] {
-  const map = new Map(buckets.map((b) => [b.key, b.count]));
-  if (gran === 'hour') {
-    return Array.from({ length: 24 }, (_, h) => { const k = String(h).padStart(2, '0'); return { label: String(h), full: `${k}:00–${k}:59 (UTC)`, count: map.get(k) || 0 }; });
-  }
   if (!buckets.length) return [];
+  const map = new Map(buckets.map((b) => [b.key, b.count]));
+  const out: Point[] = [];
+  if (gran === 'hour') {
+    const parse = (s: string) => { const [d, h] = s.split('T'); const [y, mo, da] = d.split('-').map(Number); return Date.UTC(y, mo - 1, da, Number(h)); };
+    const keyOf = (t: number) => new Date(t).toISOString().slice(0, 13); // YYYY-MM-DDTHH
+    for (let t = parse(buckets[0].key); t <= parse(buckets[buckets.length - 1].key); t += 3600000) {
+      const k = keyOf(t);
+      out.push({ label: `${k.slice(5, 10)} ${k.slice(11, 13)}:00`, full: `${k.slice(0, 10)} ${k.slice(11, 13)}:00 (UTC)`, count: map.get(k) || 0 });
+    }
+    return out;
+  }
   const parse = (s: string) => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); };
   const fmt = (t: number) => new Date(t).toISOString().slice(0, 10);
-  const out: Point[] = [];
   for (let t = parse(buckets[0].key); t <= parse(buckets[buckets.length - 1].key); t += 86400000) { const k = fmt(t); out.push({ label: k.slice(5), full: k, count: map.get(k) || 0 }); }
   return out;
 }
@@ -91,8 +97,7 @@ export default function StatsModal({ folders, initialFolder, onClose }:
 
   const data = useMemo(() => toPoints(buckets, gran), [buckets, gran]);
   const sub = loading ? 'Loading…'
-    : gran === 'hour' ? `${total.toLocaleString()} leads · by hour of day (UTC)`
-    : data.length ? `${total.toLocaleString()} leads · ${data[0].full} → ${data[data.length - 1].full} · ${data.length} day${data.length === 1 ? '' : 's'}`
+    : data.length ? `${total.toLocaleString()} leads · ${data[0].full} → ${data[data.length - 1].full} · ${data.length} ${gran === 'hour' ? 'hour' : 'day'}${data.length === 1 ? '' : 's'}`
     : `${total.toLocaleString()} leads`;
 
   return (
