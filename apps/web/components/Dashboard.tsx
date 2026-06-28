@@ -176,7 +176,7 @@ export default function Dashboard() {
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
-  const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; folderCount: number; projectCount: number } | null>(null);
+  const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; regions: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [callsOpen, setCallsOpen] = useState(false);
   const [callCount, setCallCount] = useState(0);
@@ -574,10 +574,13 @@ export default function Dashboard() {
     // every folder + project name inside (so place detection works when the
     // children are projects like "plumbers near Abbeville city alamaba")
     const names: string[] = [];
-    childIds.forEach((id) => { const n = folders[id]?.name; if (n) names.push(n); });
-    ids.forEach((id) => (tree.projsOf[id] || []).forEach((p) => { if (p.name) names.push(p.name); if (p.query) names.push(p.query); }));
+    // precise region set (project suffix + sub-folder name) — avoids matching a state
+    // name that only appears as a CITY in another state's project (e.g. Washington, IN)
+    const regions = new Set<string>();
+    childIds.forEach((id) => { const n = folders[id]?.name; if (n) { names.push(n); const c = cityFromFolderName(n); if (c) regions.add(c); } });
+    ids.forEach((id) => (tree.projsOf[id] || []).forEach((p) => { if (p.name) names.push(p.name); if (p.query) { names.push(p.query); const r = parseProject(p.query).region; if (r) regions.add(r); } }));
     const projectCount = ids.reduce((s, id) => s + (tree.projsOf[id]?.length || 0), 0);
-    setInfoFolder({ name: f.name, cities, names, folderCount: childIds.length, projectCount });
+    setInfoFolder({ name: f.name, cities, names, regions: [...regions], folderCount: childIds.length, projectCount });
   };
   const deleteSelectedFolders = () => {
     if (!confirm(`Delete ${selFolders.size} selected folder(s)? Sub-folders move up to their parent and projects go back to ungrouped (leads kept).`)) return;
@@ -869,7 +872,7 @@ export default function Dashboard() {
 
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
 
-      {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} names={infoFolder.names} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
+      {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} names={infoFolder.names} regions={infoFolder.regions} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
 
       {callsOpen && <CallsModal onClose={() => setCallsOpen(false)} onToggleCall={(r, call) => {
         setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, call } : x)));

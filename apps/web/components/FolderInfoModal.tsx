@@ -17,8 +17,8 @@ function detectCountry(folderName: string): string {
 type Mode = 'country' | 'state' | 'usastates';
 type Ref = { mode: Mode; name: string };
 
-export default function FolderInfoModal({ name, cities, names, folderCount, projectCount, onClose }:
-  { name: string; cities: string[]; names?: string[]; folderCount: number; projectCount: number; onClose: () => void }) {
+export default function FolderInfoModal({ name, cities, names, regions, folderCount, projectCount, onClose }:
+  { name: string; cities: string[]; names?: string[]; regions?: string[]; folderCount: number; projectCount: number; onClose: () => void }) {
   const LS_KEY = 'gridleads_folder_ref:' + name;
   const [ref, setRef] = useState<Ref>(() => {
     try { const s = localStorage.getItem(LS_KEY); if (s) { const p = JSON.parse(s); if (p && ['country', 'state', 'usastates'].includes(p.mode)) return p; } } catch { /* */ }
@@ -48,8 +48,12 @@ export default function FolderInfoModal({ name, cities, names, folderCount, proj
   // "plumbers near Abbeville city alamaba".
   const haystacks = [...new Set([...(names || []), ...cities])].map((s) => ' ' + norm(s) + ' ').filter((s) => s.trim());
   const isPresent = (place: string) => { const p = ' ' + norm(place) + ' '; return p.trim().length > 1 ? haystacks.some((h) => h.includes(p)) : false; };
-  const missing = refCities.filter((c) => !isPresent(c));
-  const covered = refCities.filter((c) => isPresent(c));
+  // USA-states mode: match the project's actual region (suffix) + sub-folder names
+  // EXACTLY, so a state name that only appears as a city elsewhere isn't counted.
+  const regionsNorm = new Set([...(regions || []), ...cities].map(norm));
+  const present = ref.mode === 'usastates' ? (s: string) => regionsNorm.has(norm(s)) : isPresent;
+  const missing = refCities.filter((c) => !present(c));
+  const covered = refCities.filter((c) => present(c));
   const masterSet = new Set(refCities.map(norm));
   const extra = [...new Set(cities.filter((c) => c && !masterSet.has(norm(c))))].sort((a, b) => a.localeCompare(b));
 
