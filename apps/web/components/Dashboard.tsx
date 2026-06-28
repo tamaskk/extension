@@ -885,7 +885,7 @@ export default function Dashboard() {
 
       {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} names={infoFolder.names} regions={infoFolder.regions} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
 
-      {statsOpen && <StatsModal folders={folderList.slice().sort(byOrder)} initialFolder={activeFolder} onClose={() => setStatsOpen(false)} />}
+      {statsOpen && <StatsModal folders={folderList.slice().sort(byOrder)} onClose={() => setStatsOpen(false)} />}
 
       {callsOpen && <CallsModal onClose={() => setCallsOpen(false)} onToggleCall={(r, call) => {
         setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, call } : x)));

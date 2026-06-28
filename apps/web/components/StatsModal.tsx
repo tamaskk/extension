@@ -76,9 +76,9 @@ function Chart({ data, type }: { data: Point[]; type: 'bar' | 'line' }) {
   );
 }
 
-export default function StatsModal({ folders, initialFolder, onClose }:
-  { folders: Folder[]; initialFolder: string | null; onClose: () => void }) {
-  const [scope, setScope] = useState<string>(initialFolder || '');
+export default function StatsModal({ folders, onClose }:
+  { folders: Folder[]; onClose: () => void }) {
+  const [scope, setScope] = useState<string>(''); // '' = All leads (whole DB, incl. ungrouped)
   const [gran, setGran] = useState<'day' | 'hour'>('day');
   const [type, setType] = useState<'bar' | 'line'>('bar');
   const [buckets, setBuckets] = useState<Bucket[]>([]);
