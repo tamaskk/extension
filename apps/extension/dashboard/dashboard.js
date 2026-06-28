@@ -979,6 +979,34 @@ $('bd_file').addEventListener('change', async (e) => {
   else { $('bd_preview').textContent = '⚠ No valid { city, areas } entries found.'; }
 });
 
+// Load ALL missing US-state places: asks the DB (per state) which "<type> <place> <state>"
+// projects don't exist yet, and queues exactly those — business type is mandatory.
+$('bd_loadMissing').addEventListener('click', async () => {
+  const prefix = $('bd_prefix').value.trim();
+  if (!prefix) { $('bd_preview').textContent = '⚠ Fill the Prefix (business type) first — it is required.'; return; }
+  $('bd_loadMissing').disabled = true;
+  $('bd_preview').textContent = '⏳ Checking the database for missing US-state places…';
+  let data;
+  try { data = await (await fetch(SYNC_BASE + '/api/missing-states?type=' + encodeURIComponent(prefix))).json(); }
+  catch { $('bd_preview').textContent = '⚠ Could not reach the database.'; $('bd_loadMissing').disabled = false; return; }
+  if (!data || data.error) { $('bd_preview').textContent = '⚠ ' + ((data && data.error) || 'failed'); $('bd_loadMissing').disabled = false; return; }
+  const states = data.states || [];
+  if (!states.length) { $('bd_preview').textContent = `✓ Nothing missing — every US-state place already has a "${prefix} …" project.`; $('bd_loadMissing').disabled = false; return; }
+  let batches = 0, searches = 0;
+  for (const s of states) {
+    const places = s.places || [];
+    const middles = places.map((p) => p.placeName);
+    const populations = places.map((p) => p.population);
+    if (!middles.length) continue;
+    const label = `${prefix} {${middles.length} places} ${s.state}`;
+    const res = await msg({ type: 'batchEnqueue', prefix, middles, suffix: s.state, label, populations });
+    if (res && res.ok) { batches++; searches += res.count || middles.length; }
+  }
+  $('bd_loadMissing').disabled = false;
+  $('bd_preview').innerHTML = `🇺🇸 Queued <b>${batches}</b> state(s) · <b>${searches}</b> missing searches. Press ▶ Start in the popup.`;
+  renderQueue();
+});
+
 $('batchStopAll').addEventListener('click', async () => {
   if (!confirm('Stop all batches and clear the queue?')) return;
   await msg({ type: 'batchStopAll' });
