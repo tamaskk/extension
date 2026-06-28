@@ -172,6 +172,7 @@ export default function Dashboard() {
   const [sideFilter, setSideFilter] = useState('');
   const [rowSel, setRowSel] = useState<Set<string>>(new Set());
   const [sidebarW, setSidebarW] = useState(264);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile drawer
   const [dupesOpen, setDupesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -260,6 +261,8 @@ export default function Dashboard() {
     api.getCheckedCount().then((r) => setCheckedCount(r.total || 0)).catch(() => {});
   }, []);
   useEffect(() => { if (hydrated) refreshCallCount(); }, [hydrated, reloadKey, refreshCallCount]);
+  // close the mobile drawer whenever a scope is picked
+  useEffect(() => { setSidebarOpen(false); }, [activeProject, activeFolder]);
   const uncheckAllLeads = async () => {
     if (!checkedCount) return;
     if (!confirm(`Clear the Checked status on all ${checkedCount.toLocaleString()} checked lead(s)?`)) return;
@@ -670,7 +673,8 @@ export default function Dashboard() {
   if (!hydrated) return <div style={{ display: 'grid', placeItems: 'center', height: '100vh', color: 'var(--muted)' }}>Loading from database…</div>;
 
   return (
-    <div className="app" style={{ '--sw': `${sidebarW}px` } as React.CSSProperties}>
+    <div className={`app ${sidebarOpen ? 'sidebar-open' : ''}`} style={{ '--sw': `${sidebarW}px` } as React.CSSProperties}>
+      <div className="side-backdrop" onClick={() => setSidebarOpen(false)} />
       {/* SIDEBAR */}
       <aside className="sidebar">
         <div className="brand">◧ GridLeads</div>
@@ -763,6 +767,7 @@ export default function Dashboard() {
       {/* MAIN */}
       <main className="main">
         <header className="topbar">
+          <button className="hamburger" title="Projects" onClick={() => setSidebarOpen((o) => !o)}>☰</button>
           <input className="search" type="search" placeholder="Search businesses, category, city, phone…" value={term} onChange={(e) => setTerm(e.target.value)} />
           <select className="select" onChange={(e) => { const m = DROPDOWN_SORT[e.target.value]; if (m) { setSortKey(m[0]); setSortDir(m[1]); } }}>
             <option value="opportunity_desc">Sort: Opportunity ↓</option>
