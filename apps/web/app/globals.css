@@ -433,6 +433,15 @@ a.mlink:hover { text-decoration: underline; }
   .resizer { display: none; }
   .app.sidebar-open .side-backdrop { display: block; position: fixed; inset: 0; z-index: 150; background: rgba(0,0,0,.55); }
 
+  /* keep the drawer wide, but let the project/folder list scroll horizontally so
+     full names are readable; reveal row actions (no hover on touch) */
+  .sidebar { max-width: 360px; }
+  .nav { overflow: auto; align-items: flex-start; }
+  .navitem, .folder { width: max-content; min-width: 100%; }
+  .ni-name, .fname { flex: 0 0 auto; overflow: visible; text-overflow: clip; }
+  .del, .edit, .fedit, .fdel, .fexport, .fadd, .finfo, .ficon { opacity: .6; }
+  .caret { width: 18px; font-size: 13px; padding: 4px 0; }
+
   .hamburger {
     display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
     background: var(--panel); border: 1px solid var(--line); color: var(--text);
