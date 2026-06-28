@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { COUNTRY_CITIES, COUNTRY_NAMES } from '@/lib/countries';
+import { STATE_REGIONS } from '@/lib/regionNames';
 
 // loose, accent-insensitive normalize so "St. Louis" == "st louis", "Pécs" == "pecs"
 const norm = (s: string) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -13,18 +14,19 @@ function detectCountry(folderName: string): string {
   return best || 'USA';
 }
 
-type Ref = { mode: 'country' | 'state'; name: string };
+type Mode = 'country' | 'state' | 'usastates';
+type Ref = { mode: Mode; name: string };
 
 export default function FolderInfoModal({ name, cities, names, folderCount, projectCount, onClose }:
   { name: string; cities: string[]; names?: string[]; folderCount: number; projectCount: number; onClose: () => void }) {
   const LS_KEY = 'gridleads_folder_ref:' + name;
   const [ref, setRef] = useState<Ref>(() => {
-    try { const s = localStorage.getItem(LS_KEY); if (s) { const p = JSON.parse(s); if (p && (p.mode === 'country' || p.mode === 'state') && p.name) return p; } } catch { /* */ }
+    try { const s = localStorage.getItem(LS_KEY); if (s) { const p = JSON.parse(s); if (p && ['country', 'state', 'usastates'].includes(p.mode)) return p; } } catch { /* */ }
     return { mode: 'country', name: detectCountry(name) };
   });
   const [states, setStates] = useState<{ places: Record<string, [string, number][]>; names: string[] } | null>(null);
 
-  // lazy-load the (large) US-states dataset only when State mode is used
+  // lazy-load the (large) US-states dataset only when single-State mode is used
   useEffect(() => {
     if (ref.mode !== 'state' || states) return;
     let cancelled = false;
@@ -35,7 +37,12 @@ export default function FolderInfoModal({ name, cities, names, folderCount, proj
 
   const loadingState = ref.mode === 'state' && !states;
   const statePlaces = ref.mode === 'state' ? (states?.places[ref.name] || []) : [];
-  const refCities = ref.mode === 'country' ? (COUNTRY_CITIES[ref.name] || []) : statePlaces.map(([n]) => n);
+  const refCities = ref.mode === 'country' ? (COUNTRY_CITIES[ref.name] || [])
+    : ref.mode === 'usastates' ? STATE_REGIONS
+    : statePlaces.map(([n]) => n);
+  const unit = ref.mode === 'usastates' ? 'states' : ref.mode === 'state' ? 'places' : 'cities';
+  const refLabel = ref.mode === 'usastates' ? 'USA' : ref.name;
+
   // a reference place is "present" if it appears as a whole, space-bounded token
   // sequence in any folder/project name — so "Abbeville city" matches the project
   // "plumbers near Abbeville city alamaba".
@@ -46,10 +53,11 @@ export default function FolderInfoModal({ name, cities, names, folderCount, proj
   const masterSet = new Set(refCities.map(norm));
   const extra = [...new Set(cities.filter((c) => c && !masterSet.has(norm(c))))].sort((a, b) => a.localeCompare(b));
 
-  const pickMode = (mode: 'country' | 'state') => {
+  const pickMode = (mode: Mode) => {
     if (mode === ref.mode) return;
     if (mode === 'country') setRef({ mode, name: detectCountry(name) });
-    else setRef({ mode, name: '' }); // state name set once the dataset loads
+    else if (mode === 'usastates') setRef({ mode, name: 'USA' });
+    else setRef({ mode, name: '' }); // single-state name set once the dataset loads
   };
   // once states load with no selection yet, default to a detected or first state
   useEffect(() => {
@@ -66,7 +74,7 @@ export default function FolderInfoModal({ name, cities, names, folderCount, proj
       const popOf = (nm: string) => { const pl = statePlaces.find(([n]) => n === nm); return pl ? pl[1] : 0; };
       const places = missing.map((nm) => ({ placeName: nm, population: String(popOf(nm)) }));
       content = JSON.stringify([{ state: ref.name, places }], null, 2);
-      filename = `${ref.name}.json`; // file name becomes the suffix in State batch mode
+      filename = `${ref.name}.json`;
     } else {
       content = JSON.stringify([{ city: ref.name, areas: missing }], null, 2);
       filename = `${ref.name}-missing.json`;
@@ -83,20 +91,24 @@ export default function FolderInfoModal({ name, cities, names, folderCount, proj
         <div className="modal-head">
           <div>
             <div className="modal-title">ⓘ {name} — coverage</div>
-            <div className="modal-sub">{loadingState ? 'Loading states…' : <>{covered.length} of {refCities.length} {ref.name} {ref.mode === 'state' ? 'places' : 'cities'} present · <b style={{ color: 'var(--hot)' }}>{missing.length} missing</b></>}</div>
+            <div className="modal-sub">{loadingState ? 'Loading states…' : <>{covered.length} of {refCities.length} {refLabel} {unit} present · <b style={{ color: 'var(--hot)' }}>{missing.length} missing</b></>}</div>
           </div>
           <div className="modal-actions">
             <div className="fi-mode">
               <button className={`fi-mode-btn ${ref.mode === 'country' ? 'active' : ''}`} onClick={() => pickMode('country')}>Country</button>
               <button className={`fi-mode-btn ${ref.mode === 'state' ? 'active' : ''}`} onClick={() => pickMode('state')}>State</button>
+              <button className={`fi-mode-btn ${ref.mode === 'usastates' ? 'active' : ''}`} onClick={() => pickMode('usastates')}>USA states</button>
             </div>
-            {ref.mode === 'country'
-              ? <select className="fi-country" value={ref.name} onChange={(e) => setRef({ mode: 'country', name: e.target.value })}>
-                  {COUNTRY_NAMES.map((c) => <option key={c} value={c}>{c} ({COUNTRY_CITIES[c].length})</option>)}
-                </select>
-              : <select className="fi-country" value={ref.name} disabled={!states} onChange={(e) => setRef({ mode: 'state', name: e.target.value })}>
-                  {!states ? <option>Loading…</option> : states.names.map((s) => <option key={s} value={s}>{s} ({states.places[s].length})</option>)}
-                </select>}
+            {ref.mode === 'country' && (
+              <select className="fi-country" value={ref.name} onChange={(e) => setRef({ mode: 'country', name: e.target.value })}>
+                {COUNTRY_NAMES.map((c) => <option key={c} value={c}>{c} ({COUNTRY_CITIES[c].length})</option>)}
+              </select>
+            )}
+            {ref.mode === 'state' && (
+              <select className="fi-country" value={ref.name} disabled={!states} onChange={(e) => setRef({ mode: 'state', name: e.target.value })}>
+                {!states ? <option>Loading…</option> : states.names.map((s) => <option key={s} value={s}>{s} ({states.places[s].length})</option>)}
+              </select>
+            )}
             <button className="btn" onClick={onClose}>✕ Close</button>
           </div>
         </div>
@@ -109,19 +121,19 @@ export default function FolderInfoModal({ name, cities, names, folderCount, proj
             <div className="fi-sec">
               <div className="fi-h fi-h-row">
                 <span>❌ Missing ({missing.length})</span>
-                {missing.length > 0 && <button className="btn fi-dl" onClick={downloadMissing} title="Download a batch-loadable JSON of the missing ones">⤓ Download JSON</button>}
+                {missing.length > 0 && ref.mode !== 'usastates' && <button className="btn fi-dl" onClick={downloadMissing} title="Download a batch-loadable JSON of the missing ones">⤓ Download JSON</button>}
               </div>
               {missing.length ? <div className="fi-chips">{missing.map((c) => <span key={c} className="chip red">{c}</span>)}</div>
-                : <div className="muted">All {ref.name} places are covered 🎉</div>}
+                : <div className="muted">All {refLabel} {unit} are covered 🎉</div>}
             </div>
             <div className="fi-sec">
               <div className="fi-h">✅ Present ({covered.length})</div>
               {covered.length ? <div className="fi-chips">{covered.map((c) => <span key={c} className="chip green">{c}</span>)}</div>
-                : <div className="muted">None of the {ref.name} reference places found here.</div>}
+                : <div className="muted">None of the {refLabel} reference {unit} found here.</div>}
             </div>
-            {extra.length > 0 && (
+            {ref.mode !== 'usastates' && extra.length > 0 && (
               <div className="fi-sec">
-                <div className="fi-h">➕ In this folder but not on the {ref.name} list ({extra.length})</div>
+                <div className="fi-h">➕ In this folder but not on the {refLabel} list ({extra.length})</div>
                 <div className="fi-chips">{extra.map((c) => <span key={c} className="chip gray">{c}</span>)}</div>
               </div>
             )}
