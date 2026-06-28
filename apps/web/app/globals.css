@@ -145,6 +145,8 @@ body.resizing { cursor: col-resize; user-select: none; }
 }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .compact-toggle { flex-shrink: 0; padding: 9px 11px; }
+.stats-svg { width: 100%; height: auto; display: block; }
+.stats-axis { fill: var(--muted); font-size: 12px; }
 .btn:hover { border-color: #39405a; }
 
 /* Widgets */

@@ -16,6 +16,7 @@ import ComboFilter from './ComboFilter';
 import LeadDetailModal from './LeadDetailModal';
 import IconPicker from './IconPicker';
 import CallsModal from './CallsModal';
+import StatsModal from './StatsModal';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
 const cityFromFolderName = (name: string) => { const p = String(name || '').trim().split(/\s+/); return p.length > 1 ? p.slice(0, -1).join(' ') : (name || ''); };
@@ -181,6 +182,7 @@ export default function Dashboard() {
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; regions: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [callsOpen, setCallsOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const [callCount, setCallCount] = useState(0);
   const [checkedCount, setCheckedCount] = useState(0);
   const [recalc, setRecalc] = useState<{ running: boolean; done: number; total: number } | null>(null);
@@ -786,6 +788,7 @@ export default function Dashboard() {
           </button>
           <button className={`btn ${callCount ? 'primary' : ''}`} onClick={() => setCallsOpen(true)} title="Leads flagged for calling">📞 {callCount.toLocaleString()} leads</button>
           {checkedCount > 0 && <button className="btn" onClick={uncheckAllLeads} title="Clear the Checked status on all checked leads">☐ Uncheck {checkedCount.toLocaleString()}</button>}
+          <button className="btn" onClick={() => setStatsOpen(true)} title="Leads scraped per day">📊 Stats</button>
           <button className="btn" onClick={() => setDupesOpen(true)}>⧉ Duplicates</button>
           <button className="btn" onClick={() => setMapOpen(true)}>🗺 Map</button>
           <button className="btn" onClick={() => exportJsonScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export JSON</button>
@@ -881,6 +884,8 @@ export default function Dashboard() {
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
 
       {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} names={infoFolder.names} regions={infoFolder.regions} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
+
+      {statsOpen && <StatsModal folders={folderList.slice().sort(byOrder)} initialFolder={activeFolder} onClose={() => setStatsOpen(false)} />}
 
       {callsOpen && <CallsModal onClose={() => setCallsOpen(false)} onToggleCall={(r, call) => {
         setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, call } : x)));
