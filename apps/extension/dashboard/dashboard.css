@@ -256,3 +256,8 @@ a.mlink:hover { text-decoration: underline; }
 .bq-area-num { color: var(--muted); font-size: 11px; flex-shrink: 0; min-width: 26px; text-align: right; }
 .bq-area-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .foot { padding: 10px 18px; color: var(--muted); border-top: 1px solid var(--line); font-size: 12px; }
+
+/* parallel-windows (concurrency) selector — batch modal */
+.conc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 12px; }
+.conc-input { width: 60px; background: var(--panel, #141822); border: 1px solid var(--line, #232838); color: var(--text, #e6e8ee); border-radius: 8px; padding: 8px; font-size: 15px; font-weight: 700; text-align: center; }
+.conc-input:focus { outline: none; border-color: var(--accent, #6366f1); }

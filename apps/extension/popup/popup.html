@@ -61,6 +61,10 @@
       <span class="switch"><input type="checkbox" id="bMode" /><span class="slider"></span></span>
       <span class="switch-text"><b>Stream to DB</b><small id="bModeHint">Off — keep everything in the browser</small></span>
     </label>
+    <label class="conc-row" title="How many batches (cities) scrape at the same time, each in its own window. 1–10.">
+      <span><b>Parallel windows</b><small>batches at once</small></span>
+      <input type="number" id="bConc" class="conc-input" min="1" max="10" step="1" value="5" />
+    </label>
     <div id="qsInfo" class="qs-info">No batches queued</div>
     <button id="qsStart" class="btn primary batchbtn">▶ Start all batches</button>
     <button id="qsStop" class="btn batchbtn hidden">■ Stop</button>
