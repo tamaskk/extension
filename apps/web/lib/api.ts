@@ -120,6 +120,14 @@ export const api = {
   recalcScores: (after: string | null): Promise<{ ok: boolean; processed: number; lastId: string | null; done: boolean; total?: number }> =>
     jsend('/api/recalc', 'POST', { after }),
 
+  // Auto-organize: re-file projects into "<region> <vertical>" folders nested
+  // under "<country> <vertical>" roots. Pass { dryRun:true } for a preview.
+  organize: (opts: { dryRun?: boolean; cleanup?: boolean } = {}): Promise<{
+    ok: boolean; dryRun: boolean; totalProjects: number; foldersCreated: string[];
+    foldersReparented: number; projectsMoved: number; foldersDeleted: string[];
+    unmatched: number; sampleUnmatched: string[]; error?: string;
+  }> => jsend('/api/organize', 'POST', opts),
+
   // Chunked sync — splits big bundles so no request exceeds the serverless body
   // limit (Vercel ~4.5MB). Returns aggregate counts.
   syncBundleChunked: async (

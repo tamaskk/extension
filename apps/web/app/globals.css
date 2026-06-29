@@ -481,4 +481,20 @@ a.mlink:hover { text-decoration: underline; }
   .fi-stats { flex-direction: column; }
   .fi-mode { flex-wrap: wrap; }
   .map-canvas { height: 60vh; }
+  .org-stats { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── Organize modal ─────────────────────────────────────────────────────── */
+.org-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
+.org-stat { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 10px; text-align: center; }
+.org-stat.muted { opacity: .7; }
+.org-stat-n { font-size: 22px; font-weight: 800; color: var(--accent); }
+.org-stat.muted .org-stat-n { color: var(--muted); }
+.org-stat-l { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.org-section { margin-bottom: 14px; }
+.org-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 0 2px 7px; }
+.org-section-body { display: flex; flex-wrap: wrap; gap: 6px; max-height: 170px; overflow-y: auto; }
+.org-chip { font-size: 12px; padding: 4px 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
+.org-chip.add { border-color: #2bb37e55; color: #4ade80; background: #14271f; }
+.org-chip.del { border-color: #e23b3b55; color: #f87171; background: #2a1517; }
+.org-chip.muted { color: var(--muted); }
