@@ -115,6 +115,9 @@ export const api = {
   setTags: (project: string, dedupKey: string, tags: string[]) => jsend('/api/leads', 'PATCH', { project, dedupKey, tags }),
   deleteRecords: (items: { query: string; key: string }[]) => jsend('/api/leads', 'DELETE', { items }),
 
+  getReviews: (dedupKey: string): Promise<{ ok: boolean; total: number; rows: import('./types').ReviewRow[] }> =>
+    jget('/api/reviews?dedupKey=' + encodeURIComponent(dedupKey)),
+
   getTags: (): Promise<{ tags: { name: string; color: string }[] }> => jget('/api/tags'),
   createTag: (name: string, color: string) => jsend('/api/tags', 'POST', { name, color }),
   deleteTag: (name: string) => jsend('/api/tags', 'DELETE', { name }),

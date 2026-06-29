@@ -14,6 +14,7 @@ import FolderInfoModal from './FolderInfoModal';
 import CategoryFilter from './CategoryFilter';
 import ComboFilter from './ComboFilter';
 import LeadDetailModal from './LeadDetailModal';
+import ReviewsModal from './ReviewsModal';
 import IconPicker from './IconPicker';
 import CallsModal from './CallsModal';
 import StatsModal from './StatsModal';
@@ -161,7 +162,7 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [activeProject, setActiveProject] = useState<string | null>(null);
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email'>('all');
+  const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email' | 'hasreviews'>('all');
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [selTypes, setSelTypes] = useState<string[]>([]);
   const [selRegions, setSelRegions] = useState<string[]>([]);
@@ -182,6 +183,7 @@ export default function Dashboard() {
   const [mapOpen, setMapOpen] = useState(false);
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; regions: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
+  const [reviewRow, setReviewRow] = useState<LeadRow | null>(null);
   const [callsOpen, setCallsOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [organizeOpen, setOrganizeOpen] = useState(false);
@@ -601,7 +603,7 @@ export default function Dashboard() {
   const renderCell = (key: string, r: LeadRow) => {
     switch (key) {
       case 'checked': return <td key={key} className="cb"><input type="checkbox" className="rowcheck" checked={!!r.checked} onChange={(e) => setChecked(r, (e.target as HTMLInputElement).checked)} /></td>;
-      case 'name': return <td key={key}><div className="bizcell"><span className="bizname" title={r.name}>{r.name}</span><span className="bizopen" title="Show all details" onClick={(e) => { e.stopPropagation(); setDetailRow(r); }}>↗</span></div></td>;
+      case 'name': return <td key={key}><div className="bizcell"><span className="bizname" title={r.name}>{r.name}</span>{!!(r.reviewsCount && r.reviewsCount > 0) && <span className="bizreviews" title={`Show ${r.reviewsCount} scraped review${r.reviewsCount === 1 ? '' : 's'}`} onClick={(e) => { e.stopPropagation(); setReviewRow(r); }}>💬 {r.reviewsCount}</span>}<span className="bizopen" title="Show all details" onClick={(e) => { e.stopPropagation(); setDetailRow(r); }}>↗</span></div></td>;
       case 'category': return <td key={key} className="muted">{r.category}</td>;
       case 'rating': return <td key={key}>{r.rating ?? '—'}</td>;
       case 'reviewCount': return <td key={key} className="muted">{r.reviewCount ?? '—'}</td>;
@@ -798,7 +800,7 @@ export default function Dashboard() {
         </header>
 
         {!compact && <div className="filters">
-          {([['all', 'All'], ['nowebsite', 'No website'], ['haswebsite', 'Has website'], ['hot', '🔥 Hot'], ['email', 'Email found']] as const).map(([key, label]) => (
+          {([['all', 'All'], ['nowebsite', 'No website'], ['haswebsite', 'Has website'], ['hot', '🔥 Hot'], ['email', 'Email found'], ['hasreviews', '💬 Has reviews']] as const).map(([key, label]) => (
             <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
           ))}
           <CategoryFilter project={activeProject} folder={activeFolder} value={selectedCats} onChange={setSelectedCats} />
@@ -897,6 +899,7 @@ export default function Dashboard() {
         api.setCall(r._project, r._key, call).catch(() => {});
       }} />}
 
+      {reviewRow && <ReviewsModal lead={reviewRow} onClose={() => setReviewRow(null)} />}
       {detailRow && (
         <LeadDetailModal
           row={detailRow}

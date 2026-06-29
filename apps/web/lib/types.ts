@@ -32,6 +32,19 @@ export interface Lead {
   salesDate?: string; // YYYY-MM-DD for date-bound stages (callback, follow-up, meeting…)
   hasBookingHint?: boolean | null;
   scrapedAt?: string;
+  reviewsCount?: number | null; // how many reviews we scraped & stored
+  reviewsScrapedAt?: string;    // ISO when reviews were scraped ('' / undefined = not yet)
+}
+
+export interface ReviewRow {
+  author?: string;
+  authorUrl?: string;
+  rating?: number | null;
+  text?: string;
+  relativeTime?: string;
+  ownerResponse?: string;
+  reviewId?: string;
+  scrapedAt?: string;
 }
 
 // Full sales pipeline — from first touch to closed/paid.
