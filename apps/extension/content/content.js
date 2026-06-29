@@ -111,14 +111,14 @@
     }
 
     let endHits = 0;
-    const NEED_END = 2;     // consecutive end-confirmations before stopping (was 3)
+    const NEED_END = 3;     // consecutive end-confirmations before stopping
     let stagnant = 0;
     let lastH = 0;
 
     while (running) {
       note = '';
       feed.scrollTo({ top: feed.scrollHeight + 1500, behavior: 'smooth' });
-      await sleep(700 + Math.random() * 400); // faster scroll cadence (was 1600+700)
+      await sleep(1600 + Math.random() * 700);
 
       const grew = feed.scrollHeight > lastH + 20;
       lastH = feed.scrollHeight;
@@ -127,12 +127,12 @@
         // Reached the bottom — but Maps may still be streaming the last page.
         endHits++;
         note = `Reached bottom — confirming (${endHits}/${NEED_END})…`;
-        // wait briefly and nudge, in case more is still loading
-        await sleep(1100);
+        // wait patiently and nudge, in case more is still loading
+        await sleep(2600);
         feed.scrollBy(0, -300);
-        await sleep(300);
+        await sleep(500);
         feed.scrollTo({ top: feed.scrollHeight + 1500, behavior: 'smooth' });
-        await sleep(1000);
+        await sleep(2200);
         if (!atEnd(feed) || feed.scrollHeight > lastH + 20) { endHits = 0; lastH = feed.scrollHeight; continue; }
         if (endHits >= NEED_END) break;
         continue;
@@ -142,8 +142,8 @@
       if (!grew) {
         stagnant++;
         note = 'Waiting for more results to load…';
-        await sleep(1000 + stagnant * 500);
-        if (stagnant >= 6) break; // give up after long stagnation
+        await sleep(2500 + stagnant * 800);
+        if (stagnant >= 8) break; // give up after long stagnation
       } else {
         stagnant = 0;
       }
