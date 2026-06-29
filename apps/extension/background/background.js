@@ -278,7 +278,8 @@ async function openWorkerWindow(idx, count) {
 async function startQueue(reuseTabId) {
   const b0 = await getBatch();
   if (!b0 || !b0.queue.length) return { ok: false, error: 'empty' };
-  if (b0.active) return { ok: true };
+  if (b0.active && Array.isArray(b0.workers) && b0.workers.length) return { ok: true }; // already running
+  // (active but no workers = a stale/broken run → fall through and (re)start it)
 
   const conc = await lockBatch(async () => {
     const b = await getBatch(); if (!b) return 0;
@@ -294,32 +295,27 @@ async function startQueue(reuseTabId) {
   if (!conc) return { ok: false, error: 'empty' };
   try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
 
-  // Phase 1 — open the windows ONE AT A TIME with a gap between them, so Chrome
-  // doesn't deny rapid window.create calls. We don't start scraping yet, so window
-  // creation isn't competing with navigation/capture work.
-  const specs = [];
-  let attempts = 0;
-  while (specs.length < conc && attempts < conc * 5) {
+  // Open the windows one at a time with a gap between them (Chrome denies rapid
+  // window.create calls), and START EACH ONE AS SOON AS IT OPENS — so scraping
+  // begins immediately and a slow/failed later window can't hold up the rest.
+  let made = 0, attempts = 0;
+  while (made < conc && attempts < conc * 4) {
     attempts++;
+    if (!(await getBatch())?.active) break; // stopped mid-open
     let windowId = null, tabId = null, created = false;
-    if (specs.length === 0 && await isMapsTab(reuseTabId)) {
+    if (made === 0 && await isMapsTab(reuseTabId)) {
       tabId = reuseTabId; try { const t = await chrome.tabs.get(tabId); windowId = t.windowId; } catch { /* */ }
     } else {
-      const win = await openWorkerWindow(specs.length, conc);
+      const win = await openWorkerWindow(made, conc);
       if (win) { windowId = win.windowId; tabId = win.tabId; created = true; }
     }
-    if (tabId == null) { await wait(700); continue; }
-    specs.push({ windowId, tabId, created });
-    if (!(await getBatch())?.active) break; // stopped mid-open
-    await wait(900); // give this window time to open before opening the next
+    if (tabId == null) { await wait(600); continue; }
+    const wid = made;
+    await lockBatch(async () => { const b = await getBatch(); if (!b || !b.active) return; b.workers.push({ id: wid, windowId, tabId, created, batchId: null, stage: 'init', ts: tsNow() }); await setBatch(b); });
+    driveWorker(wid);  // ← start this window scraping right away
+    made++;
+    await wait(800);   // gap before opening the next window
   }
-  // Phase 2 — register all workers, then start them scraping.
-  await lockBatch(async () => {
-    const b = await getBatch(); if (!b || !b.active) return;
-    b.workers = specs.map((s, i) => ({ id: i, windowId: s.windowId, tabId: s.tabId, created: s.created, batchId: null, stage: 'init', ts: tsNow() }));
-    await setBatch(b);
-  });
-  for (let i = 0; i < specs.length; i++) driveWorker(i);
   const fin = await getBatch();
   if (fin && fin.active && (!fin.workers || !fin.workers.length)) { await stopAllBatches(); return { ok: false, error: 'no-window' }; }
   return { ok: true };
