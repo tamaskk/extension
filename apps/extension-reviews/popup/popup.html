@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="hdr">
+    <div class="logo">★ GridLeads</div>
+    <div class="sub">Review Scraper</div>
+  </header>
+
+  <section class="stats">
+    <div class="stat"><span class="num" id="done">0</span><label>Businesses</label></div>
+    <div class="stat"><span class="num accent" id="reviews">0</span><label>Reviews</label></div>
+    <div class="stat"><span class="num hot" id="errors">0</span><label>Errors</label></div>
+  </section>
+
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <p class="now" id="current">—</p>
+  <p class="status" id="status">Idle</p>
+
+  <div class="controls">
+    <button id="start" class="btn primary">▶ Start</button>
+    <button id="stop" class="btn" disabled>■ Stop</button>
+  </div>
+
+  <p class="hint">Opens each business on Google Maps, grabs up to the 100 newest reviews, then moves to the next — skipping ones already done. Leave the opened Maps tab in front while it runs.</p>
+
+  <footer class="foot">Runs against the GridLeads database · one business at a time</footer>
+</body>
+<script src="popup.js"></script>
+</html>
