@@ -238,10 +238,6 @@ async function init() {
   bg({ type: 'getBatchMode' }).then((r) => { const on = r && r.mode === 'stream'; $('bMode').checked = on; applyModeHint(on); }).catch(() => {});
   $('bMode').addEventListener('change', async () => { const on = $('bMode').checked; applyModeHint(on); await bg({ type: 'setBatchMode', mode: on ? 'stream' : 'local' }); });
 
-  const clampConc = (v) => Math.max(1, Math.min(10, parseInt(v, 10) || 5));
-  bg({ type: 'getConcurrency' }).then((r) => { if (r && r.concurrency) $('bConc').value = r.concurrency; }).catch(() => {});
-  $('bConc').addEventListener('change', async () => { const n = clampConc($('bConc').value); $('bConc').value = n; await bg({ type: 'setConcurrency', concurrency: n }); });
-
   $('clear').addEventListener('click', async () => {
     if (!confirm('Clear ALL projects and leads?')) return;
     await bg({ type: 'clearAll' });

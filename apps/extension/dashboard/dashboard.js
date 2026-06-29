@@ -905,14 +905,8 @@ const bdModeHint = (on) => { $('bd_modeHint').textContent = on ? 'On — upload 
 msg({ type: 'getBatchMode' }).then((r) => { const on = r && r.mode === 'stream'; $('bd_mode').checked = on; bdModeHint(on); }).catch(() => {});
 $('bd_mode').addEventListener('change', async () => { const on = $('bd_mode').checked; bdModeHint(on); await msg({ type: 'setBatchMode', mode: on ? 'stream' : 'local' }); });
 
-// Parallel-windows (concurrency) selector — shared persisted setting.
-const bdClampConc = (v) => Math.max(1, Math.min(10, parseInt(v, 10) || 5));
-msg({ type: 'getConcurrency' }).then((r) => { if (r && r.concurrency) $('bd_conc').value = r.concurrency; }).catch(() => {});
-$('bd_conc').addEventListener('change', async () => { const n = bdClampConc($('bd_conc').value); $('bd_conc').value = n; await msg({ type: 'setConcurrency', concurrency: n }); });
-
 $('batchBtn').addEventListener('click', () => {
   $('batchOverlay').classList.remove('hidden');
-  msg({ type: 'getConcurrency' }).then((r) => { if (r && r.concurrency) $('bd_conc').value = r.concurrency; }).catch(() => {});
   msg({ type: 'getBatchMode' }).then((r) => { const on = r && r.mode === 'stream'; $('bd_mode').checked = on; bdModeHint(on); }).catch(() => {});
   chrome.storage.local.get('gridleads_batch_fields', (o) => { const f = o.gridleads_batch_fields; if (f) { $('bd_prefix').value = f.p || ''; $('bd_suffix').value = f.s || ''; } bdPreview(); });
   lastQueueSig = ''; renderQueue(true);

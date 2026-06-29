@@ -121,13 +121,11 @@ async function captureSearch(url, tabId) {
 const BKEY = 'gridleads_batch';   // v2: { v, active, mode, concurrency, streamSynced, queue:[{id,label,items,status,itemIndex,workerId}], workers:[{id,windowId,tabId,created,batchId,stage,ts}] }
 const HB_ALARM = 'gl_batch_hb';
 const SKEY = 'gridleads_batch_mode'; // 'local' (keep all in browser) | 'stream' (sync each batch to DB, free storage)
-const CKEY = 'gridleads_concurrency'; // how many batches (windows) run in parallel, 1..10
 const SYNC_BASE = 'https://gridleads-wheat.vercel.app'; // deployed web app
 const SYNC_CHUNK = 500;            // leads per request (well under Vercel's 4.5MB body limit)
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function getBatchMode() { const o = await chrome.storage.local.get(SKEY); return o[SKEY] === 'stream' ? 'stream' : 'local'; }
-async function getConcurrency() { const o = await chrome.storage.local.get(CKEY); const n = parseInt(o[CKEY], 10); return Number.isFinite(n) ? Math.max(1, Math.min(10, n)) : DEFAULT_CONCURRENCY; }
 
 // POST one sync chunk to the web app.
 async function postSync(body) {
@@ -320,7 +318,7 @@ async function startQueue(reuseTabId) {
   const conc = await lockBatch(async () => {
     const b = await getBatch(); if (!b) return 0;
     b.active = true; b.mode = await getBatchMode(); b.streamSynced = b.streamSynced || 0;
-    b.concurrency = await getConcurrency(); // how many windows run in parallel (1..10)
+    b.concurrency = DEFAULT_CONCURRENCY; // fixed number of parallel windows
     for (const x of b.queue) if (x.status === 'running') { x.status = 'pending'; x.workerId = null; } // recover stale
     b.workers = [];
     const pending = b.queue.filter((x) => x.status === 'pending').length;
@@ -535,16 +533,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'setBatchMode': {
         await chrome.storage.local.set({ [SKEY]: msg.mode === 'stream' ? 'stream' : 'local' });
         sendResponse({ ok: true });
-        break;
-      }
-      case 'getConcurrency': {
-        sendResponse({ concurrency: await getConcurrency() });
-        break;
-      }
-      case 'setConcurrency': {
-        const n = Math.max(1, Math.min(10, parseInt(msg.concurrency, 10) || DEFAULT_CONCURRENCY));
-        await chrome.storage.local.set({ [CKEY]: n });
-        sendResponse({ ok: true, concurrency: n });
         break;
       }
       // Current-batch progress (popup + on-page banner).
