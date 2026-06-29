@@ -95,10 +95,11 @@ async function refreshQueue() {
     }
     const totalSearches = q.reduce((s, b) => s + (b.count || 0), 0);
     if (st.active) {
-      const cur = q[0];
-      const more = q.length > 1 ? ` · ${q.length - 1} more queued` : '';
+      const running = q.filter((b) => b.running);
+      const doneBatches = q.filter((b) => b.status === 'done').length;
+      const cur = running[0] || q[0];
       const synced = st.mode === 'stream' ? `\n☁ DB stream: ${st.streamSynced || 0} synced & freed` : '';
-      $('qsInfo').textContent = `▶ Batch 1/${q.length}: ${cur.label}\n${cur.doneInBatch}/${cur.count} done · now: ${cur.currentQuery || '…'}${more}${synced}`;
+      $('qsInfo').textContent = `▶ ${running.length} window(s) in parallel · ${doneBatches}/${q.length} batches done\n${cur.label}: ${cur.doneInBatch}/${cur.count} · now: ${cur.currentQuery || '…'}${synced}`;
       $('qsStart').classList.add('hidden');
       $('qsStop').classList.remove('hidden');
     } else {

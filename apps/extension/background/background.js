@@ -118,7 +118,7 @@ async function captureSearch(url, tabId) {
 // State holds a QUEUE of batches; each batch is a group of searches. They run
 // one after another (a batch waits for the previous to finish, then starts);
 // a finished batch is removed from the queue. queue[0] is the running batch.
-const BKEY = 'gridleads_batch';   // { tabId, active, stage, ts, itemIndex, mode, pendingDeleteQueries, streamSynced, queue:[{id,label,items}] }
+const BKEY = 'gridleads_batch';   // v2: { v, active, mode, concurrency, streamSynced, queue:[{id,label,items,status,itemIndex,workerId}], workers:[{id,windowId,tabId,created,batchId,stage,ts}] }
 const HB_ALARM = 'gl_batch_hb';
 const SKEY = 'gridleads_batch_mode'; // 'local' (keep all in browser) | 'stream' (sync each batch to DB, free storage)
 const SYNC_BASE = 'https://gridleads-wheat.vercel.app'; // deployed web app
@@ -167,34 +167,14 @@ async function deleteLocalProjects(queries) {
   if (changed) { await setProjects(projects); await refreshBadge(); }
 }
 
-// Stream mode: as soon as a single search (project) finishes, push it to the DB,
-// then delete the PREVIOUS synced project from the browser. Works for any batch
-// size — incl. one giant State batch — so storage stays bounded and the DB fills
-// up incrementally instead of only at the very end.
+// Stream mode: as soon as a single search finishes, push it to the DB, then drop
+// it from local storage so the browser cache stays bounded (parallel-safe — each
+// finished project is independent).
 async function streamSyncItem(query) {
   if (!query) return;
   try { await syncProjectsToDb([query]); }
   catch (e) { console.warn('[GridLeads] DB sync failed, keeping local copy:', e && e.message); return; }
-  const b = await getBatch();
-  if (!b) return; // queue already finished — leave the last project locally
-  await deleteLocalProjects((b.pendingDeleteQueries || []).filter((q) => q !== query));
-  b.pendingDeleteQueries = [query]; // prune this one once the next project syncs
-  b.streamSynced = (b.streamSynced || 0) + 1;
-  await setBatch(b);
-}
-
-// Advance past the current item; in stream mode sync the just-finished project to
-// the DB + prune the previous one. Returns true if the queue continues.
-async function finishItemAndMaybeBatch(b) {
-  const cur = b.queue[0];
-  const justDone = cur && cur.items[b.itemIndex] ? cur.items[b.itemIndex].query : null;
-  b.itemIndex += 1;
-  if (cur && b.itemIndex >= cur.items.length) { b.queue.shift(); b.itemIndex = 0; }
-  b.stage = 'init'; b.ts = tsNow();
-  await setBatch(b);
-  if (b.mode === 'stream') await streamSyncItem(justDone);
-  if (!b.queue.length) { await finishBatch(); return false; }
-  return true;
+  await deleteLocalProjects([query]);
 }
 
 function buildSearchUrl(query) {
@@ -217,28 +197,33 @@ function buildItems(prefix, middles, suffix, populations) {
   });
   return items;
 }
+// ── multi-window parallel engine (v2) ──────────────────────────────────────
+// Each WORKER owns its own window+tab and processes ONE batch (city) at a time.
+// When a worker finishes its batch it claims the next PENDING batch; when none
+// remain it closes its window. The run ends when every worker is done.
+const ENGINE_V = 2;
+const DEFAULT_CONCURRENCY = 5;       // how many windows scrape in parallel (#2)
+const NAV_SETTLE = 1500;             // after a tab loads, before scraping (was 2200)
+const DONE_SETTLE = 600;             // after scrapeDone, before advancing (was 1200)
+const tsNow = () => Date.now();
+
 async function getBatch() {
   const o = await chrome.storage.local.get(BKEY);
   const b = o[BKEY] || null;
-  // discard any state from the old (pre-queue) engine so callers never crash on b.queue
-  if (b && !Array.isArray(b.queue)) { await chrome.storage.local.remove(BKEY); return null; }
+  // drop any state from an older engine version so callers never crash
+  if (b && (b.v !== ENGINE_V || !Array.isArray(b.queue) || !Array.isArray(b.workers))) { await chrome.storage.local.remove(BKEY); return null; }
   return b;
 }
 async function setBatch(b) { if (b) await chrome.storage.local.set({ [BKEY]: b }); else await chrome.storage.local.remove(BKEY); }
-const tsNow = () => Date.now();
 
-async function resolveMapsTab(preferred) {
-  const isMaps = (u) => typeof u === 'string' && u.startsWith('https://www.google.com/maps');
-  // only trust `preferred` if it's actually a Maps tab (never the dashboard tab)
-  if (preferred != null) {
-    try { const t = await chrome.tabs.get(preferred); if (t && isMaps(t.url)) return preferred; } catch { /* */ }
-  }
-  try {
-    const tabs = await chrome.tabs.query({ url: 'https://www.google.com/maps/*' });
-    const pick = tabs.find((t) => t.active) || tabs[0];
-    if (pick) return pick.id;
-  } catch { /* */ }
-  return null;
+// Serialize read-modify-write of the batch state so parallel workers (all running
+// in this one service worker) never clobber each other's updates.
+let _batchLock = Promise.resolve();
+function lockBatch(fn) { const p = _batchLock.then(() => fn()); _batchLock = p.then(() => {}, () => {}); return p; }
+
+async function isMapsTab(id) {
+  if (id == null) return false;
+  try { const t = await chrome.tabs.get(id); return !!(t && typeof t.url === 'string' && t.url.startsWith('https://www.google.com/maps')); } catch { return false; }
 }
 
 async function startContent(tabId) {
@@ -254,95 +239,187 @@ async function startContent(tabId) {
   return false;
 }
 
-// Add a batch to the queue WITHOUT starting it (the user starts the queue from
-// the popup). The Maps tab is resolved later, at start time.
-async function enqueueBatch(batch, tabId) {
-  let b = await getBatch();
-  if (!b) b = { tabId: null, active: false, stage: 'init', ts: tsNow(), itemIndex: 0, queue: [] };
-  const resolved = await resolveMapsTab(tabId);
-  if (resolved != null) b.tabId = resolved;
-  b.queue.push(batch);
-  await setBatch(b);
-  return true;
+// Add a batch to the queue (pending). Started later from the popup.
+async function enqueueBatch(batch) {
+  return lockBatch(async () => {
+    let b = await getBatch();
+    if (!b) b = { v: ENGINE_V, active: false, mode: 'local', concurrency: DEFAULT_CONCURRENCY, streamSynced: 0, queue: [], workers: [] };
+    b.queue.push({ id: batch.id, label: batch.label, items: batch.items, status: 'pending', itemIndex: 0, workerId: null });
+    await setBatch(b);
+    return true;
+  });
 }
 
-// Start processing the queue (from the popup). Resolves a Maps tab now.
-async function startQueue(tabId) {
-  const b = await getBatch();
-  if (!b || !b.queue.length) return { ok: false, error: 'empty' };
-  const tab = await resolveMapsTab(tabId != null ? tabId : b.tabId);
-  if (tab == null) return { ok: false, error: 'no-tab' };
-  b.tabId = tab;
-  if (!b.active) {
-    b.mode = await getBatchMode(); // fix the mode for the whole run
-    if (!Array.isArray(b.pendingDeleteQueries)) b.pendingDeleteQueries = [];
-    b.streamSynced = b.streamSynced || 0;
-    b.active = true; b.stage = 'init'; b.ts = tsNow();
+// Open a worker window, tiled into a grid so they all stay visible (visible-but-
+// unfocused windows throttle far less than fully hidden tabs).
+async function openWorkerWindow(idx, count) {
+  const cols = count <= 1 ? 1 : count <= 4 ? 2 : 3;
+  const rows = Math.ceil(count / cols);
+  const W = 1440, H = 840;
+  const w = Math.max(560, Math.floor(W / cols)), h = Math.max(460, Math.floor(H / rows));
+  const left = (idx % cols) * w, top = Math.floor(idx / cols) * h;
+  try {
+    const win = await chrome.windows.create({ url: 'https://www.google.com/maps', type: 'normal', focused: idx === 0, left, top, width: w, height: h });
+    const tab = win && win.tabs && win.tabs[0];
+    return { windowId: win.id, tabId: tab ? tab.id : null };
+  } catch (e) { console.warn('[GridLeads] window create failed:', e && e.message); return null; }
+}
+
+// Start processing the queue with N parallel windows (one batch each).
+async function startQueue(reuseTabId) {
+  const b0 = await getBatch();
+  if (!b0 || !b0.queue.length) return { ok: false, error: 'empty' };
+  if (b0.active) return { ok: true };
+
+  const conc = await lockBatch(async () => {
+    const b = await getBatch(); if (!b) return 0;
+    b.active = true; b.mode = await getBatchMode(); b.streamSynced = b.streamSynced || 0;
+    if (!b.concurrency) b.concurrency = DEFAULT_CONCURRENCY;
+    for (const x of b.queue) if (x.status === 'running') { x.status = 'pending'; x.workerId = null; } // recover stale
+    b.workers = [];
+    const pending = b.queue.filter((x) => x.status === 'pending').length;
+    if (!pending) { await setBatch(null); return 0; }
     await setBatch(b);
-    try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
-    driveCurrent();
-  } else {
-    await setBatch(b);
+    return Math.min(b.concurrency || DEFAULT_CONCURRENCY, pending);
+  });
+  if (!conc) return { ok: false, error: 'empty' };
+  try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
+
+  for (let i = 0; i < conc; i++) {
+    let windowId = null, tabId = null, created = false;
+    if (i === 0 && await isMapsTab(reuseTabId)) {
+      tabId = reuseTabId; try { const t = await chrome.tabs.get(tabId); windowId = t.windowId; } catch { /* */ }
+    } else {
+      const win = await openWorkerWindow(i, conc);
+      if (win) { windowId = win.windowId; tabId = win.tabId; created = true; }
+    }
+    if (tabId == null) continue;
+    await lockBatch(async () => { const b = await getBatch(); if (!b || !b.active) return; b.workers.push({ id: i, windowId, tabId, created, batchId: null, stage: 'init', ts: tsNow() }); await setBatch(b); });
+    driveWorker(i);
   }
+  const fin = await getBatch();
+  if (fin && fin.active && (!fin.workers || !fin.workers.length)) { await stopAllBatches(); return { ok: false, error: 'no-window' }; }
   return { ok: true };
 }
 
-async function driveCurrent() {
-  const b = await getBatch();
-  if (!b || !b.active) return;
-  if (!b.queue.length) { await finishBatch(); return; }
-  const cur = b.queue[0];
-  if (b.itemIndex >= cur.items.length) { b.queue.shift(); b.itemIndex = 0; await setBatch(b); return driveCurrent(); }
-  const it = cur.items[b.itemIndex];
-  activeQuery = it.query;
-  if (b.tabId != null) tabQuery[b.tabId] = it.query;
-  seenUrls.clear();
-  sessionFound = 0;
-  await ensureProject(it.query, it.population);
-  await refreshBadge();
-  b.stage = 'navigating'; b.ts = tsNow(); await setBatch(b);
-  // Bring the driven Maps tab to the FRONT so it actually scrapes (Chrome
-  // throttles background tabs) and so the user watches the right tab.
-  try {
-    const t = await chrome.tabs.update(b.tabId, { url: it.url, active: true });
-    if (t && t.windowId != null) { try { await chrome.windows.update(t.windowId, { focused: true }); } catch { /* */ } }
-  } catch { /* */ }
-  // → the tabs.onUpdated(complete) handler will start the scraper
+// Give a worker its next item; all state changes happen inside the lock, the slow
+// navigation/window ops happen after it's released.
+async function driveWorker(workerId) {
+  const action = await lockBatch(async () => {
+    const b = await getBatch(); if (!b || !b.active) return { stop: true };
+    const w = b.workers.find((x) => x.id === workerId); if (!w) return { stop: true };
+    let bt = w.batchId ? b.queue.find((x) => x.id === w.batchId) : null;
+    if (bt && bt.itemIndex >= bt.items.length) { bt.status = 'done'; w.batchId = null; bt = null; } // batch finished
+    if (!bt) {
+      bt = b.queue.find((x) => x.status === 'pending'); // claim the next un-started batch
+      if (!bt) { // nothing left for this worker
+        w.batchId = null; w.stage = 'done'; w.ts = tsNow();
+        const allDone = b.workers.every((x) => x.stage === 'done') && !b.queue.some((x) => x.status === 'pending' || x.status === 'running');
+        await setBatch(b);
+        return { done: true, allDone, created: w.created, windowId: w.windowId };
+      }
+      bt.status = 'running'; bt.workerId = workerId; if (typeof bt.itemIndex !== 'number') bt.itemIndex = 0; w.batchId = bt.id;
+    }
+    const it = bt.items[bt.itemIndex];
+    w.stage = 'navigating'; w.ts = tsNow();
+    if (w.tabId != null) tabQuery[w.tabId] = it.query;
+    activeQuery = it.query;
+    await setBatch(b);
+    return { nav: true, tabId: w.tabId, url: it.url, query: it.query, population: it.population };
+  });
+  if (!action || action.stop) return;
+  if (action.done) {
+    if (action.created && action.windowId != null) { try { await chrome.windows.remove(action.windowId); } catch { /* */ } }
+    if (action.allDone) await finishBatch();
+    return;
+  }
+  if (action.nav) {
+    await ensureProject(action.query, action.population);
+    await refreshBadge();
+    try { await chrome.tabs.update(action.tabId, { url: action.url }); } catch { /* tab gone → watchdog recovers/skips */ }
+    // → tabs.onUpdated(complete) starts the scraper for this tab
+  }
 }
 
-async function onBatchTabComplete(tabId) {
-  const b = await getBatch();
-  if (!b || !b.active || b.tabId !== tabId || b.stage !== 'navigating') return;
-  b.stage = 'scraping'; b.ts = tsNow(); await setBatch(b);
-  await wait(2200); // let Maps render the results list
+async function onBatchTabComplete(tabId, url) {
+  // ignore the bare "/maps" load a freshly-opened worker window does first — only
+  // act once the actual search results page has loaded.
+  if (url && !/\/maps\/search/.test(url)) return;
+  let go = false;
+  await lockBatch(async () => {
+    const b = await getBatch(); if (!b || !b.active) return;
+    const w = b.workers.find((x) => x.tabId === tabId); if (!w || w.stage !== 'navigating') return;
+    w.stage = 'scraping'; w.ts = tsNow(); await setBatch(b); go = true;
+  });
+  if (!go) return;
+  await wait(NAV_SETTLE);
   await startContent(tabId);
 }
 
-async function onScrapeDoneBatch() {
-  const b = await getBatch();
-  if (!b || !b.active || b.stage !== 'scraping') return;
-  await wait(1200); // let the last captures land
-  if (await finishItemAndMaybeBatch(b)) driveCurrent();
+// A worker's content script finished → advance its batch by one item.
+async function advanceWorker(tabId) {
+  const info = await lockBatch(async () => {
+    const b = await getBatch(); if (!b || !b.active) return null;
+    const w = b.workers.find((x) => x.tabId === tabId); if (!w || w.stage !== 'scraping') return null;
+    const bt = w.batchId ? b.queue.find((x) => x.id === w.batchId) : null;
+    let justDone = null;
+    if (bt) { const it = bt.items[bt.itemIndex]; justDone = it ? it.query : null; bt.itemIndex += 1; }
+    w.stage = 'init'; w.ts = tsNow();
+    await setBatch(b);
+    return { workerId: w.id, justDone, mode: b.mode };
+  });
+  if (!info) return;
+  if (info.mode === 'stream' && info.justDone) {
+    await streamSyncItem(info.justDone);
+    await lockBatch(async () => { const b = await getBatch(); if (b) { b.streamSynced = (b.streamSynced || 0) + 1; await setBatch(b); } });
+  }
+  driveWorker(info.workerId);
+}
+
+async function onScrapeDoneBatch(tabId) {
+  if (tabId == null) return;
+  await wait(DONE_SETTLE); // let the last captures land
+  await advanceWorker(tabId);
 }
 
 async function finishBatch() {
   await setBatch(null);
+  seenUrls.clear();
   try { chrome.alarms.clear(HB_ALARM); } catch { /* */ }
   await refreshBadge();
 }
 
+// Stop everything: tell every worker's content to stop, close the windows we
+// opened, and clear the run.
+async function stopAllBatches() {
+  const b = await getBatch();
+  if (b && Array.isArray(b.workers)) {
+    for (const w of b.workers) {
+      if (w.tabId != null) { try { chrome.tabs.sendMessage(w.tabId, { action: 'stop' }, () => { void chrome.runtime.lastError; }); } catch { /* */ } }
+      if (w.created && w.windowId != null) { try { await chrome.windows.remove(w.windowId); } catch { /* */ } }
+    }
+  }
+  await setBatch(null);
+  seenUrls.clear();
+  try { chrome.alarms.clear(HB_ALARM); } catch { /* */ }
+  await refreshBadge();
+}
+
+// Watchdog: recover any worker whose step stalled (missed event or revived SW).
 async function batchWatchdog() {
   const b = await getBatch();
   if (!b || !b.active) { try { chrome.alarms.clear(HB_ALARM); } catch { /* */ } return; }
-  const age = tsNow() - (b.ts || 0);
-  if (b.stage === 'navigating' && age > 45000) { b.ts = tsNow(); await setBatch(b); driveCurrent(); }
-  else if (b.stage === 'scraping' && age > 300000) { // scrape stuck >5min → skip on
-    if (await finishItemAndMaybeBatch(b)) driveCurrent();
+  const now = tsNow();
+  for (const w of b.workers) {
+    const age = now - (w.ts || 0);
+    if (w.stage === 'navigating' && age > 45000) driveWorker(w.id);          // nav/complete missed → re-issue
+    else if (w.stage === 'scraping' && age > 240000) advanceWorker(w.tabId); // scrape stuck >4min → skip item
+    else if (w.stage === 'init' && age > 20000) driveWorker(w.id);           // missed advance → re-drive
   }
 }
 
 // persistent listeners (re-registered automatically when the SW restarts)
-chrome.tabs.onUpdated.addListener((tabId, info) => { if (info.status === 'complete') onBatchTabComplete(tabId); });
+chrome.tabs.onUpdated.addListener((tabId, info, tab) => { if (info.status === 'complete') onBatchTabComplete(tabId, tab && tab.url); });
 chrome.alarms.onAlarm.addListener((a) => { if (a.name === HB_ALARM) batchWatchdog(); });
 
 // ---------- CSV export ----------
@@ -391,7 +468,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ ok: true, found: sessionFound });
         break;
       case 'scrapeDone':
-        onScrapeDoneBatch();
+        onScrapeDoneBatch(tid);
         sendResponse({ ok: true });
         break;
       // Enqueue a batch (a group of searches). Used by the popup "Run batch" and
@@ -405,7 +482,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           '{' + (msg.middles || []).map((m) => (m || '').trim()).filter(Boolean).join(', ') + '}',
           (msg.suffix || '').trim(),
         ].filter((x) => x && x !== '{}').join(' ');
-        await enqueueBatch({ id: batchId(), label, items }, msg.tabId);
+        await enqueueBatch({ id: batchId(), label, items });
         sendResponse({ ok: true, count: items.length, queued: true });
         break;
       }
@@ -426,15 +503,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'batchStatus': {
         const b = await getBatch();
         if (b && b.active && b.queue.length) {
-          const cur = b.queue[0];
-          const c = cur.items[b.itemIndex];
-          const nxt = cur.items[b.itemIndex + 1];
-          const remainingBatches = b.queue.length - 1;
+          const running = (b.workers || []).filter((w) => w.batchId);
+          const totalItems = b.queue.reduce((s, x) => s + x.items.length, 0);
+          const doneItems = b.queue.reduce((s, x) => s + (x.status === 'done' ? x.items.length : (x.itemIndex || 0)), 0);
+          const pendingBatches = b.queue.filter((x) => x.status === 'pending').length;
+          let current = '', next = '', batchLabel = '';
+          const w0 = running[0];
+          if (w0) { const bt = b.queue.find((x) => x.id === w0.batchId); if (bt) { const it = bt.items[bt.itemIndex]; current = it ? it.query : ''; batchLabel = bt.label; const nx = bt.items[bt.itemIndex + 1]; next = nx ? nx.query : ''; } }
           sendResponse({
-            active: true, index: b.itemIndex, total: cur.items.length, stage: b.stage,
-            current: c ? c.query : '', next: nxt ? nxt.query : '',
-            batchLabel: cur.label, queuedBatches: remainingBatches,
-            mode: b.mode || 'local', streamSynced: b.streamSynced || 0,
+            active: true, stage: 'scraping', mode: b.mode || 'local', streamSynced: b.streamSynced || 0,
+            workers: (b.workers || []).length, running: running.length,
+            current, next, batchLabel, queuedBatches: pendingBatches,
+            index: doneItems, total: totalItems,
           });
         } else { sendResponse({ active: false }); }
         break;
@@ -444,65 +524,59 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const b = await getBatch();
         if (b && b.queue && b.queue.length) {
           sendResponse({
-            active: !!b.active, stage: b.stage, itemIndex: b.itemIndex,
-            mode: b.mode || 'local', streamSynced: b.streamSynced || 0,
-            queue: b.queue.map((bt, i) => ({
+            active: !!b.active, mode: b.mode || 'local', streamSynced: b.streamSynced || 0,
+            workers: (b.workers || []).length,
+            queue: b.queue.map((bt) => ({
               id: bt.id, label: bt.label, count: bt.items.length,
-              running: i === 0 && b.active,
-              currentQuery: i === 0 ? (bt.items[b.itemIndex] ? bt.items[b.itemIndex].query : '') : '',
-              doneInBatch: i === 0 ? b.itemIndex : 0,
+              status: bt.status || 'pending',
+              running: bt.status === 'running',
+              currentQuery: (bt.status === 'running' && bt.items[bt.itemIndex]) ? bt.items[bt.itemIndex].query : '',
+              doneInBatch: bt.itemIndex || 0,
               items: bt.items.map((it) => ({ q: it.query, a: it.area || it.query })),
             })),
           });
         } else { sendResponse({ active: false, queue: [] }); }
         break;
       }
-      // Remove a batch from the queue by id (if it's the running one, advance).
+      // Remove a batch by id. If it's running, stop its worker's content and free
+      // the worker to claim the next pending batch.
       case 'batchRemove': {
-        const b = await getBatch();
-        if (b && b.queue) {
-          const idx = b.queue.findIndex((x) => x.id === msg.id);
-          if (idx === 0 && b.active) {
-            // removing the currently-running batch → stop content + advance
-            if (b.tabId != null) { try { chrome.tabs.sendMessage(b.tabId, { action: 'stop' }, () => { void chrome.runtime.lastError; }); } catch { /* */ } }
-            b.queue.shift(); b.itemIndex = 0; b.stage = 'init'; b.ts = tsNow();
-            await setBatch(b);
-            if (!b.queue.length) await finishBatch(); else driveCurrent();
-          } else if (idx >= 0) {
-            // a queued (not-yet-running) batch — incl. index 0 when idle → just remove it
-            b.queue.splice(idx, 1);
-            if (!b.queue.length && !b.active) await setBatch(null);
-            else await setBatch(b);
+        const toDrive = await lockBatch(async () => {
+          const b = await getBatch(); if (!b || !b.queue) return null;
+          const bt = b.queue.find((x) => x.id === msg.id); if (!bt) return null;
+          let drive = null;
+          if (bt.status === 'running') {
+            const w = (b.workers || []).find((x) => x.id === bt.workerId);
+            if (w) { if (w.tabId != null) { try { chrome.tabs.sendMessage(w.tabId, { action: 'stop' }, () => { void chrome.runtime.lastError; }); } catch { /* */ } } w.batchId = null; w.stage = 'init'; w.ts = tsNow(); drive = w.id; }
           }
-        }
+          b.queue = b.queue.filter((x) => x.id !== msg.id);
+          await setBatch(b);
+          return drive;
+        });
+        if (toDrive != null) driveWorker(toDrive);
         sendResponse({ ok: true });
         break;
       }
-      // Reorder the batches (cities) in the queue. The currently-running batch
-      // always stays first (don't race the driver); the rest follow msg.order.
+      // Reorder the PENDING batches (which un-started one gets claimed next);
+      // running/done batches keep their relative order.
       case 'batchReorderQueue': {
-        const b = await getBatch();
-        if (b && b.queue && b.queue.length) {
+        await lockBatch(async () => {
+          const b = await getBatch(); if (!b || !b.queue || !b.queue.length) return;
           const order = Array.isArray(msg.order) ? msg.order : [];
           const byId = new Map(b.queue.map((bt) => [bt.id, bt]));
-          const runningId = b.active ? b.queue[0].id : null;
-          const next = [];
-          if (runningId && byId.has(runningId)) { next.push(byId.get(runningId)); byId.delete(runningId); }
-          for (const id of order) { if (id === runningId) continue; const bt = byId.get(id); if (bt) { next.push(bt); byId.delete(id); } }
-          for (const bt of byId.values()) next.push(bt); // keep any not listed
-          b.queue = next;
+          const out = [];
+          for (const bt of b.queue) if (bt.status !== 'pending') { out.push(bt); byId.delete(bt.id); }
+          for (const id of order) { const bt = byId.get(id); if (bt && bt.status === 'pending') { out.push(bt); byId.delete(id); } }
+          for (const bt of byId.values()) out.push(bt);
+          b.queue = out;
           await setBatch(b);
-          sendResponse({ ok: true });
-        } else { sendResponse({ ok: false }); }
+        });
+        sendResponse({ ok: true });
         break;
       }
       case 'batchStop':
       case 'batchStopAll': {
-        const b = await getBatch();
-        const t = b && b.tabId;
-        await setBatch(null);
-        try { chrome.alarms.clear(HB_ALARM); } catch { /* */ }
-        if (t != null) { try { chrome.tabs.sendMessage(t, { action: 'stop' }, () => { void chrome.runtime.lastError; }); } catch { /* */ } }
+        await stopAllBatches();
         sendResponse({ ok: true });
         break;
       }

@@ -52,9 +52,11 @@
     let st = null;
     if (!ctxAlive()) return;
     try { st = await chrome.runtime.sendMessage({ type: 'batchStatus' }); } catch { return; }
-    // only show on the tab that's actually being driven (its search matches)
-    const onDrivenTab = st && st.active && st.current && currentQuery() === st.current;
-    if (onDrivenTab) {
+    // show on every window that is actively scraping a search during a run; each
+    // shows its OWN current search (the windows run different batches in parallel).
+    const myQ = currentQuery();
+    const show = st && st.active && myQ;
+    if (show) {
       if (!banner) {
         banner = document.createElement('div');
         banner.id = 'gridleads-batch-banner';
@@ -62,10 +64,9 @@
         document.documentElement.appendChild(banner);
       }
       const clip = (s, n) => { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; };
-      const next = st.next ? ` &nbsp;·&nbsp; next: <b>${escHtml(clip(st.next, 48))}</b>` : ' &nbsp;·&nbsp; last one';
-      const batchesLeft = (st.queuedBatches || 0) + 1; // current + the ones still queued
-      const batchInfo = `📦 <b>${batchesLeft}</b> batch${batchesLeft === 1 ? '' : 'es'} left${st.batchLabel ? ` &nbsp;·&nbsp; <b>${escHtml(clip(st.batchLabel, 60))}</b>` : ''}`;
-      banner.innerHTML = `${batchInfo}<br>⚡ search <b>${st.index + 1}/${st.total}</b> &nbsp;·&nbsp; now: <b>${escHtml(clip(st.current, 48))}</b>${next}`;
+      const running = st.running || 1;
+      const pend = st.queuedBatches || 0;
+      banner.innerHTML = `⚡ <b>${running}</b> window${running === 1 ? '' : 's'} in parallel &nbsp;·&nbsp; <b>${st.index}/${st.total}</b> searches done${pend ? ` &nbsp;·&nbsp; ${pend} batch${pend === 1 ? '' : 'es'} queued` : ''}<br>now here: <b>${escHtml(clip(myQ, 56))}</b>`;
     } else if (banner) {
       banner.remove();
       banner = null;
@@ -110,14 +111,14 @@
     }
 
     let endHits = 0;
-    const NEED_END = 3;     // consecutive end-confirmations before stopping
+    const NEED_END = 2;     // consecutive end-confirmations before stopping (was 3)
     let stagnant = 0;
     let lastH = 0;
 
     while (running) {
       note = '';
       feed.scrollTo({ top: feed.scrollHeight + 1500, behavior: 'smooth' });
-      await sleep(1600 + Math.random() * 700);
+      await sleep(700 + Math.random() * 400); // faster scroll cadence (was 1600+700)
 
       const grew = feed.scrollHeight > lastH + 20;
       lastH = feed.scrollHeight;
@@ -126,12 +127,12 @@
         // Reached the bottom — but Maps may still be streaming the last page.
         endHits++;
         note = `Reached bottom — confirming (${endHits}/${NEED_END})…`;
-        // wait patiently and nudge, in case more is still loading
-        await sleep(2600);
+        // wait briefly and nudge, in case more is still loading
+        await sleep(1100);
         feed.scrollBy(0, -300);
-        await sleep(500);
+        await sleep(300);
         feed.scrollTo({ top: feed.scrollHeight + 1500, behavior: 'smooth' });
-        await sleep(2200);
+        await sleep(1000);
         if (!atEnd(feed) || feed.scrollHeight > lastH + 20) { endHits = 0; lastH = feed.scrollHeight; continue; }
         if (endHits >= NEED_END) break;
         continue;
@@ -141,8 +142,8 @@
       if (!grew) {
         stagnant++;
         note = 'Waiting for more results to load…';
-        await sleep(2500 + stagnant * 800);
-        if (stagnant >= 8) break; // give up after long stagnation
+        await sleep(1000 + stagnant * 500);
+        if (stagnant >= 6) break; // give up after long stagnation
       } else {
         stagnant = 0;
       }
