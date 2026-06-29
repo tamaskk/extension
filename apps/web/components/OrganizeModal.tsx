@@ -38,7 +38,7 @@ export default function OrganizeModal({ onClose, onDone }: { onClose: () => void
   };
 
   const p = done || preview;
-  const nothingToDo = !!p && !p.foldersCreated.length && !p.foldersReparented && !p.projectsMoved && !p.foldersDeleted.length;
+  const nothingToDo = !!p && !p.foldersCreated.length && !p.foldersReparented && !p.projectsMoved;
 
   return (
     <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -73,18 +73,12 @@ export default function OrganizeModal({ onClose, onDone }: { onClose: () => void
                   <Stat n={p.projectsMoved} label="projects moved" />
                   <Stat n={p.foldersCreated.length} label="folders created" />
                   <Stat n={p.foldersReparented} label="folders re-nested" />
-                  <Stat n={p.foldersDeleted.length} label="empty folders removed" />
                   <Stat n={p.unmatched} label="left as-is (unknown region)" muted />
                 </div>
 
                 {p.foldersCreated.length > 0 && (
                   <Section title={`New folders (${p.foldersCreated.length})`}>
                     {p.foldersCreated.map((n) => <span key={n} className="org-chip add">+ {n}</span>)}
-                  </Section>
-                )}
-                {p.foldersDeleted.length > 0 && (
-                  <Section title={`Removed empty folders (${p.foldersDeleted.length})`}>
-                    {p.foldersDeleted.map((n) => <span key={n} className="org-chip del">– {n}</span>)}
                   </Section>
                 )}
                 {p.sampleUnmatched.length > 0 && (
@@ -95,8 +89,9 @@ export default function OrganizeModal({ onClose, onDone }: { onClose: () => void
 
                 {!done && (
                   <div className="muted" style={{ marginTop: 14, fontSize: 12 }}>
-                    Already-correct folders are kept (matched case/accent-insensitively); only typos, duplicates and
-                    misplaced folders are consolidated. Projects with an unrecognized region stay exactly where they are.
+                    Nothing is deleted — every folder is kept (even if it ends up empty) and no project is removed.
+                    Already-correct folders are reused (matched case/accent-insensitively); projects with an
+                    unrecognized region stay exactly where they are.
                   </div>
                 )}
               </div>

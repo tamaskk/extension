@@ -19,8 +19,10 @@ type F = { folderId: string; name: string; parentId: string | null; order: numbe
 
 // POST /api/organize  { dryRun?: boolean, cleanup?: boolean }
 //   Re-files every project into  "<region> <vertical>"  and nests that under
-//   "<country> <vertical>", creating folders as needed, reparenting misplaced
-//   ones, and (cleanup, default on) deleting folders left empty by the reorg.
+//   "<country> <vertical>", creating folders as needed and reparenting misplaced
+//   ones. NEVER deletes anything — no folder is removed (even if it ends up
+//   empty) and no project is removed. Pass { cleanup:true } to also delete
+//   folders left empty by the reorg (off by default).
 //   Existing folders are matched case/accent-insensitively so correctly-named
 //   folders are reused (no churn); genuine typos/dupes get consolidated.
 //   Projects whose region can't be resolved are left exactly where they are.
@@ -29,7 +31,7 @@ export async function POST(req: Request) {
     await dbConnect();
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const dryRun = !!body?.dryRun;
-    const cleanup = body?.cleanup !== false;
+    const cleanup = body?.cleanup === true; // default: keep every folder, delete nothing
 
     // 1) region index — US states → USA, every country's cities → that country
     const entries: { name: string; country: string }[] = [];
