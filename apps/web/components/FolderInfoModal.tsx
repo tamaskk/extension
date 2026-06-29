@@ -45,7 +45,7 @@ export default function FolderInfoModal({ name, cities, names, regions, folderCo
 
   // a reference place is "present" if it appears as a whole, space-bounded token
   // sequence in any folder/project name — so "Abbeville city" matches the project
-  // "plumbers near Abbeville city alamaba".
+  // "plumbers near Abbeville city Alabama".
   const haystacks = [...new Set([...(names || []), ...cities])].map((s) => ' ' + norm(s) + ' ').filter((s) => s.trim());
   const isPresent = (place: string) => { const p = ' ' + norm(place) + ' '; return p.trim().length > 1 ? haystacks.some((h) => h.includes(p)) : false; };
   // USA-states mode: match the project's actual region (suffix) + sub-folder names

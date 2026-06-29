@@ -581,7 +581,7 @@ export default function Dashboard() {
     const childIds = ids.filter((id) => id !== f.id);
     const cities = childIds.map((id) => cityFromFolderName(folders[id]?.name || '')).filter(Boolean);
     // every folder + project name inside (so place detection works when the
-    // children are projects like "plumbers near Abbeville city alamaba")
+    // children are projects like "plumbers near Abbeville city Alabama")
     const names: string[] = [];
     // precise region set (project suffix + sub-folder name) — avoids matching a state
     // name that only appears as a CITY in another state's project (e.g. Washington, IN)
