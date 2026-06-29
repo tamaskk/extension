@@ -262,14 +262,14 @@ async function openWorkerWindow(idx, count) {
   const left = (idx % cols) * w, top = Math.floor(idx / cols) * h;
   // retry — rapid window.create calls can be denied; also resolve the tab id via a
   // query when the created window doesn't return its tabs inline.
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 4; attempt++) {
     try {
       const win = await chrome.windows.create({ url: 'https://www.google.com/maps', type: 'normal', focused: idx === 0, left, top, width: w, height: h });
       let tabId = (win && win.tabs && win.tabs[0]) ? win.tabs[0].id : null;
       if (tabId == null && win && win.id != null) { try { const ts = await chrome.tabs.query({ windowId: win.id }); if (ts && ts[0]) tabId = ts[0].id; } catch { /* */ } }
       if (tabId != null) return { windowId: win.id, tabId };
     } catch (e) { console.warn('[GridLeads] window create failed (attempt ' + (attempt + 1) + '):', e && e.message); }
-    await wait(300);
+    await wait(600);
   }
   return null;
 }
@@ -294,25 +294,32 @@ async function startQueue(reuseTabId) {
   if (!conc) return { ok: false, error: 'empty' };
   try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
 
-  // Keep opening windows until we actually have `conc` of them (a window.create can
-  // be denied; openWorkerWindow already retries, and we keep going up to a budget).
-  let made = 0, attempts = 0;
-  while (made < conc && attempts < conc * 4) {
+  // Phase 1 — open the windows ONE AT A TIME with a gap between them, so Chrome
+  // doesn't deny rapid window.create calls. We don't start scraping yet, so window
+  // creation isn't competing with navigation/capture work.
+  const specs = [];
+  let attempts = 0;
+  while (specs.length < conc && attempts < conc * 5) {
     attempts++;
     let windowId = null, tabId = null, created = false;
-    if (made === 0 && await isMapsTab(reuseTabId)) {
+    if (specs.length === 0 && await isMapsTab(reuseTabId)) {
       tabId = reuseTabId; try { const t = await chrome.tabs.get(tabId); windowId = t.windowId; } catch { /* */ }
     } else {
-      const win = await openWorkerWindow(made, conc);
+      const win = await openWorkerWindow(specs.length, conc);
       if (win) { windowId = win.windowId; tabId = win.tabId; created = true; }
     }
-    if (tabId == null) { await wait(300); continue; }
-    const wid = made;
-    await lockBatch(async () => { const b = await getBatch(); if (!b || !b.active) return; b.workers.push({ id: wid, windowId, tabId, created, batchId: null, stage: 'init', ts: tsNow() }); await setBatch(b); });
-    driveWorker(wid);
-    made++;
-    await wait(250); // stagger so Chrome doesn't deny rapid window.create calls
+    if (tabId == null) { await wait(700); continue; }
+    specs.push({ windowId, tabId, created });
+    if (!(await getBatch())?.active) break; // stopped mid-open
+    await wait(900); // give this window time to open before opening the next
   }
+  // Phase 2 — register all workers, then start them scraping.
+  await lockBatch(async () => {
+    const b = await getBatch(); if (!b || !b.active) return;
+    b.workers = specs.map((s, i) => ({ id: i, windowId: s.windowId, tabId: s.tabId, created: s.created, batchId: null, stage: 'init', ts: tsNow() }));
+    await setBatch(b);
+  });
+  for (let i = 0; i < specs.length; i++) driveWorker(i);
   const fin = await getBatch();
   if (fin && fin.active && (!fin.workers || !fin.workers.length)) { await stopAllBatches(); return { ok: false, error: 'no-window' }; }
   return { ok: true };
