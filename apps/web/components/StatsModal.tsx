@@ -63,21 +63,22 @@ function Chart({ data, type }: { data: Point[]; type: 'bar' | 'line' }) {
       {data.map((_, i) => <rect key={'h' + i} x={padL + i * slot} y={padT} width={slot} height={plotH} fill="transparent" onMouseEnter={() => setHover(i)} />)}
       {hover != null && (() => {
         const d = data[hover]; const label = d.count.toLocaleString();
-        const w = Math.max(80, label.length * 9 + 20, d.full.length * 6.4 + 16); const h = 40;
+        const w = Math.max(96, label.length * 11 + 26, d.full.length * 6.8 + 22); const h = 46;
         let bx = cx(hover) - w / 2; bx = Math.max(padL, Math.min(W - padR - w, bx));
-        let by = yOf(d.count) - h - 10; if (by < padT) by = yOf(d.count) + 12;
+        let by = yOf(d.count) - h - 12; if (by < padT) by = yOf(d.count) + 12;
         return <g pointerEvents="none">
-          <rect x={bx} y={by} width={w} height={h} rx="7" fill="#0b0d12" stroke="var(--accent)" strokeWidth="1" />
-          <text x={bx + w / 2} y={by + 18} textAnchor="middle" fill="var(--text)" fontSize="15" fontWeight="700">{label}</text>
-          <text x={bx + w / 2} y={by + 32} textAnchor="middle" fill="var(--muted)" fontSize="11">{d.full}</text>
+          <rect x={bx} y={by + 3} width={w} height={h} rx="11" fill="rgba(17,21,31,.20)" />
+          <rect x={bx} y={by} width={w} height={h} rx="11" fill="#161a26" />
+          <text x={bx + w / 2} y={by + 21} textAnchor="middle" fill="#ffffff" fontSize="17" fontWeight="800">{label}</text>
+          <text x={bx + w / 2} y={by + 36} textAnchor="middle" fill="#aeb4c6" fontSize="11" fontWeight="500">{d.full}</text>
         </g>;
       })()}
     </svg>
   );
 }
 
-export default function StatsModal({ folders, onClose }:
-  { folders: Folder[]; onClose: () => void }) {
+export default function StatsModal({ folders, onClose, inline }:
+  { folders: Folder[]; onClose: () => void; inline?: boolean }) {
   const [scope, setScope] = useState<string>(''); // '' = All leads (whole DB, incl. ungrouped)
   const [gran, setGran] = useState<'day' | 'hour'>('day');
   const [type, setType] = useState<'bar' | 'line'>('bar');
@@ -100,35 +101,45 @@ export default function StatsModal({ folders, onClose }:
     : data.length ? `${total.toLocaleString()} leads · ${data[0].full} → ${data[data.length - 1].full} · ${data.length} ${gran === 'hour' ? 'hour' : 'day'}${data.length === 1 ? '' : 's'}`
     : `${total.toLocaleString()} leads`;
 
+  const titleSub = (
+    <div>
+      <div className="modal-title">📊 Leads scraped {gran === 'hour' ? 'per hour' : 'per day'}</div>
+      <div className="modal-sub">{sub}</div>
+    </div>
+  );
+  const actions = (
+    <div className="modal-actions">
+      <div className="fi-mode">
+        <button className={`fi-mode-btn ${gran === 'day' ? 'active' : ''}`} onClick={() => setGran('day')}>Day</button>
+        <button className={`fi-mode-btn ${gran === 'hour' ? 'active' : ''}`} onClick={() => setGran('hour')}>Hour</button>
+      </div>
+      <div className="fi-mode">
+        <button className={`fi-mode-btn ${type === 'bar' ? 'active' : ''}`} onClick={() => setType('bar')}>▮ Bars</button>
+        <button className={`fi-mode-btn ${type === 'line' ? 'active' : ''}`} onClick={() => setType('line')}>📈 Line</button>
+      </div>
+      <select className="fi-country" value={scope} onChange={(e) => setScope(e.target.value)} title="Scope">
+        <option value="">All leads</option>
+        {folders.map((f) => <option key={f.id} value={f.id}>{(f.icon || '📁') + ' ' + f.name}</option>)}
+      </select>
+      {!inline && <button className="btn" onClick={onClose}>✕ Close</button>}
+    </div>
+  );
+  const body = loading ? <div className="muted" style={{ padding: 24 }}>Loading…</div>
+    : !data.length ? <div className="empty" style={{ padding: 24 }}>No scrape dates here yet.</div>
+    : <Chart data={data} type={type} />;
+
+  if (inline) return (
+    <section className="statsview">
+      <div className="statsview-head">{titleSub}{actions}</div>
+      <div className="statsview-body">{body}</div>
+    </section>
+  );
+
   return (
     <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal modal-lg">
-        <div className="modal-head">
-          <div>
-            <div className="modal-title">📊 Leads scraped {gran === 'hour' ? 'per hour' : 'per day'}</div>
-            <div className="modal-sub">{sub}</div>
-          </div>
-          <div className="modal-actions">
-            <div className="fi-mode">
-              <button className={`fi-mode-btn ${gran === 'day' ? 'active' : ''}`} onClick={() => setGran('day')}>Day</button>
-              <button className={`fi-mode-btn ${gran === 'hour' ? 'active' : ''}`} onClick={() => setGran('hour')}>Hour</button>
-            </div>
-            <div className="fi-mode">
-              <button className={`fi-mode-btn ${type === 'bar' ? 'active' : ''}`} onClick={() => setType('bar')}>▮ Bars</button>
-              <button className={`fi-mode-btn ${type === 'line' ? 'active' : ''}`} onClick={() => setType('line')}>📈 Line</button>
-            </div>
-            <select className="fi-country" value={scope} onChange={(e) => setScope(e.target.value)} title="Scope">
-              <option value="">All leads</option>
-              {folders.map((f) => <option key={f.id} value={f.id}>{(f.icon || '📁') + ' ' + f.name}</option>)}
-            </select>
-            <button className="btn" onClick={onClose}>✕ Close</button>
-          </div>
-        </div>
-        <div className="modal-body">
-          {loading ? <div className="muted" style={{ padding: 24 }}>Loading…</div>
-            : !data.length ? <div className="empty" style={{ padding: 24 }}>No scrape dates here yet.</div>
-            : <Chart data={data} type={type} />}
-        </div>
+        <div className="modal-head">{titleSub}{actions}</div>
+        <div className="modal-body">{body}</div>
       </div>
     </div>
   );

@@ -26,3 +26,4 @@ LeadsMap_Crx/
 .DS_Store
 *.log
 .gstack/
+.vercel

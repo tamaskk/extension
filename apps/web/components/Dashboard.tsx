@@ -175,17 +175,19 @@ export default function Dashboard() {
   const [sideFilter, setSideFilter] = useState('');
   const [rowSel, setRowSel] = useState<Set<string>>(new Set());
   const [sidebarW, setSidebarW] = useState(264);
+  const [panelW, setPanelW] = useState(440);
+  const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile drawer
-  const [compact, setCompact] = useState(false); // collapse the stats + filters bar
   const [dupesOpen, setDupesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [mapOpen, setMapOpen] = useState(false);
+  const [view, setView] = useState<'leads' | 'map' | 'stats'>('leads');
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; regions: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [reviewRow, setReviewRow] = useState<LeadRow | null>(null);
+  const [reviewTab, setReviewTab] = useState<'info' | 'reviews' | 'emails'>('info');
   const [callsOpen, setCallsOpen] = useState(false);
-  const [statsOpen, setStatsOpen] = useState(false);
   const [organizeOpen, setOrganizeOpen] = useState(false);
   const [callCount, setCallCount] = useState(0);
   const [checkedCount, setCheckedCount] = useState(0);
@@ -211,6 +213,9 @@ export default function Dashboard() {
     setMounted(true);
     const saved = parseInt(localStorage.getItem('gridleads_sw') || '', 10);
     if (saved >= 200 && saved <= 560) setSidebarW(saved);
+    const savedPw = parseInt(localStorage.getItem('gridleads_pw') || '', 10);
+    if (savedPw >= 320 && savedPw <= 760) setPanelW(savedPw);
+    if (localStorage.getItem('gridleads_collapsed') === '1') setCollapsed(true);
     // restore saved column order, dropping unknown keys and appending any new ones
     try {
       const arr = JSON.parse(localStorage.getItem(COLS_LS) || 'null');
@@ -220,7 +225,6 @@ export default function Dashboard() {
       }
     } catch { /* keep default */ }
     try { const h = JSON.parse(localStorage.getItem(HIDDEN_LS) || 'null'); if (Array.isArray(h)) setHiddenCols(new Set(h.filter((k: string) => COL_BY_KEY[k]))); } catch { /* */ }
-    if (localStorage.getItem('gridleads_compact') === '1') setCompact(true);
     useGrid.getState().hydrate().catch(() => {});
     api.getTags().then((r) => { const m: Record<string, string> = {}; (r.tags || []).forEach((t) => { m[t.name] = t.color; }); setTagReg(m); }).catch(() => {});
   }, []);
@@ -423,6 +427,8 @@ export default function Dashboard() {
     const oppSum = scope.reduce((s, p) => s + (p.oppSum || 0), 0);
     return { total, noweb, hot, email, avg: total ? Math.round(oppSum / total) : 0 };
   }, [activeProject, activeFolder, summaries, summariesArr, tree]);
+  const globalTotal = useMemo(() => summariesArr.reduce((s, p) => s + (p.total || 0), 0), [summariesArr]);
+  const scopeName = activeFolder ? (folders[activeFolder]?.name || 'this folder') : activeProject ? (summaries[activeProject]?.name || activeProject) : '';
 
   const title = activeFolder ? `📁 ${folders[activeFolder]?.name || 'Folder'}`
     : activeProject === null ? 'All leads'
@@ -461,13 +467,27 @@ export default function Dashboard() {
     else { setSortKey(key); setSortDir(SORTABLE[key] === 'num' || SORTABLE[key] === 'temp' ? -1 : 1); }
   };
 
-  // ----- resizable sidebar -----
+  // ----- resizable sidebar + right detail panel -----
   const dragging = useRef(false);
+  const draggingPanel = useRef(false);
   useEffect(() => {
-    const move = (e: MouseEvent) => { if (dragging.current) setSidebarW(Math.max(200, Math.min(560, e.clientX))); };
-    const up = () => { if (!dragging.current) return; dragging.current = false; document.body.classList.remove('resizing'); setSidebarW((w) => { localStorage.setItem('gridleads_sw', String(w)); return w; }); };
+    const move = (e: MouseEvent) => {
+      if (dragging.current) setSidebarW(Math.max(200, Math.min(560, e.clientX)));
+      if (draggingPanel.current) setPanelW(Math.max(320, Math.min(760, window.innerWidth - e.clientX - 12)));
+    };
+    const up = () => {
+      if (dragging.current) { dragging.current = false; document.body.classList.remove('resizing'); setSidebarW((w) => { localStorage.setItem('gridleads_sw', String(w)); return w; }); }
+      if (draggingPanel.current) { draggingPanel.current = false; document.body.classList.remove('resizing'); setPanelW((w) => { localStorage.setItem('gridleads_pw', String(w)); return w; }); }
+    };
     window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
     return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+  }, []);
+  const setCol = (v: boolean) => { setCollapsed(v); try { localStorage.setItem('gridleads_collapsed', v ? '1' : '0'); } catch { /* */ } };
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 820px)');
+    const on = () => setIsMobile(mq.matches);
+    on(); mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
   }, []);
 
   // ----- exports (server builds the bundle) -----
@@ -603,9 +623,9 @@ export default function Dashboard() {
   const renderCell = (key: string, r: LeadRow) => {
     switch (key) {
       case 'checked': return <td key={key} className="cb"><input type="checkbox" className="rowcheck" checked={!!r.checked} onChange={(e) => setChecked(r, (e.target as HTMLInputElement).checked)} /></td>;
-      case 'name': return <td key={key}><div className="bizcell"><span className="bizname" title={r.name}>{r.name}</span>{!!(r.reviewsCount && r.reviewsCount > 0) && <span className="bizreviews" title={`Show ${r.reviewsCount} scraped review${r.reviewsCount === 1 ? '' : 's'}`} onClick={(e) => { e.stopPropagation(); setReviewRow(r); }}>💬 {r.reviewsCount}</span>}<span className="bizopen" title="Show all details" onClick={(e) => { e.stopPropagation(); setDetailRow(r); }}>↗</span></div></td>;
+      case 'name': return <td key={key}><div className="bizcell"><span className="bizname" title={r.name}>{r.name}</span>{!!(r.reviewsCount && r.reviewsCount > 0) && <span className="bizreviews" title={`Show ${r.reviewsCount} scraped review${r.reviewsCount === 1 ? '' : 's'}`} onClick={(e) => { e.stopPropagation(); setReviewTab('reviews'); setReviewRow(r); }}>💬 {r.reviewsCount}</span>}<span className="bizopen" title="Show all details" onClick={(e) => { e.stopPropagation(); setDetailRow(r); }}>↗</span></div></td>;
       case 'category': return <td key={key} className="muted">{r.category}</td>;
-      case 'rating': return <td key={key}>{r.rating ?? '—'}</td>;
+      case 'rating': return <td key={key}>{r.rating != null ? <span className="rate-cell"><span className="rate-star">★</span> {r.rating}</span> : <span className="muted">—</span>}</td>;
       case 'reviewCount': return <td key={key} className="muted">{r.reviewCount ?? '—'}</td>;
       case 'phone': return <td key={key}>{r.phone || <span className="muted">—</span>}</td>;
       case 'email': return <td key={key}>{r.email || <span className="muted">—</span>}</td>;
@@ -678,14 +698,93 @@ export default function Dashboard() {
   };
 
   if (!mounted) return null;
-  if (!hydrated) return <div style={{ display: 'grid', placeItems: 'center', height: '100vh', color: 'var(--muted)' }}>Loading from database…</div>;
+  if (!hydrated) return (
+    <div className="app">
+      <aside className="sidebar">
+        <div className="brand"><span className="brand-mark">✦</span> GridLeads</div>
+        <nav className="navrail">
+          {[['🧾', 'Leads'], ['🗺️', 'Map'], ['📊', 'Stats'], ['📞', 'Calls'], ['⧉', 'Duplicates'], ['🗂️', 'Organize']].map(([ic, label], i) => (
+            <div className={`navrail-item ${i === 0 ? 'active' : ''}`} key={label}><span className="ic">{ic}</span> {label}</div>
+          ))}
+          <div className="navrail-sep" />
+          <div className="navrail-item"><span className="ic">⤴</span> Import</div>
+          <div className="navrail-item"><span className="ic">⤓</span> Export</div>
+        </nav>
+        <div className="side-h"><span>Projects</span></div>
+        <div className="side-filter-wrap"><div className="skel-bar" style={{ height: 32 }} /></div>
+        <div className="nav" style={{ gap: 6 }}>
+          {Array.from({ length: 10 }).map((_, i) => <div key={i} className="skel-bar" style={{ height: 30, width: `${68 + ((i * 11) % 30)}%` }} />)}
+        </div>
+      </aside>
+      <main className="main">
+        <header className="topbar">
+          <div className="skel-bar" style={{ flex: 1, height: 36 }} />
+          <div className="skel-bar" style={{ width: 130, height: 36 }} />
+          <div className="spacer" />
+          <div className="skel-bar" style={{ width: 90, height: 36 }} />
+          <div className="skel-bar" style={{ width: 90, height: 36 }} />
+        </header>
+        <div className="filters">
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skel-bar" style={{ width: 78, height: 28, borderRadius: 20 }} />)}
+        </div>
+        <section className="widgets">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div className="widget" key={i}><div className="skel-bar" style={{ height: 26, width: '55%' }} /><div className="skel-bar" style={{ height: 11, width: '40%', marginTop: 9 }} /></div>
+          ))}
+        </section>
+        <section className="tablewrap">
+          <div className="skel-bar" style={{ height: 40, borderRadius: '12px', marginBottom: 6 }} />
+          {Array.from({ length: 14 }).map((_, i) => <div key={i} className="skel-bar" style={{ height: 42, marginBottom: 6, opacity: Math.max(0.25, 1 - i * 0.06) }} />)}
+        </section>
+      </main>
+    </div>
+  );
 
   return (
-    <div className={`app ${sidebarOpen ? 'sidebar-open' : ''}`} style={{ '--sw': `${sidebarW}px` } as React.CSSProperties}>
+    <div className={`app ${sidebarOpen ? 'sidebar-open' : ''} ${reviewRow ? 'with-panel' : ''}`} style={{ '--sw': `${collapsed && !isMobile ? 64 : sidebarW}px`, '--pw': `${panelW}px` } as React.CSSProperties}>
       <div className="side-backdrop" onClick={() => setSidebarOpen(false)} />
-      {/* SIDEBAR */}
+
+      {/* SIDEBAR — collapsed icon rail (desktop only) */}
+      {collapsed && !isMobile && (
+        <aside className="sidebar collapsed">
+          <button className="brand-mark only" title="Expand sidebar" onClick={() => setCol(false)}>✦</button>
+          <div className="crail">
+            <button className={`crail-i ${view === 'leads' ? 'active' : ''}`} title="Leads" onClick={() => setView('leads')}>🧾</button>
+            <button className={`crail-i ${view === 'map' ? 'active' : ''}`} title="Map" onClick={() => setView('map')}>🗺️</button>
+            <button className={`crail-i ${view === 'stats' ? 'active' : ''}`} title="Stats" onClick={() => setView('stats')}>📊</button>
+            <button className="crail-i" title="Calls" onClick={() => setCallsOpen(true)}>📞</button>
+            <button className="crail-i" title="Duplicates" onClick={() => setDupesOpen(true)}>⧉</button>
+            <button className="crail-i" title="Organize" onClick={() => setOrganizeOpen(true)}>🗂️</button>
+            <div className="crail-sep" />
+            {tree.roots.map((f) => (
+              <button key={f.id} className={`crail-i ${activeFolder === f.id ? 'active' : ''}`} title={f.name} onClick={() => { setActiveProject(null); setActiveFolder(f.id); setView('leads'); }}>{f.icon || '📁'}</button>
+            ))}
+            {tree.ungrouped.length > 0 && (
+              <button className="crail-chip" title={`${tree.ungrouped.length} project${tree.ungrouped.length === 1 ? '' : 's'} with no folder`} onClick={() => setCol(false)}>+{tree.ungrouped.length}</button>
+            )}
+          </div>
+          <button className="crail-expand" title="Expand sidebar" onClick={() => setCol(false)}>»</button>
+        </aside>
+      )}
+
+      {/* SIDEBAR — full (also used on mobile, where collapse is disabled) */}
+      {(!collapsed || isMobile) && (
       <aside className="sidebar">
-        <div className="brand">◧ GridLeads</div>
+        <div className="sidebar-scroll">
+        <div className="brand"><span className="brand-mark">✦</span> GridLeads <button className="side-collapse" title="Collapse sidebar" onClick={() => setCol(true)}>«</button></div>
+
+        <nav className="navrail">
+          <button className={`navrail-item ${view === 'leads' ? 'active' : ''}`} onClick={() => { setView('leads'); setSidebarOpen(false); }}><span className="ic">🧾</span> Leads</button>
+          <button className={`navrail-item ${view === 'map' ? 'active' : ''}`} onClick={() => { setView('map'); setSidebarOpen(false); }}><span className="ic">🗺️</span> Map</button>
+          <button className={`navrail-item ${view === 'stats' ? 'active' : ''}`} onClick={() => { setView('stats'); setSidebarOpen(false); }}><span className="ic">📊</span> Stats</button>
+          <button className="navrail-item" onClick={() => setCallsOpen(true)}><span className="ic">📞</span> Calls{callCount > 0 && <span className="nb">{callCount.toLocaleString()}</span>}</button>
+          <button className="navrail-item" onClick={() => setDupesOpen(true)}><span className="ic">⧉</span> Duplicates</button>
+          <button className="navrail-item" onClick={() => setOrganizeOpen(true)}><span className="ic">🗂️</span> Organize</button>
+          <div className="navrail-sep" />
+          <button className="navrail-item" onClick={() => setImportOpen(true)}><span className="ic">⤴</span> Import</button>
+          <button className="navrail-item" onClick={() => exportJsonScope({}, 'all')}><span className="ic">⤓</span> Export</button>
+        </nav>
+
         <div className="side-h">
           <span>Projects <span className="side-count">{folderList.length} folder{folderList.length === 1 ? '' : 's'} · {summariesArr.length} project{summariesArr.length === 1 ? '' : 's'}</span></span>
           <span className="side-tools">
@@ -769,14 +868,15 @@ export default function Dashboard() {
         </nav>
 
         <div className="side-foot">Each Google Maps search is saved as a project.</div>
+        </div>
         <div className="resizer" onMouseDown={(e) => { dragging.current = true; document.body.classList.add('resizing'); e.preventDefault(); }} />
       </aside>
+      )}
 
       {/* MAIN */}
       <main className="main">
         <header className="topbar">
           <button className="hamburger" title="Projects" onClick={() => setSidebarOpen((o) => !o)}>☰</button>
-          <button className="btn compact-toggle" title={compact ? 'Show stats & filters' : 'Hide stats & filters'} onClick={() => setCompact((c) => { const n = !c; try { localStorage.setItem('gridleads_compact', n ? '1' : '0'); } catch { /* */ } return n; })}>{compact ? '▾' : '▴'}</button>
           <input className="search" type="search" placeholder="Search businesses, category, city, phone…" value={term} onChange={(e) => setTerm(e.target.value)} />
           <select className="select" onChange={(e) => { const m = DROPDOWN_SORT[e.target.value]; if (m) { setSortKey(m[0]); setSortDir(m[1]); } }}>
             <option value="opportunity_desc">Sort: Opportunity ↓</option>
@@ -786,24 +886,40 @@ export default function Dashboard() {
             <option value="reviews_desc">Most reviews</option>
             <option value="name_asc">Name A–Z</option>
           </select>
-          <button className="btn" onClick={refreshAll}>⟳ Refresh</button>
+          <div className="spacer" />
+          <button className="btn" onClick={refreshAll} title="Reload data">⟳ Refresh</button>
           <button className="btn" onClick={runRecalc} disabled={!!recalc?.running} title="Recompute opportunity scores for all leads with the new ranking">
-            {recalc?.running ? `⏳ ${recalc.total ? Math.round((recalc.done / recalc.total) * 100) : 0}%` : '★ Recalc scores'}
+            {recalc?.running ? `⏳ ${recalc.total ? Math.round((recalc.done / recalc.total) * 100) : 0}%` : '★ Recalc'}
           </button>
-          <button className={`btn ${callCount ? 'primary' : ''}`} onClick={() => setCallsOpen(true)} title="Leads flagged for calling">📞 {callCount.toLocaleString()} leads</button>
           {checkedCount > 0 && <button className="btn" onClick={uncheckAllLeads} title="Clear the Checked status on all checked leads">☐ Uncheck {checkedCount.toLocaleString()}</button>}
-          <button className="btn" onClick={() => setStatsOpen(true)} title="Leads scraped per day">📊 Stats</button>
-          <button className="btn" onClick={() => setOrganizeOpen(true)} title="Auto-file projects into region/country folders">🗂 Organize</button>
-          <button className="btn" onClick={() => setDupesOpen(true)}>⧉ Duplicates</button>
-          <button className="btn" onClick={() => setMapOpen(true)}>🗺 Map</button>
-          <button className="btn" onClick={() => exportJsonScope(activeProject ? { queries: [activeProject] } : {}, activeProject || 'all')}>⤓ Export JSON</button>
         </header>
 
-        {!compact && <div className="filters">
-          {([['all', 'All'], ['nowebsite', 'No website'], ['haswebsite', 'Has website'], ['hot', '🔥 Hot'], ['email', 'Email found'], ['hasreviews', '💬 Has reviews']] as const).map(([key, label]) => (
-            <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
-          ))}
-          <CategoryFilter project={activeProject} folder={activeFolder} value={selectedCats} onChange={setSelectedCats} />
+        {view === 'map' && (
+          <MapModal
+            inline
+            onClose={() => setView('leads')}
+            onOpenCrm={(name) => { setView('leads'); setTerm(name); setActiveProject(null); setActiveFolder(null); }}
+            title={title}
+            project={activeProject}
+            folder={activeFolder}
+            filter={filter}
+            search={debTerm}
+            categories={selectedCats}
+            ptypes={selTypes}
+            pregions={selRegions}
+          />
+        )}
+
+        {view === 'stats' && <StatsModal inline folders={folderList.slice().sort(byOrder)} onClose={() => setView('leads')} />}
+
+        {view === 'leads' && <>
+        <div className="filters">
+          <div className="filterchips">
+            {([['all', 'All'], ['nowebsite', 'No website'], ['haswebsite', 'Has website'], ['hot', '🔥 Hot'], ['email', 'Email found'], ['hasreviews', '💬 Has reviews']] as const).map(([key, label]) => (
+              <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
+            ))}
+            <CategoryFilter project={activeProject} folder={activeFolder} value={selectedCats} onChange={setSelectedCats} />
+          </div>
           {rowSel.size > 0 && (
             <span className="rowsel-bar">
               <b>{rowSel.size}</b>&nbsp;selected
@@ -819,15 +935,18 @@ export default function Dashboard() {
           )}
           <ColumnsMenu order={columnOrder} hidden={hiddenCols} onToggle={toggleColumn} onAll={setAllColumns} onReset={resetColumns} />
           <span className="title">{title}</span>
-        </div>}
+        </div>
 
-        {!compact && <section className="widgets">
-          <div className="widget"><div className="w-num">{stats.total}</div><div className="w-label">Total leads</div></div>
-          <div className="widget"><div className="w-num accent">{stats.noweb}</div><div className="w-label">No website</div></div>
-          <div className="widget"><div className="w-num hot">{stats.hot}</div><div className="w-label">Hot leads</div></div>
-          <div className="widget"><div className="w-num">{stats.email}</div><div className="w-label">Emails found</div></div>
-          <div className="widget"><div className="w-num">{stats.avg}</div><div className="w-label">Avg opportunity</div></div>
-        </section>}
+        {(activeFolder || activeProject) && (
+          <div className="widgets-scope">
+            Stats for <b>{scopeName}</b> — <button className="linkbtn" onClick={() => { setActiveFolder(null); setActiveProject(null); }}>show all {globalTotal.toLocaleString()} leads</button>
+          </div>
+        )}
+        <section className="widgets">
+          <div className="widget"><span className="w-ic blue">📋</span><div className="w-body"><div className="w-num">{stats.total}</div><div className="w-label">{(activeFolder || activeProject) ? 'Leads in view' : 'Total leads'}</div></div></div>
+          <div className="widget"><span className="w-ic rose">🚫</span><div className="w-body"><div className="w-num rose">{stats.noweb}</div><div className="w-label">No website</div></div></div>
+          <div className="widget"><span className="w-ic amber">🔥</span><div className="w-body"><div className="w-num amber">{stats.hot}</div><div className="w-label">Hot leads</div></div></div>
+        </section>
 
         <section className="tablewrap">
           <table className="table">
@@ -856,7 +975,8 @@ export default function Dashboard() {
               {pageRows.map((r) => {
                 const id = `${r._project}|${r._key}`;
                 return (
-                  <tr key={id} title={r.topPitch || undefined} className={r.call ? 'callrow' : undefined}>
+                  <tr key={id} title={r.topPitch || undefined} className={`rowclick ${r.call ? 'callrow' : ''}`}
+                    onClick={(e) => { const el = e.target as HTMLElement; if (el.closest('input,select,textarea,a,button,label,.tags-cell')) return; setReviewTab('info'); setReviewRow(r); }}>
                     <td className="cb"><input type="checkbox" className="selcheck" checked={rowSel.has(id)} onChange={(e) => setRowSel((s) => { const n = new Set(s); if ((e.target as HTMLInputElement).checked) n.add(id); else n.delete(id); return n; })} /></td>
                     {visibleKeys.map((k) => renderCell(k, r))}
                   </tr>
@@ -884,13 +1004,13 @@ export default function Dashboard() {
             <button className="pgbtn" disabled={page >= pageCount} onClick={() => setPage(pageCount)}>»</button>
           </div>
         </footer>
+        </>}
       </main>
 
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
 
       {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} names={infoFolder.names} regions={infoFolder.regions} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
 
-      {statsOpen && <StatsModal folders={folderList.slice().sort(byOrder)} onClose={() => setStatsOpen(false)} />}
       {organizeOpen && <OrganizeModal onClose={() => setOrganizeOpen(false)} onDone={() => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); }} />}
 
       {callsOpen && <CallsModal onClose={() => setCallsOpen(false)} onToggleCall={(r, call) => {
@@ -899,7 +1019,7 @@ export default function Dashboard() {
         api.setCall(r._project, r._key, call).catch(() => {});
       }} />}
 
-      {reviewRow && <ReviewsModal lead={reviewRow} onClose={() => setReviewRow(null)} />}
+      {reviewRow && <ReviewsModal key={`${reviewRow._project}|${reviewRow._key}`} lead={reviewRow} initialTab={reviewTab} onClose={() => setReviewRow(null)} onEditAll={(l) => { setReviewRow(null); setDetailRow(l); }} onResizeStart={() => { draggingPanel.current = true; document.body.classList.add('resizing'); }} />}
       {detailRow && (
         <LeadDetailModal
           row={detailRow}
@@ -908,20 +1028,6 @@ export default function Dashboard() {
           onCreateTag={createTag}
           onSaved={(field, value) => setPageRows((rows) => rows.map((x) => (x._project === detailRow._project && x._key === detailRow._key ? { ...x, [field]: value } : x)))}
           onClose={() => setDetailRow(null)}
-        />
-      )}
-
-      {mapOpen && (
-        <MapModal
-          onClose={() => setMapOpen(false)}
-          title={title}
-          project={activeProject}
-          folder={activeFolder}
-          filter={filter}
-          search={debTerm}
-          categories={selectedCats}
-          ptypes={selTypes}
-          pregions={selRegions}
         />
       )}
 
