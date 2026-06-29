@@ -41,7 +41,13 @@ export async function POST(req: Request) {
 
     // 2) current state
     const folders = (await Folder.find().lean()) as any[];
-    const projects = (await Project.find().select('query folderId').lean()) as { query: string; folderId: string | null }[];
+    const projects = (await Project.find().select('query folderId createdAt').lean()) as { query: string; folderId: string | null; createdAt?: string }[];
+
+    // folder name + original parent by id (for the inspectable plan tree)
+    const nameById = new Map<string, string>();
+    const origParentById = new Map<string, string | null>();
+    for (const f of folders) { nameById.set(f.folderId, f.name); origParentById.set(f.folderId, f.parentId || null); }
+    const folderName = (id: string | null | undefined) => (id && nameById.get(id)) || '(ungrouped)';
 
     // existing folders keyed by NORMALIZED name (lowest order wins on dupes)
     const byName = new Map<string, F>();
@@ -62,13 +68,15 @@ export async function POST(req: Request) {
         f = { folderId: genId(), name, parentId: null, order: 10000 + created.length, icon: country && FLAG[country] ? FLAG[country] : '', _new: true };
         byName.set(k, f);
         created.push(f);
+        nameById.set(f.folderId, name);
       }
       return f;
     };
 
     // 3) plan
-    const projMoves: { query: string; folderId: string }[] = [];
+    const projMoves: { query: string; folderId: string; from: string; createdAt: string }[] = [];
     const reparents = new Map<string, string | null>(); // folderId → new parentId
+    const subToRoot = new Map<string, string>(); // sub folderId → its root folderId
     let unmatched = 0;
     const sampleUnmatched: string[] = [];
 
@@ -83,7 +91,8 @@ export async function POST(req: Request) {
         sub.parentId = root.folderId;
         if (!sub._new) reparents.set(sub.folderId, root.folderId);
       }
-      if ((p.folderId || null) !== sub.folderId) projMoves.push({ query: p.query, folderId: sub.folderId });
+      subToRoot.set(sub.folderId, root.folderId);
+      if ((p.folderId || null) !== sub.folderId) projMoves.push({ query: p.query, folderId: sub.folderId, from: folderName(p.folderId), createdAt: p.createdAt || '' });
     }
 
     // 4) folders emptied by the reorg (had projects/children before, none after)
@@ -112,6 +121,41 @@ export async function POST(req: Request) {
       }
     }
 
+    // 4b) inspectable plan tree: root → sub → moved projects (only what changes)
+    const createdIds = new Set(created.map((c) => c.folderId));
+    const iconById = new Map<string, string>();
+    for (const f of folders) iconById.set(f.folderId, f.icon || '');
+    for (const c of created) iconById.set(c.folderId, c.icon || '');
+    const movedBySub = new Map<string, { query: string; from: string; createdAt: string }[]>();
+    for (const m of projMoves) (movedBySub.get(m.folderId) || movedBySub.set(m.folderId, []).get(m.folderId)!).push({ query: m.query, from: m.from, createdAt: m.createdAt });
+
+    // a sub is "involved" if it's created, reparented, or receives moved projects
+    const involvedSubs = [...subToRoot.keys()].filter((sid) => createdIds.has(sid) || reparents.has(sid) || movedBySub.has(sid));
+    const subsByRoot = new Map<string, string[]>();
+    for (const sid of involvedSubs) { const r = subToRoot.get(sid)!; (subsByRoot.get(r) || subsByRoot.set(r, []).get(r)!).push(sid); }
+
+    const planRoots = [...subsByRoot.keys()].map((rid) => {
+      const subs = subsByRoot.get(rid)!.map((sid) => {
+        const moved = (movedBySub.get(sid) || []).slice().sort((a, b) => a.query.localeCompare(b.query));
+        const status = createdIds.has(sid) ? 'created' : reparents.has(sid) ? 'reparented' : 'existing';
+        return {
+          name: folderName(sid),
+          status,
+          fromParent: status === 'reparented' ? (origParentById.get(sid) ? folderName(origParentById.get(sid)) : '(top level)') : undefined,
+          movedCount: moved.length,
+          alreadyHere: Math.max(0, (afterProj.get(sid) || 0) - moved.length),
+          moved,
+        };
+      }).sort((a, b) => a.name.localeCompare(b.name));
+      return {
+        name: folderName(rid),
+        icon: iconById.get(rid) || '',
+        created: createdIds.has(rid),
+        movedCount: subs.reduce((s, x) => s + x.movedCount, 0),
+        subs,
+      };
+    }).sort((a, b) => (Number(b.created) - Number(a.created)) || a.name.localeCompare(b.name));
+
     const summary = {
       ok: true,
       dryRun,
@@ -122,6 +166,7 @@ export async function POST(req: Request) {
       foldersDeleted: toDelete.map((d) => d.name),
       unmatched,
       sampleUnmatched,
+      plan: { roots: planRoots },
     };
 
     if (dryRun) return json(summary);

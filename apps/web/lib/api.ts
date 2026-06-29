@@ -24,6 +24,10 @@ export interface LeadsQuery {
 
 export interface DupeGroup { name: string; address?: string; items: { project: string; key: string; name: string; category?: string; rating?: number; reviewCount?: number; checked?: boolean }[]; }
 
+export interface OrganizeMove { query: string; from: string; createdAt: string; }
+export interface OrganizeSub { name: string; status: 'created' | 'reparented' | 'existing'; fromParent?: string; movedCount: number; alreadyHere: number; moved: OrganizeMove[]; }
+export interface OrganizeRoot { name: string; icon: string; created: boolean; movedCount: number; subs: OrganizeSub[]; }
+
 export interface GeoPoint {
   lat: number; lng: number; name: string;
   category?: string; rating?: number | null; reviewCount?: number | null;
@@ -126,6 +130,7 @@ export const api = {
     ok: boolean; dryRun: boolean; totalProjects: number; foldersCreated: string[];
     foldersReparented: number; projectsMoved: number; foldersDeleted: string[];
     unmatched: number; sampleUnmatched: string[]; error?: string;
+    plan: { roots: OrganizeRoot[] };
   }> => jsend('/api/organize', 'POST', opts),
 
   // Chunked sync — splits big bundles so no request exceeds the serverless body
