@@ -1010,9 +1010,12 @@ $('bd_loadMissing').addEventListener('click', async () => {
 // Manual mode: claim the windows you already opened (no windows.create → no throttle).
 $('batchClaim').addEventListener('click', async () => {
   const res = await msg({ type: 'batchStartAdopt' });
-  if (res && res.error === 'no-maps') alert('Open at least one Chrome window first (a Google Maps tab, or just an empty new window), then click again.');
-  else if (res && res.error === 'empty') alert('Queue is empty — add a batch first.');
-  else if (res && res.adopted != null) alert(`Claimed ${res.adopted} window(s) — scraping started.`);
+  if (!res) alert('No response from the extension — reload it (chrome://extensions → ⟳) and try again.');
+  else if (res.error === 'no-maps') alert('No window to use.\n\nOpen at least one OTHER Chrome window (a Google Maps tab, or just an empty new window) BESIDES this dashboard, then click again.');
+  else if (res.error === 'empty') alert('Queue is empty — add a batch first.');
+  else if (res.already) alert(`Already running on ${res.adopted} window(s).\nPress "Stop all" first if you want to re-claim.`);
+  else if (res.ok) alert(`Claimed ${res.adopted || 0} window(s) — scraping started.`);
+  else alert('Could not start: ' + (res.error || 'unknown'));
   renderQueue();
 });
 

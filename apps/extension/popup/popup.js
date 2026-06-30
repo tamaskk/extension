@@ -226,10 +226,14 @@ async function init() {
   });
   // Manual mode: claim the windows the user already opened (no windows.create → no throttle).
   $('qsClaim').addEventListener('click', async () => {
+    $('qsInfo').textContent = 'Claiming your open windows…';
     const res = await bg({ type: 'batchStartAdopt' });
-    if (res && res.error === 'no-maps') $('qsInfo').textContent = 'Open ≥1 Chrome window first (a Google Maps tab, or just an empty new window), then click again.';
-    else if (res && res.error === 'empty') $('qsInfo').textContent = 'Queue is empty — add a batch first.';
-    else { if (res && res.adopted) $('qsInfo').textContent = `Claimed ${res.adopted} window(s) — starting…`; refreshQueue(); }
+    if (!res) $('qsInfo').textContent = '⚠ No response from the extension — reload it (chrome://extensions → ⟳) and try again.';
+    else if (res.error === 'no-maps') $('qsInfo').textContent = '⚠ No window to use. Open ≥1 OTHER Chrome window (a Google Maps tab, or just an empty new window) besides this one, then click again.';
+    else if (res.error === 'empty') $('qsInfo').textContent = '⚠ Queue is empty — add a batch first.';
+    else if (res.already) { $('qsInfo').textContent = `Already running on ${res.adopted} window(s). Press ■ Stop first to re-claim.`; refreshQueue(); }
+    else if (res.ok) { $('qsInfo').textContent = `✓ Claimed ${res.adopted || 0} window(s) — starting…`; refreshQueue(); }
+    else $('qsInfo').textContent = '⚠ ' + (res.error || 'could not start');
   });
   $('qsStart').addEventListener('click', async () => {
     const tabId = await mapsTabId();

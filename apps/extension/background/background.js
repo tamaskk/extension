@@ -378,11 +378,23 @@ async function adoptTab(tg) {
 }
 
 // Start the queue by adopting the user's already-open windows (no windows.create).
+async function isLiveTab(id) { if (id == null) return false; try { await chrome.tabs.get(id); return true; } catch { return false; } }
+
 async function startQueueAdopt() {
   const b0 = await getBatch();
-  if (!b0 || !b0.queue.length) return { ok: false, error: 'empty' };
-  if (b0.active && Array.isArray(b0.workers) && b0.workers.length) return { ok: true }; // already running
+  if (!b0 || !b0.queue.length) { console.warn('[GridLeads] adopt: no queue'); return { ok: false, error: 'empty' }; }
+  const pending0 = b0.queue.filter((x) => x.status === 'pending' || x.status === 'running').length;
+  if (!pending0) { console.warn('[GridLeads] adopt: queue has no pending batches (all done?)'); return { ok: false, error: 'empty' }; }
+  // Already running? Only believe it if at least one worker's tab is actually alive.
+  // A stale run (dead service worker / closed windows) left active:true behind → restart.
+  if (b0.active && Array.isArray(b0.workers) && b0.workers.length) {
+    let alive = 0;
+    for (const w of b0.workers) { if (w.stage !== 'done' && await isLiveTab(w.tabId)) alive++; }
+    if (alive > 0) { console.log('[GridLeads] adopt: already running with ' + alive + ' live worker(s)'); return { ok: true, already: true, adopted: alive }; }
+    console.warn('[GridLeads] adopt: stale run detected (active but 0 live workers) → restarting');
+  }
   const targets = await listAdoptableTabs();
+  console.log('[GridLeads] adopt: found ' + targets.length + ' adoptable window(s), queue pending=' + pending0);
   if (!targets.length) return { ok: false, error: 'no-maps' };
   const mode = await getBatchMode();
   await lockBatch(async () => {
@@ -581,6 +593,7 @@ async function buildCsv({ query, onlyNoWebsite } = {}) {
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
     const tid = sender && sender.tab && sender.tab.id;
+    try {
     switch (msg.type) {
       case 'setTabQuery': {
         if (tid != null && msg.query) { tabQuery[tid] = msg.query; await ensureProject(msg.query); }
@@ -931,7 +944,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         break;
       }
       default:
-        sendResponse({ ok: false });
+        sendResponse({ ok: false, error: 'unknown-message' });
+    }
+    } catch (e) {
+      console.error('[GridLeads] message handler threw for type=' + (msg && msg.type) + ':', e);
+      try { sendResponse({ ok: false, error: (e && e.message) || String(e) }); } catch (_) { /* port already closed */ }
     }
   })();
   return true; // async
