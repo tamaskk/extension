@@ -89,6 +89,7 @@ async function refreshQueue() {
     const q = (st && st.queue) || [];
     if (!q.length) {
       $('qsInfo').textContent = 'No batches queued';
+      $('qsClaim').classList.add('hidden');
       $('qsStart').classList.add('hidden');
       $('qsStop').classList.add('hidden');
       return;
@@ -100,10 +101,12 @@ async function refreshQueue() {
       const cur = running[0] || q[0];
       const synced = st.mode === 'stream' ? `\n☁ DB stream: ${st.streamSynced || 0} synced & freed` : '';
       $('qsInfo').textContent = `▶ ${running.length} window(s) in parallel · ${doneBatches}/${q.length} batches done\n${cur.label}: ${cur.doneInBatch}/${cur.count} · now: ${cur.currentQuery || '…'}${synced}`;
+      $('qsClaim').classList.add('hidden');
       $('qsStart').classList.add('hidden');
       $('qsStop').classList.remove('hidden');
     } else {
       $('qsInfo').textContent = `${q.length} batch(es) queued · ${totalSearches} searches total`;
+      $('qsClaim').classList.remove('hidden');
       $('qsStart').classList.remove('hidden');
       $('qsStop').classList.add('hidden');
     }
@@ -220,6 +223,13 @@ async function init() {
     }
     if (batches) { $('bStatus').textContent = `⤴ Loaded ${batches} batch(es) · ${searches} searches total`; refreshQueue(); }
     else { $('bStatus').textContent = '⚠ No valid { city, areas } entries found.'; }
+  });
+  // Manual mode: claim the windows the user already opened (no windows.create → no throttle).
+  $('qsClaim').addEventListener('click', async () => {
+    const res = await bg({ type: 'batchStartAdopt' });
+    if (res && res.error === 'no-maps') $('qsInfo').textContent = 'Open ≥1 Chrome window first (a Google Maps tab, or just an empty new window), then click again.';
+    else if (res && res.error === 'empty') $('qsInfo').textContent = 'Queue is empty — add a batch first.';
+    else { if (res && res.adopted) $('qsInfo').textContent = `Claimed ${res.adopted} window(s) — starting…`; refreshQueue(); }
   });
   $('qsStart').addEventListener('click', async () => {
     const tabId = await mapsTabId();

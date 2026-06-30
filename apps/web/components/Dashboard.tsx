@@ -6,7 +6,9 @@ import { api } from '@/lib/api';
 import { type LeadRow, type ProjectSummary, type WebsiteStatus, SALES_STATUSES, SALES_COLOR, SALES_NEEDS_DATE } from '@/lib/types';
 import { googleCalendarUrl } from '@/lib/gcal';
 import { BIZ_TYPES } from '@/lib/bizTypes';
-import { ALL_REGIONS } from '@/lib/regionNames';
+import { ALL_REGIONS, STATE_REGIONS } from '@/lib/regionNames';
+import { COUNTRY_CITIES, COUNTRY_NAMES } from '@/lib/countries';
+import { STATE_PLACE_COUNTS, CITY_AREA_COUNTS } from '@/lib/coverageCounts';
 import DuplicatesModal from './DuplicatesModal';
 import ImportModal from './ImportModal';
 import MapModal from './MapModal';
@@ -22,6 +24,15 @@ import OrganizeModal from './OrganizeModal';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
 const cityFromFolderName = (name: string) => { const p = String(name || '').trim().split(/\s+/); return p.length > 1 ? p.slice(0, -1).join(' ') : (name || ''); };
+
+// ── folder coverage helpers (shared by the cheap badge + the accurate match) ──
+const covNorm = (s: string) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const COV_STATE_SET = new Set(STATE_REGIONS.map(covNorm));
+const COV_STATE_KEY: Record<string, string> = {}; STATE_REGIONS.forEach((s) => { COV_STATE_KEY[covNorm(s)] = s; });
+const COV_CITY_SET = new Set<string>(); for (const c of COUNTRY_NAMES) for (const city of (COUNTRY_CITIES[c] || [])) COV_CITY_SET.add(covNorm(city));
+const COV_COUNTRIES_DESC = [...COUNTRY_NAMES].sort((a, b) => b.length - a.length);
+const covRegionOf = (name: string) => { const w = String(name || '').trim().split(/\s+/); return w.length > 1 ? w.slice(0, -1).join(' ') : (name || ''); };
+const covCountryPrefix = (name: string) => { const n = covNorm(name); return COV_COUNTRIES_DESC.find((c) => n.startsWith(covNorm(c) + ' ')); };
 
 // project query = "<business type> near <city...> <state/country>" → parse type + region
 const MULTI_REGIONS = ['New York', 'New Jersey', 'New Mexico', 'New Hampshire', 'North Carolina', 'North Dakota', 'South Carolina', 'South Dakota', 'Rhode Island', 'West Virginia', 'District of Columbia', 'Hong Kong', 'Costa Rica', 'Puerto Rico', 'New Orleans'];
@@ -175,6 +186,7 @@ export default function Dashboard() {
   const [sideFilter, setSideFilter] = useState('');
   const [rowSel, setRowSel] = useState<Set<string>>(new Set());
   const [sidebarW, setSidebarW] = useState(264);
+  const [covData, setCovData] = useState<{ places: Record<string, [string, number][]>; areas: Record<string, Record<string, string[]>> } | null>(null);
   const [panelW, setPanelW] = useState(440);
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -365,6 +377,32 @@ export default function Dashboard() {
       let pc = 0; set.forEach((did) => { pc += (projsOf[did] || []).length; });
       projCountOf[id] = pc;
     }
+    // coverage "missing" per folder (red badge) — CHEAP estimate (reference count −
+    // present count). The accurate, modal-matching number replaces it once the full
+    // reference lists are lazy-loaded (see `accurateMissing`).
+    const missingOf: Record<string, number | null> = {};
+    for (const f of folderList) {
+      let miss: number | null = null;
+      const cp = covCountryPrefix(f.name);
+      if (cp) {
+        const kidRegions = (childrenOf[f.id] || []).map((k) => covNorm(covRegionOf(k.name)));
+        const stateKids = kidRegions.filter((r) => COV_STATE_SET.has(r));
+        if (covNorm(cp) === 'usa' && stateKids.length > 0 && stateKids.length >= kidRegions.length / 2) {
+          miss = Math.max(0, STATE_REGIONS.length - new Set(stateKids).size); // missing US states
+        } else {
+          const cities = COUNTRY_CITIES[cp] || [];
+          const citySet = new Set(cities.map(covNorm));
+          const present = new Set(kidRegions.filter((r) => citySet.has(r))).size;
+          miss = Math.max(0, cities.length - present); // missing cities
+        }
+      } else {
+        const reg = covNorm(covRegionOf(f.name));
+        if (COV_STATE_SET.has(reg) && STATE_PLACE_COUNTS[reg] != null) miss = Math.max(0, STATE_PLACE_COUNTS[reg] - (projCountOf[f.id] || 0));
+        else if (COV_CITY_SET.has(reg) && CITY_AREA_COUNTS[reg] != null) miss = Math.max(0, CITY_AREA_COUNTS[reg] - (projCountOf[f.id] || 0));
+      }
+      missingOf[f.id] = miss;
+    }
+
     // visible project order (respects collapse) — for shift-click range select
     const order: string[] = [];
     const walk = (f: typeof folderList[number]) => {
@@ -378,8 +416,45 @@ export default function Dashboard() {
     const flat: { f: typeof folderList[number]; depth: number }[] = [];
     const flatten = (f: typeof folderList[number], depth: number) => { flat.push({ f, depth }); (childrenOf[f.id] || []).forEach((c) => flatten(c, depth + 1)); };
     roots.forEach((f) => flatten(f, 0));
-    return { childrenOf, roots, projsOf, ungrouped, totalOf, descOf, folderCountOf, projCountOf, order, flat };
+    return { childrenOf, roots, projsOf, ungrouped, totalOf, descOf, folderCountOf, projCountOf, missingOf, order, flat };
   }, [summariesArr, folderList]);
+
+  // lazy-load the full reference lists (states + country areas) once, so the red
+  // "missing" badge can be computed the SAME way the coverage modal does.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([import('@/lib/states'), import('@/lib/countryAreas')])
+      .then(([s, a]) => { if (!cancelled) setCovData({ places: s.STATE_PLACES, areas: a.COUNTRY_AREAS_BY_FILE }); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  // accurate per-folder "missing" for state/city folders — matches the coverage
+  // modal exactly (token-in-haystack against the real reference list).
+  const accurateMissing = useMemo(() => {
+    const out: Record<string, number> = {};
+    if (!covData) return out;
+    const placesByNorm: Record<string, string[]> = {};
+    for (const [st, arr] of Object.entries(covData.places)) placesByNorm[covNorm(st)] = arr.map((x) => x[0]);
+    const areasByNorm: Record<string, string[]> = {};
+    for (const file of Object.values(covData.areas)) for (const [city, arr] of Object.entries(file)) if (!areasByNorm[covNorm(city)]) areasByNorm[covNorm(city)] = arr;
+    for (const f of folderList) {
+      if (covCountryPrefix(f.name)) continue; // roots keep the cheap estimate
+      const reg = covNorm(covRegionOf(f.name));
+      const refNames = (COV_STATE_SET.has(reg) && placesByNorm[reg]) ? placesByNorm[reg] : areasByNorm[reg];
+      if (!refNames) continue;
+      const ids = tree.descOf[f.id] || new Set([f.id]);
+      let blob = '';
+      ids.forEach((did) => {
+        for (const p of (tree.projsOf[did] || [])) { if (p.name) blob += ' ' + covNorm(p.name) + ' '; if (p.query) blob += ' ' + covNorm(p.query) + ' '; }
+        if (did !== f.id && folders[did]) blob += ' ' + covNorm(covRegionOf(folders[did].name)) + ' ';
+      });
+      let present = 0;
+      for (const nm of refNames) { const p = ' ' + covNorm(nm) + ' '; if (p.length > 2 && blob.includes(p)) present++; }
+      out[f.id] = Math.max(0, refNames.length - present);
+    }
+    return out;
+  }, [covData, tree, folderList, folders]);
 
   // ----- sidebar filter: text + business-type + state/country (reveals matches) -----
   const sideQuery = sideFilter.trim().toLowerCase();
@@ -677,6 +752,7 @@ export default function Dashboard() {
           <span className="fname" title={f.name}>{f.icon || '📁'} {f.name}</span>
           <span className="ni-right">
             <span className="badge">{tree.totalOf[f.id] ?? 0}</span>
+            {(() => { const m = accurateMissing[f.id] ?? tree.missingOf[f.id]; return (m || 0) > 0 ? <span className="cnt-badge red" title={`${m} missing (not yet scraped vs the full list)`}>{m}</span> : null; })()}
             {(tree.folderCountOf[f.id] || 0) > 0 && <span className="cnt-badge gold" title={`${tree.folderCountOf[f.id]} sub-folder(s)`}>{tree.folderCountOf[f.id]}</span>}
             {(tree.projCountOf[f.id] || 0) > 0 && <span className="cnt-badge green" title={`${tree.projCountOf[f.id]} project(s)`}>{tree.projCountOf[f.id]}</span>}
             <IconPicker trigger={<span className="ficon" title="Change folder icon">🎨</span>} onPick={(ic) => actions.setFolderIcon(f.id, ic)} />

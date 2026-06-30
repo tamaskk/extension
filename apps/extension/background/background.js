@@ -337,6 +337,100 @@ async function startQueue(reuseTabId) {
   return { ok: true };
 }
 
+// ── manual "adopt my open windows" mode ────────────────────────────────────
+// Instead of fighting Chrome's windows.create throttle (which caps us at ~2 windows
+// on constrained machines), the user opens their OWN Chrome windows and we claim
+// every open Google Maps window — plus any blank/new-tab window, which we navigate
+// to Maps — as a worker. The tab the user is actively looking at is never claimed.
+// No windows.create is ever called, so there is nothing to throttle.
+async function listAdoptableTabs() {
+  let all = [];
+  try { all = await chrome.tabs.query({}); } catch { return []; }
+  let focusedActiveTabId = null;
+  try { const [act] = await chrome.tabs.query({ active: true, lastFocusedWindow: true }); if (act) focusedActiveTabId = act.id; } catch { /* */ }
+  const byWin = {};
+  for (const t of all) (byWin[t.windowId] = byWin[t.windowId] || []).push(t);
+  const isMaps = (u) => typeof u === 'string' && u.startsWith('https://www.google.com/maps');
+  const isBlank = (u) => !u || u === 'about:blank' || u.indexOf('chrome://newtab') === 0 || u.indexOf('chrome://new-tab-page') === 0;
+  const out = [];
+  for (const t of all) {
+    if (t.id == null || t.windowId == null || t.id === focusedActiveTabId) continue; // never grab the tab you're looking at
+    if (isMaps(t.url)) { out.push({ tabId: t.id, windowId: t.windowId, navigate: false }); continue; }
+    // a blank / new-tab page that is the ONLY tab in its window = a fresh empty window
+    if (isBlank(t.url || t.pendingUrl) && (byWin[t.windowId] || []).length === 1) out.push({ tabId: t.id, windowId: t.windowId, navigate: true });
+  }
+  return out;
+}
+
+// Push one adopted worker (created:false → we never close the user's window) and drive it.
+async function adoptTab(tg) {
+  const id = await lockBatch(async () => {
+    const b = await getBatch(); if (!b || !b.active) return null;
+    if (b.workers.some((w) => w.tabId === tg.tabId && w.stage !== 'done')) return null; // already a live worker
+    const nid = b.workers.length;
+    b.workers.push({ id: nid, windowId: tg.windowId, tabId: tg.tabId, created: false, batchId: null, stage: 'init', ts: tsNow() });
+    await setBatch(b);
+    return nid;
+  });
+  if (id == null) return;
+  if (tg.navigate) { try { await chrome.tabs.update(tg.tabId, { url: 'https://www.google.com/maps' }); } catch { /* */ } }
+  driveWorker(id);
+}
+
+// Start the queue by adopting the user's already-open windows (no windows.create).
+async function startQueueAdopt() {
+  const b0 = await getBatch();
+  if (!b0 || !b0.queue.length) return { ok: false, error: 'empty' };
+  if (b0.active && Array.isArray(b0.workers) && b0.workers.length) return { ok: true }; // already running
+  const targets = await listAdoptableTabs();
+  if (!targets.length) return { ok: false, error: 'no-maps' };
+  const mode = await getBatchMode();
+  await lockBatch(async () => {
+    const b = await getBatch(); if (!b) return;
+    b.active = true; b.adopt = true; b.mode = mode; b.streamSynced = b.streamSynced || 0;
+    b.concurrency = targets.length;
+    for (const x of b.queue) if (x.status === 'running') { x.status = 'pending'; x.workerId = null; } // recover stale
+    b.workers = [];
+    await setBatch(b);
+  });
+  try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
+  console.log('[GridLeads] adopting ' + targets.length + ' open window(s)');
+  for (const tg of targets) { await adoptTab(tg); await wait(300); } // small stagger between drives
+  const fin = await getBatch();
+  if (fin && fin.active && (!fin.workers || !fin.workers.length)) { await stopAllBatches(); return { ok: false, error: 'no-maps' }; }
+  return { ok: true, adopted: (fin && fin.workers) ? fin.workers.length : 0 };
+}
+
+// Watchdog hook (adopt mode): pick up any window the user opens mid-run.
+async function rescanAdopt() {
+  if (_opening) return;
+  _opening = true;
+  try {
+    const b = await getBatch();
+    if (!b || !b.active || !b.adopt) return;
+    if (b.queue.filter((x) => x.status === 'pending' || x.status === 'running').length === 0) return;
+    const have = new Set(b.workers.map((w) => w.tabId)); // every known worker tab (incl. done) → no re-adopt churn / unbounded growth
+    for (const tg of await listAdoptableTabs()) {
+      if (have.has(tg.tabId)) continue;
+      await adoptTab(tg);
+      await wait(300);
+    }
+  } finally { _opening = false; }
+}
+
+// A worker's window/tab was closed by the user → end that worker and put its
+// in-flight batch back in the queue (itemIndex kept, so another window resumes it).
+async function onWorkerTabClosed(tabId) {
+  await lockBatch(async () => {
+    const b = await getBatch(); if (!b || !b.active) return;
+    const w = b.workers.find((x) => x.tabId === tabId); if (!w || w.stage === 'done') return;
+    if (w.batchId) { const bt = b.queue.find((x) => x.id === w.batchId); if (bt && bt.status === 'running') { bt.status = 'pending'; bt.workerId = null; } }
+    w.stage = 'done'; w.batchId = null; w.ts = tsNow();
+    await setBatch(b);
+    console.log('[GridLeads] worker window closed → batch requeued (tab ' + tabId + ')');
+  });
+}
+
 // Give a worker its next item; all state changes happen inside the lock, the slow
 // navigation/window ops happen after it's released.
 async function driveWorker(workerId) {
@@ -451,11 +545,13 @@ async function batchWatchdog() {
     else if (w.stage === 'scraping' && age > 240000) advanceWorker(w.tabId); // scrape stuck >4min → skip item
     else if (w.stage === 'init' && age > 20000) driveWorker(w.id);           // missed advance → re-drive
   }
-  topUpWorkers(); // open any windows that Chrome throttled at start, until we reach the target
+  if (b.adopt) rescanAdopt(); // adopt-mode: pick up windows opened mid-run (never creates)
+  else topUpWorkers();        // auto-create mode: open any windows Chrome throttled at start
 }
 
 // persistent listeners (re-registered automatically when the SW restarts)
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => { if (info.status === 'complete') onBatchTabComplete(tabId, tab && tab.url); });
+chrome.tabs.onRemoved.addListener((tabId) => { onWorkerTabClosed(tabId); }); // adopted window closed → requeue its batch
 chrome.alarms.onAlarm.addListener((a) => { if (a.name === HB_ALARM) batchWatchdog(); });
 
 // ---------- CSV export ----------
@@ -524,6 +620,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
       case 'batchStartQueue': {
         sendResponse(await startQueue(msg.tabId));
+        break;
+      }
+      // Manual mode: claim the user's already-open windows as workers (no windows.create).
+      case 'batchStartAdopt': {
+        sendResponse(await startQueueAdopt());
         break;
       }
       case 'getBatchMode': {

@@ -832,3 +832,6 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
   z-index: 300;
 }
 .colmenu-row, .catfilter-row, .combo-opt, .tagopt { color: var(--text); }
+
+/* folder "missing" badge (coverage: how many places/cities/states/areas are left) */
+.cnt-badge.red { background: rgba(244,63,94,.14); color: #e11d48; }
