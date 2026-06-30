@@ -499,8 +499,9 @@ export default function Dashboard() {
     const noweb = scope.reduce((s, p) => s + p.noWebsite, 0);
     const hot = scope.reduce((s, p) => s + p.hot, 0);
     const email = scope.reduce((s, p) => s + p.email, 0);
+    const reviews = scope.reduce((s, p) => s + (p.reviews || 0), 0);
     const oppSum = scope.reduce((s, p) => s + (p.oppSum || 0), 0);
-    return { total, noweb, hot, email, avg: total ? Math.round(oppSum / total) : 0 };
+    return { total, noweb, hot, email, reviews, avg: total ? Math.round(oppSum / total) : 0 };
   }, [activeProject, activeFolder, summaries, summariesArr, tree]);
   const globalTotal = useMemo(() => summariesArr.reduce((s, p) => s + (p.total || 0), 0), [summariesArr]);
   const scopeName = activeFolder ? (folders[activeFolder]?.name || 'this folder') : activeProject ? (summaries[activeProject]?.name || activeProject) : '';
@@ -804,7 +805,7 @@ export default function Dashboard() {
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skel-bar" style={{ width: 78, height: 28, borderRadius: 20 }} />)}
         </div>
         <section className="widgets">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 4 }).map((_, i) => (
             <div className="widget" key={i}><div className="skel-bar" style={{ height: 26, width: '55%' }} /><div className="skel-bar" style={{ height: 11, width: '40%', marginTop: 9 }} /></div>
           ))}
         </section>
@@ -1022,6 +1023,7 @@ export default function Dashboard() {
           <div className="widget"><span className="w-ic blue">📋</span><div className="w-body"><div className="w-num">{stats.total}</div><div className="w-label">{(activeFolder || activeProject) ? 'Leads in view' : 'Total leads'}</div></div></div>
           <div className="widget"><span className="w-ic rose">🚫</span><div className="w-body"><div className="w-num rose">{stats.noweb}</div><div className="w-label">No website</div></div></div>
           <div className="widget"><span className="w-ic amber">🔥</span><div className="w-body"><div className="w-num amber">{stats.hot}</div><div className="w-label">Hot leads</div></div></div>
+          <div className="widget"><span className="w-ic green">💬</span><div className="w-body"><div className="w-num green">{stats.reviews}</div><div className="w-label">Has reviews</div></div></div>
         </section>
 
         <section className="tablewrap">

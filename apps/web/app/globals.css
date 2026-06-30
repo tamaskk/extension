@@ -793,16 +793,18 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 }
 
 /* ── leads header: 3 stat cards (icon + number) + tidy filter chips ── */
-.widgets { grid-template-columns: repeat(3, 1fr); }
+.widgets { grid-template-columns: repeat(4, 1fr); }
 .widget { display: flex; align-items: center; gap: 12px; }
 .w-ic { width: 42px; height: 42px; flex: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 19px; }
 .w-ic.blue { background: rgba(99,102,241,.12); }
 .w-ic.rose { background: rgba(244,63,94,.12); }
 .w-ic.amber { background: rgba(245,158,11,.14); }
+.w-ic.green { background: rgba(34,197,94,.14); }
 .w-body { min-width: 0; }
 .w-num { font-size: 24px; font-weight: 800; line-height: 1.1; }
 .w-num.rose { color: #e11d48; }
 .w-num.amber { color: #b45309; }
+.w-num.green { color: #15803d; }
 .filters { flex-wrap: wrap; }
 .filterchips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 @media (max-width: 760px) { .widgets { grid-template-columns: 1fr; } }

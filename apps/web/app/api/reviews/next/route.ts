@@ -16,12 +16,16 @@ export async function GET(req: Request) {
     const u = new URL(req.url).searchParams;
     const project = u.get('project') || '';
     const folder = u.get('folder') || '';
+    // dedupKeys other parallel windows are scraping right now — skip them so two
+    // windows never claim the same business.
+    const exclude = (u.get('exclude') || '').split(',').map((s) => s.trim()).filter(Boolean);
 
     const match: Record<string, unknown> = {
       reviewsScrapedAt: { $in: [null, ''] },       // not done yet
       reviewCount: { $gt: 0 },                       // actually has reviews
       $or: [{ cid: { $nin: [null, ''] } }, { mapsUrl: { $nin: [null, ''] } }], // openable
     };
+    if (exclude.length) match.dedupKey = { $nin: exclude };
     if (folder) {
       const ids = await descendantFolderIds(folder);
       const projs = await Project.find({ folderId: { $in: ids } }).select('query -_id').lean();

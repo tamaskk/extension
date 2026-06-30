@@ -21,13 +21,14 @@
   <p class="status" id="status">Idle</p>
 
   <div class="controls">
-    <button id="start" class="btn primary">▶ Start</button>
+    <button id="claim" class="btn primary" title="Open as many Chrome windows as you want (Google Maps tabs, or just empty windows), then click this. Each becomes a parallel review-scraping worker — never throttled.">🪟 Use my open windows</button>
     <button id="stop" class="btn" disabled>■ Stop</button>
   </div>
+  <button id="start" class="btn ghost wide">▶ Auto-open 4 windows &amp; start</button>
 
-  <p class="hint">Opens each business on Google Maps, grabs up to the 100 newest reviews, then moves to the next — skipping ones already done. Leave the opened Maps tab in front while it runs.</p>
+  <p class="hint">Runs <b>4 windows in parallel</b>: each opens a business on Maps, grabs up to the 100 newest reviews, posts them, then claims the next un-done business — no two windows take the same one. <b>Use my open windows</b> is the reliable way to get all 4 (open them yourself first); auto-open may be throttled to ~2 on some machines.</p>
 
-  <footer class="foot">Runs against the GridLeads database · one business at a time</footer>
+  <footer class="foot">Runs against the GridLeads database · 4 businesses at a time</footer>
 </body>
 <script src="popup.js"></script>
 </html>

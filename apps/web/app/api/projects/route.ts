@@ -16,6 +16,7 @@ export async function GET() {
         noWebsite: { $sum: { $cond: [{ $in: ['$websiteStatus', NO_SITE] }, 1, 0] } },
         hot: { $sum: { $cond: [{ $eq: ['$leadTemperature', 'HOT'] }, 1, 0] } },
         email: { $sum: { $cond: [{ $and: [{ $ne: ['$email', ''] }, { $ne: ['$email', null] }] }, 1, 0] } },
+        reviews: { $sum: { $cond: [{ $gt: ['$reviewsCount', 0] }, 1, 0] } },
         oppSum: { $sum: { $ifNull: ['$opportunityScore', 0] } },
       } },
     ]),
@@ -23,8 +24,8 @@ export async function GET() {
   const counts: Record<string, any> = {};
   for (const a of agg) counts[a._id] = a;
   const out = (projects as any[]).map((p) => {
-    const c = counts[p.query] || { total: 0, noWebsite: 0, hot: 0, email: 0, oppSum: 0 };
-    return { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId || null, total: c.total, noWebsite: c.noWebsite, hot: c.hot, email: c.email, oppSum: c.oppSum };
+    const c = counts[p.query] || { total: 0, noWebsite: 0, hot: 0, email: 0, reviews: 0, oppSum: 0 };
+    return { query: p.query, name: p.name, createdAt: p.createdAt, folderId: p.folderId || null, total: c.total, noWebsite: c.noWebsite, hot: c.hot, email: c.email, reviews: c.reviews || 0, oppSum: c.oppSum };
   });
   return json(out);
 }

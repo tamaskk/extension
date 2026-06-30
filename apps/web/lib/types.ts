@@ -100,6 +100,7 @@ export interface ProjectSummary {
   noWebsite: number;
   hot: number;
   email: number;
+  reviews?: number;
   oppSum?: number;
 }
 

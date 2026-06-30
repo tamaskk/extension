@@ -30,6 +30,9 @@ body { width: 320px; padding: 14px; margin: 0; background: var(--bg); color: var
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.primary:hover { background: #5457e6; }
+.btn.wide { width: 100%; flex: none; margin-bottom: 10px; }
+.btn.ghost { background: transparent; font-weight: 500; }
+.btn.ghost:hover { background: var(--panel); }
 
 .hint { font-size: 11px; color: var(--muted); line-height: 1.4; margin: 0 0 10px; }
 .foot { font-size: 10px; color: var(--muted); text-align: center; border-top: 1px solid var(--line); padding-top: 8px; }
