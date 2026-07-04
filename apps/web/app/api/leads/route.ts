@@ -41,6 +41,7 @@ export async function GET(req: Request) {
     else if (filter === 'hot') match.leadTemperature = 'HOT';
     else if (filter === 'email') match.email = { $nin: ['', null] };
     else if (filter === 'hasreviews') match.reviewsCount = { $gt: 0 };
+    else if (filter === 'hasai') match.aiAt = { $gt: '' };
     const cats = u.getAll('cat').filter(Boolean);
     if (cats.length) match.category = { $in: cats };
     applyProjectFacets(match, u.getAll('ptype').filter(Boolean), u.getAll('pregion').filter(Boolean));

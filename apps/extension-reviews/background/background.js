@@ -27,6 +27,8 @@ const BLANK = {
   active: false, mode: 'auto', concurrency: DEFAULT_CONCURRENCY,
   workers: [],                        // { id, windowId, tabId, created, stage, current, ts }
   inflight: [],                       // dedupKeys claimed but not yet saved
+  skip: [],                           // dedupKeys to stop re-serving after repeated save failures
+  saveFails: {},                      // dedupKey -> consecutive save-failure count
   noMore: false,                      // DB has no more businesses → stop adding workers
   done: 0, reviews: 0, errors: 0, lastError: '', message: 'Idle', startedAt: 0,
 };
@@ -46,10 +48,19 @@ function refreshBadge(s) {
 
 // ── DB calls ────────────────────────────────────────────────────────────────
 async function fetchNext(exclude) {
-  const q = exclude && exclude.length ? '?exclude=' + encodeURIComponent(exclude.join(',')) : '';
-  const r = await fetch(SYNC_BASE + '/api/reviews/next' + q, { method: 'GET' });
-  if (!r.ok) throw new Error('next HTTP ' + r.status);
-  return r.json();
+  // Join with a newline, not a comma: a name-fallback dedupKey ("name|lat|lng") can
+  // contain a comma, which would split into fragments that exclude nothing. Business
+  // names never contain a newline. (Server /api/reviews/next splits on "\n" to match.)
+  const q = exclude && exclude.length ? '?exclude=' + encodeURIComponent(exclude.join('\n')) : '';
+  // Timeout so a hung request can't stall a worker indefinitely (and, now that the
+  // fetch runs outside lockState, can't freeze the whole engine / the Stop button).
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const r = await fetch(SYNC_BASE + '/api/reviews/next' + q, { method: 'GET', signal: ctrl.signal });
+    if (!r.ok) throw new Error('next HTTP ' + r.status);
+    return r.json();
+  } finally { clearTimeout(t); }
 }
 async function postReviews(body) {
   const r = await fetch(SYNC_BASE + '/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -163,12 +174,28 @@ async function adoptWorkers() {
 
 // ── the pump: claim a business for a worker, then navigate its tab ───────────
 async function driveWorker(workerId) {
+  // 1) snapshot the exclude set (read is atomic; the authoritative guard is the
+  //    commit lock in step 3). Skip if this worker is already busy/finished.
+  const s0 = await getState();
+  if (!s0.active) return;
+  const w0 = s0.workers.find((x) => x.id === workerId);
+  if (!w0 || w0.current || w0.stage === 'navigating' || w0.stage === 'scraping' || w0.stage === 'done') return;
+  const exclude = [...(s0.inflight || []), ...(s0.skip || [])];
+
+  // 2) network claim OUTSIDE lockState — a slow/hung fetch (bounded by fetchNext's
+  //    15s timeout) no longer serializes every other worker, stop, or event handler.
+  let res, err = null;
+  try { res = await fetchNext(exclude); } catch (e) { err = e; }
+
+  // 3) validate + commit under the lock
   const action = await lockState(async () => {
     const s = await getState(); if (!s.active) return { stop: true };
     const w = s.workers.find((x) => x.id === workerId); if (!w) return { stop: true };
-    let res;
-    try { res = await fetchNext(s.inflight || []); }
-    catch (e) { w.stage = 'retry'; w.ts = now(); s.lastError = String(e.message || e); await setState(s); return { retry: true }; }
+    // A concurrent drive already advanced this worker → abandon our fetch result.
+    // Any business the server returned was never added to inflight, so it is simply
+    // re-served later — no orphaned claim (fixes the double-drive inflight leak).
+    if (w.current || w.stage === 'navigating' || w.stage === 'scraping' || w.stage === 'done') return { stop: true };
+    if (err) { w.stage = 'retry'; w.ts = now(); s.lastError = String(err.message || err); await setState(s); return { retry: true }; }
     if (!res || !res.ok) { w.stage = 'retry'; w.ts = now(); s.lastError = (res && res.error) || 'next failed'; await setState(s); return { retry: true }; }
     if (res.done) { // nothing left → this worker is finished
       w.stage = 'done'; w.current = null; w.ts = now(); s.noMore = true;
@@ -177,6 +204,8 @@ async function driveWorker(workerId) {
       return { done: true, allDone, created: w.created, windowId: w.windowId };
     }
     const biz = res.business;
+    // raced: another worker claimed this exact business between snapshot and commit
+    if ((s.inflight || []).includes(biz.dedupKey)) { w.stage = 'retry'; w.ts = now(); await setState(s); return { retry: true }; }
     s.inflight = [...(s.inflight || []), biz.dedupKey];
     w.current = biz; w.stage = 'navigating'; w.ts = now();
     s.message = 'Opening ' + (biz.name || biz.dedupKey) + '…';
@@ -213,7 +242,10 @@ async function renavWorker(workerId) {
 async function releaseAndAdvance(tabId, reviewCount, errMsg, isErr) {
   const wid = await lockState(async () => {
     const s = await getState(); if (!s.active) return null;
-    const w = s.workers.find((x) => x.tabId === tabId); if (!w) return null;
+    // Only a worker that is actually scraping can be released. Without this guard a
+    // watchdog scrape-timeout racing a late reviewsScraped would double-release:
+    // resurrect a 'done' worker, double-count, release the wrong claim, double-drive.
+    const w = s.workers.find((x) => x.tabId === tabId); if (!w || w.stage !== 'scraping') return null;
     if (w.current) s.inflight = (s.inflight || []).filter((k) => k !== w.current.dedupKey);
     s.done = (s.done || 0) + 1;
     s.reviews = (s.reviews || 0) + (reviewCount || 0);
@@ -241,6 +273,31 @@ async function stopRun(message) {
   await finishRun(message || 'Stopped.');
 }
 
+// A business failed to scrape/save (render failure, injection failure, timeout, or
+// a failed POST). Do NOT postReviews — that is what marks the business done in the
+// DB, and every business we're served has reviewCount>0, so a 0-review result is a
+// transient failure, not a real empty. Leave it un-done so it retries, but bump a
+// per-business counter and, after 3 attempts, add it to `skip` (included in the
+// fetchNext exclude) so a permanently-broken business can't loop forever this run.
+// Used by ALL failure paths so their behaviour is identical regardless of timing.
+async function failBusiness(tabId, label) {
+  await lockState(async () => {
+    const s = await getState(); if (!s.active) return;
+    const w = s.workers.find((x) => x.tabId === tabId); if (!w || !w.current) return;
+    const key = w.current.dedupKey;
+    s.errors = (s.errors || 0) + 1;
+    s.lastError = label;
+    s.saveFails = s.saveFails || {};
+    s.saveFails[key] = (s.saveFails[key] || 0) + 1;
+    if (s.saveFails[key] >= 3 && !(s.skip || []).includes(key)) {
+      s.skip = [...(s.skip || []), key];
+      s.lastError = 'giving up on ' + (w.current.name || key) + ' after 3 attempts';
+    }
+    await setState(s);
+  });
+  await releaseAndAdvance(tabId, 0, '', false); // isErr=false: failBusiness already counted the error (no double-count)
+}
+
 // content finished (or failed) → save + advance
 async function onReviewsScraped(msg, tid) {
   const s = await getState();
@@ -249,12 +306,21 @@ async function onReviewsScraped(msg, tid) {
   if (!w || !w.current || w.stage !== 'scraping') return; // stale
   const cur = w.current;
   const reviews = Array.isArray(msg.reviews) ? msg.reviews : [];
+  if (msg.sortStale) console.warn('[GLR] reviews for', cur.name || cur.dedupKey, 'may not be in newest order (sort failed)');
+
+  // Hard scrape failure reported by the content script → retry, don't mark done.
+  if (msg.error) { await failBusiness(tid, 'scrape: ' + String(msg.error)); return; }
+
+  // Save the result (this marks the business done in the DB).
   try {
-    await postReviews({ project: cur.project, dedupKey: cur.dedupKey, cid: cur.cid || '', placeId: cur.placeId || '', name: cur.name || '', reviews, error: msg.error || '' });
+    await postReviews({ project: cur.project, dedupKey: cur.dedupKey, cid: cur.cid || '', placeId: cur.placeId || '', name: cur.name || '', reviews, error: '' });
   } catch (e) {
-    await lockState(async () => { const ss = await getState(); ss.errors = (ss.errors || 0) + 1; ss.lastError = 'save: ' + String(e.message || e); await setState(ss); });
+    await failBusiness(tid, 'save: ' + String(e.message || e)); // POST failed → not done → retry
+    return;
   }
-  await releaseAndAdvance(tid, reviews.length, msg.error || '', !!msg.error);
+  // success → clear any prior failure count for this business, then advance
+  await lockState(async () => { const ss = await getState(); if (ss.saveFails && ss.saveFails[cur.dedupKey]) { delete ss.saveFails[cur.dedupKey]; await setState(ss); } });
+  await releaseAndAdvance(tid, reviews.length, '', false);
 }
 
 // ── events ───────────────────────────────────────────────────────────────
@@ -271,10 +337,8 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
     await lockState(async () => { const ss = await getState(); const ww = ss.workers.find((x) => x.tabId === tabId); if (ww && ww.stage === 'navigating') { ww.stage = 'scraping'; ww.ts = now(); ss.message = 'Scraping reviews…'; await setState(ss); } });
     await sleep(NAV_SETTLE); // let Maps render the place panel
     const ok = await startContent(tabId);
-    if (!ok) { // couldn't inject/start → mark this one failed and move on
-      const cur = (await getState()).workers.find((x) => x.tabId === tabId)?.current;
-      if (cur) { try { await postReviews({ project: cur.project, dedupKey: cur.dedupKey, cid: cur.cid || '', name: cur.name || '', reviews: [], error: 'could not start scraper' }); } catch {} }
-      await releaseAndAdvance(tabId, 0, 'could not start scraper', true);
+    if (!ok) { // couldn't inject/start → retry (don't mark done), capped by skip
+      await failBusiness(tabId, 'could not start scraper');
     }
   })();
 });
@@ -353,10 +417,8 @@ async function watchdog() {
     if (w.stage === 'retry' && age > 15000) driveWorker(w.id);
     else if (w.stage === 'init' && age > 20000) driveWorker(w.id);
     else if (w.stage === 'navigating' && age > 60000) renavWorker(w.id);     // nav/complete missed → re-navigate current
-    else if (w.stage === 'scraping' && age > 240000) {                       // stuck >4min → skip this business
-      const cur = w.current;
-      if (cur) { try { await postReviews({ project: cur.project, dedupKey: cur.dedupKey, cid: cur.cid || '', name: cur.name || '', reviews: [], error: 'scrape timeout' }); } catch {} }
-      await releaseAndAdvance(w.tabId, 0, 'scrape timeout', true);
+    else if (w.stage === 'scraping' && age > 240000) {                       // stuck >4min → retry (capped by skip), don't mark done
+      await failBusiness(w.tabId, 'scrape timeout');
     }
   }
   if (!s.noMore) { if (s.mode === 'adopt') adoptWorkers(); else topUpWorkers(); }

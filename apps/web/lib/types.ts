@@ -34,6 +34,13 @@ export interface Lead {
   scrapedAt?: string;
   reviewsCount?: number | null; // how many reviews we scraped & stored
   reviewsScrapedAt?: string;    // ISO when reviews were scraped ('' / undefined = not yet)
+
+  // ── AI insights (generated locally via the Claude CLI, /api/enrich) ──────────
+  aiSummary?: string;     // short company summary from data + reviews
+  aiPainPoints?: string;  // weaknesses (newline-separated bullets)
+  aiAdvantages?: string;  // strengths (newline-separated bullets)
+  aiPitch?: string;       // how to sell to them / what to focus on
+  aiAt?: string;          // ISO when generated ('' / undefined = not yet)
 }
 
 export interface ReviewRow {
@@ -101,6 +108,8 @@ export interface ProjectSummary {
   hot: number;
   email: number;
   reviews?: number;
+  reviewsSum?: number;
+  ai?: number;
   oppSum?: number;
 }
 

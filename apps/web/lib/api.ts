@@ -24,6 +24,12 @@ export interface LeadsQuery {
 
 export interface DupeGroup { name: string; address?: string; items: { project: string; key: string; name: string; category?: string; rating?: number; reviewCount?: number; checked?: boolean }[]; }
 
+export interface ReviewListRow {
+  id: string; dedupKey: string; businessName: string; address: string; project: string;
+  author: string; authorUrl: string; rating: number | null; text: string;
+  relativeTime: string; ownerResponse: string; scrapedAt: string;
+}
+
 export interface OrganizeMove { query: string; from: string; createdAt: string; }
 export interface OrganizeSub { name: string; status: 'created' | 'reparented' | 'existing'; fromParent?: string; movedCount: number; alreadyHere: number; moved: OrganizeMove[]; }
 export interface OrganizeRoot { name: string; icon: string; created: boolean; movedCount: number; subs: OrganizeSub[]; }
@@ -117,6 +123,25 @@ export const api = {
 
   getReviews: (dedupKey: string): Promise<{ ok: boolean; total: number; rows: import('./types').ReviewRow[] }> =>
     jget('/api/reviews?dedupKey=' + encodeURIComponent(dedupKey)),
+
+  // Reviews view — paginated list with geo/business filters
+  getReviewList: (q: { page?: number; pageSize?: number; dedupKey?: string; country?: string; state?: string; city?: string; search?: string }): Promise<{ ok: boolean; rows: ReviewListRow[]; total: number; page: number; pageSize: number }> => {
+    const p = new URLSearchParams();
+    if (q.page) p.set('page', String(q.page));
+    if (q.pageSize) p.set('pageSize', String(q.pageSize));
+    if (q.dedupKey) p.set('dedupKey', q.dedupKey);
+    if (q.country) p.set('country', q.country);
+    if (q.state) p.set('state', q.state);
+    if (q.city) p.set('city', q.city);
+    if (q.search) p.set('search', q.search);
+    return jget('/api/reviews/list?' + p.toString());
+  },
+  getReviewBusinesses: (q: string): Promise<{ ok: boolean; businesses: { dedupKey: string; name: string; address: string; reviewsCount: number }[] }> =>
+    jget('/api/reviews/businesses?q=' + encodeURIComponent(q)),
+
+  // AI insights for one lead via the local Claude CLI (localhost only — see /api/enrich)
+  enrichLead: (dedupKey: string): Promise<{ ok: boolean; error?: string; ai?: { aiSummary: string; aiPainPoints: string; aiAdvantages: string; aiPitch: string; aiAt: string } }> =>
+    jsend('/api/enrich', 'POST', { dedupKey }),
 
   getTags: (): Promise<{ tags: { name: string; color: string }[] }> => jget('/api/tags'),
   createTag: (name: string, color: string) => jsend('/api/tags', 'POST', { name, color }),

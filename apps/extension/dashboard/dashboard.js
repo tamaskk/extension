@@ -2,7 +2,8 @@
 // background service worker and renders the LeadsMap-style table.
 const PKEY = 'gridleads_projects';
 const $ = (id) => document.getElementById(id);
-const NO_SITE = new Set(['NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'NOT_WORKING']);
+// Must mirror scoring.js WEBSITELESS (kept in sync with the background NO_SITE).
+const NO_SITE = new Set(['NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'NOT_WORKING', 'DOMAIN_PARKED', 'UNDER_CONSTRUCTION']);
 
 let projects = [];       // [{query,name,createdAt,folderId,total,noWebsite,hot,email}]
 let folders = [];        // [{id,name,createdAt,collapsed}]
@@ -140,6 +141,10 @@ function wireSidebar() {
             const qq = decodeURIComponent(checks[i].dataset.q);
             if (target) selected.add(qq); else selected.delete(qq);
           }
+        } else {
+          // stale anchor (deleted/collapsed) → still reconcile the clicked box,
+          // otherwise it shows checked but never enters `selected`.
+          if (target) selected.add(q); else selected.delete(q);
         }
       } else if (target) {
         selected.add(q);
@@ -229,7 +234,9 @@ function statusChip(s) {
     NOT_WORKING: ['amber', 'Not working'], REDIRECTS: ['amber', 'Redirects'],
   };
   const [cls, label] = map[s] || ['gray', s || '—'];
-  return `<span class="chip ${cls}">${label}</span>`;
+  // cls comes only from the whitelist above; label may be a raw status string
+  // (from an imported bundle) → escape it.
+  return `<span class="chip ${cls}">${esc(label)}</span>`;
 }
 function esc(v) { return String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function escAttr(v) { return esc(v).replace(/"/g, '&quot;'); }
@@ -327,7 +334,7 @@ const CSV_COLUMNS = [
   ['leadScore', 'Lead Score'], ['leadTemperature', 'Temperature'], ['opportunityScore', 'Opportunity Score'],
   ['topPitch', 'Top Pitch'], ['address', 'Address'], ['lat', 'Lat'], ['lng', 'Lng'], ['mapsUrl', 'Maps URL'],
 ];
-function csvEscape(v) { if (v === null || v === undefined) return ''; const s = String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+function csvEscape(v) { if (v === null || v === undefined) return ''; let s = String(v); if (/^[=+\-@\t\r]/.test(s) && !/^[+-]?\d+(\.\d+)?$/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
 function buildCsv(list) {
   const header = CSV_COLUMNS.map((c) => c[1]).join(',');
   const body = list.map((r) => CSV_COLUMNS.map((c) => csvEscape(r[c[0]])).join(',')).join('\n');
@@ -374,12 +381,19 @@ function render() {
   updateSortIndicators();
 
   $('rows').innerHTML = view.map((r) => {
-    const opp = r.opportunityScore || 0;
+    // Coerce/clamp numerics and escape every interpolated field — records can come
+    // from an imported bundle (untyped), so none of these are guaranteed safe.
+    const opp = Math.max(0, Math.min(100, Number(r.opportunityScore) || 0));
+    const rating = (r.rating == null || r.rating === '') ? '—' : esc(r.rating);
+    const reviews = (r.reviewCount == null || r.reviewCount === '') ? '—' : esc(r.reviewCount);
+    const temp = r.leadTemperature || '';
     const phone = r.phone ? esc(r.phone) : '<span class="muted">—</span>';
     const email2 = r.email ? esc(r.email) : '<span class="muted">—</span>';
-    const maps = r.mapsUrl ? `<a class="mlink" href="${esc(r.mapsUrl)}" target="_blank">open ↗</a>` : '';
+    const safeMaps = /^https?:\/\//i.test(r.mapsUrl || '') ? r.mapsUrl : '';
+    const safeWeb = /^https?:\/\//i.test(r.website || '') ? r.website : '';
+    const maps = safeMaps ? `<a class="mlink" href="${esc(safeMaps)}" target="_blank" rel="noopener noreferrer">open ↗</a>` : '';
     const title = r.topPitch ? ` title="${escAttr(r.topPitch)}"` : '';
-    const web = r.website ? `<a class="mlink" href="${esc(r.website)}" target="_blank">${statusChip(r.websiteStatus)}</a>` : statusChip(r.websiteStatus);
+    const web = safeWeb ? `<a class="mlink" href="${esc(safeWeb)}" target="_blank" rel="noopener noreferrer">${statusChip(r.websiteStatus)}</a>` : statusChip(r.websiteStatus);
     const k = encodeURIComponent(r._key || r.dedupKey || '');
     const pj = encodeURIComponent(r._project || '');
     return `<tr${title}>
@@ -387,13 +401,13 @@ function render() {
       <td class="cb"><input type="checkbox" class="rowcheck" data-k="${k}" data-p="${pj}" ${r.checked ? 'checked' : ''}></td>
       <td class="bizname" title="${escAttr(r.name)}">${esc(r.name)}</td>
       <td class="muted">${esc(r.category)}</td>
-      <td>${r.rating ?? '—'}</td>
-      <td class="muted">${r.reviewCount ?? '—'}</td>
+      <td>${rating}</td>
+      <td class="muted">${reviews}</td>
       <td>${phone}</td>
       <td>${email2}</td>
       <td>${web}</td>
       <td><div class="opp"><div class="track"><div class="fill" style="width:${opp}%"></div></div><div class="val">${opp}</div></div></td>
-      <td><span class="temp ${r.leadTemperature}">${r.leadTemperature || ''}</span></td>
+      <td><span class="temp ${escAttr(temp)}">${esc(temp)}</span></td>
       <td class="muted loc" title="${escAttr(r.address || '')}">${esc(r.address || '')}</td>
       <td>${maps}</td>
     </tr>`;
@@ -500,9 +514,9 @@ $('bulkDelete').addEventListener('click', async () => {
   await loadProjects();
 });
 $('export').addEventListener('click', async () => {
-  const list = (await msg({ type: 'getRecords', query: activeProject || undefined })) || [];
-  let out = filter === 'nowebsite' ? list.filter((r) => NO_SITE.has(r.websiteStatus)) : list;
-  out = out.sort((a, b) => (b.opportunityScore || 0) - (a.opportunityScore || 0));
+  // Export exactly what the table currently shows: the active filter chip, the
+  // search term, and the chosen sort — same `matches`/`sortRows` used by render().
+  const out = sortRows(rows.filter(matches));
   downloadBlob(buildCsv(out), 'text/csv;charset=utf-8', activeProject || 'all', 'csv');
 });
 $('selall').addEventListener('change', (e) => {

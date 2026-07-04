@@ -123,6 +123,24 @@ function ReviewsTab({ lead, rows, stats, loading, error }: { lead: LeadRow; rows
 
 function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEditAll?: (lead: LeadRow) => void }) {
   const opp = lead.opportunityScore || 0;
+  const [ai, setAi] = useState({ summary: lead.aiSummary || '', painPoints: lead.aiPainPoints || '', advantages: lead.aiAdvantages || '', pitch: lead.aiPitch || '', at: lead.aiAt || '' });
+  const [gen, setGen] = useState(false);
+  const [genErr, setGenErr] = useState('');
+  useEffect(() => {
+    setAi({ summary: lead.aiSummary || '', painPoints: lead.aiPainPoints || '', advantages: lead.aiAdvantages || '', pitch: lead.aiPitch || '', at: lead.aiAt || '' });
+    setGenErr('');
+  }, [lead.dedupKey, lead.aiSummary, lead.aiPainPoints, lead.aiAdvantages, lead.aiPitch, lead.aiAt]);
+  const generate = async () => {
+    setGen(true); setGenErr('');
+    try {
+      const r = await api.enrichLead(lead.dedupKey);
+      if (r && r.ok && r.ai) setAi({ summary: r.ai.aiSummary, painPoints: r.ai.aiPainPoints, advantages: r.ai.aiAdvantages, pitch: r.ai.aiPitch, at: r.ai.aiAt });
+      else setGenErr(r?.error || 'Generation failed');
+    } catch (e) { setGenErr(String((e as Error)?.message || e)); }
+    setGen(false);
+  };
+  const bullets = (s: string) => s.split('\n').map((x) => x.replace(/^[•\-*]\s*/, '').trim()).filter(Boolean);
+  const hasAi = !!(ai.summary || ai.painPoints || ai.advantages || ai.pitch);
   const rowsData: [string, React.ReactNode][] = [
     ['Project', <span className="muted" key="pj">{lead._project}</span>],
     ['Category', lead.category || '—'],
@@ -142,6 +160,22 @@ function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEd
       {lead.topPitch && (
         <div className="rvp-card"><h4>🎯 Sales pitch</h4><p>{lead.topPitch}</p></div>
       )}
+
+      <div className="rvp-card ai-card">
+        <div className="ai-head">
+          <h4>✨ AI insights</h4>
+          <button className="btn primary ai-gen" onClick={generate} disabled={gen}>{gen ? 'Generating…' : hasAi ? '↻ Regenerate' : '✨ Generate'}</button>
+        </div>
+        {genErr && <p className="ai-err">⚠ {genErr}</p>}
+        {gen && <p className="ai-empty">Asking your local Claude… (~10s)</p>}
+        {!hasAi && !gen && !genErr && <p className="ai-empty">Generate a summary, strengths, weaknesses and a tailored sales pitch from this business&apos;s data + reviews. Runs your local Claude (localhost only).</p>}
+        {ai.summary && <div className="ai-sec"><div className="ai-lbl">Summary</div><p>{ai.summary}</p></div>}
+        {ai.advantages && <div className="ai-sec"><div className="ai-lbl">✅ Advantages</div><ul>{bullets(ai.advantages).map((b, i) => <li key={i}>{b}</li>)}</ul></div>}
+        {ai.painPoints && <div className="ai-sec"><div className="ai-lbl">⚠️ Pain points</div><ul>{bullets(ai.painPoints).map((b, i) => <li key={i}>{b}</li>)}</ul></div>}
+        {ai.pitch && <div className="ai-sec"><div className="ai-lbl">🎯 AI pitch</div><p>{ai.pitch}</p></div>}
+        {ai.at && <div className="ai-at">generated {new Date(ai.at).toLocaleString()}</div>}
+      </div>
+
       <div className="rvp-card" style={{ background: '#fff' }}>
         {rowsData.map(([k, v]) => (
           <div className="si-row" key={k}><span className="si-k">{k}</span><span className="si-v">{v}</span></div>

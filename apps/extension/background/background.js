@@ -7,7 +7,8 @@ importScripts('../lib/scoring.js', '../lib/mapsParser.js');
 
 const PKEY = 'gridleads_projects'; // { [query]: { query, name, createdAt, folderId?, records: {dedupKey: rec} } }
 const FKEY = 'gridleads_folders';  // { [id]: { id, name, createdAt, collapsed } }
-const NO_SITE = new Set(['NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'NOT_WORKING']);
+// Must mirror scoring.js WEBSITELESS (the "no real website" statuses).
+const NO_SITE = new Set(['NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'NOT_WORKING', 'DOMAIN_PARKED', 'UNDER_CONSTRUCTION']);
 
 let activeQuery = '';        // project shown in the popup / counted on the badge
 let sessionFound = 0;        // records added since the last scrapeStart
@@ -20,36 +21,50 @@ async function getProjects() {
   return o[PKEY] || {};
 }
 async function setProjects(p) { await chrome.storage.local.set({ [PKEY]: p }); }
+
+// Serialize every read-modify-write of the projects store (PKEY). Without this,
+// concurrent captures from N parallel windows (chrome.webRequest.onCompleted is
+// fire-and-forget) both read the same snapshot and the second setProjects()
+// silently overwrites the first one's newly added leads. Same pattern as
+// lockBatch, but for PKEY. EVERY getProjects->setProjects sequence must run
+// inside lockProjects (never nest — it is a non-reentrant promise-chain mutex).
+let _projLock = Promise.resolve();
+function lockProjects(fn) { const p = _projLock.then(() => fn()); _projLock = p.then(() => {}, () => {}); return p; }
+
 async function getFolders() { const o = await chrome.storage.local.get(FKEY); return o[FKEY] || {}; }
 async function setFolders(f) { await chrome.storage.local.set({ [FKEY]: f }); }
 function newId(prefix) { return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
 async function ensureProject(query, population) {
-  const p = await getProjects();
-  let changed = false;
-  if (!p[query]) {
-    p[query] = { query, name: query || 'Untitled search', createdAt: new Date().toISOString(), records: {} };
-    changed = true;
-  }
-  if (population != null && population !== '' && p[query].population !== population) { p[query].population = population; changed = true; }
-  if (changed) await setProjects(p);
+  return lockProjects(async () => {
+    const p = await getProjects();
+    let changed = false;
+    if (!p[query]) {
+      p[query] = { query, name: query || 'Untitled search', createdAt: new Date().toISOString(), records: {} };
+      changed = true;
+    }
+    if (population != null && population !== '' && p[query].population !== population) { p[query].population = population; changed = true; }
+    if (changed) await setProjects(p);
+  });
 }
 
 async function addRecords(query, records) {
   if (!records.length) return 0;
-  const p = await getProjects();
-  if (!p[query]) p[query] = { query, name: query || 'Untitled search', createdAt: new Date().toISOString(), records: {} };
-  let added = 0;
-  for (const r of records) {
-    const key = r.dedupKey || r.placeId || r.name;
-    const existing = p[query].records[key];
-    const scored = Object.assign({}, r, self.GridLeadsScoring.score(r));
-    if (existing && existing.checked) scored.checked = true; // preserve manual "Checked"
-    if (!existing) added++;
-    p[query].records[key] = scored;
-  }
-  await setProjects(p);
-  return added;
+  return lockProjects(async () => {
+    const p = await getProjects();
+    if (!p[query]) p[query] = { query, name: query || 'Untitled search', createdAt: new Date().toISOString(), records: {} };
+    let added = 0;
+    for (const r of records) {
+      const key = r.dedupKey || r.placeId || r.name;
+      const existing = p[query].records[key];
+      const scored = Object.assign({}, r, self.GridLeadsScoring.score(r));
+      if (existing && existing.checked) scored.checked = true; // preserve manual "Checked"
+      if (!existing) added++;
+      p[query].records[key] = scored;
+    }
+    await setProjects(p);
+    return added;
+  });
 }
 
 function projectStats(proj) {
@@ -89,16 +104,48 @@ chrome.webRequest.onCompleted.addListener(
   { urls: ['https://www.google.com/*'] },
 );
 
+// In-flight captureSearch re-fetches per tab. Stream mode uses this to drain
+// before sync+delete so the last page's capture never races the delete.
+const inFlightCaptures = {};   // tabId -> count
+let zeroParseStreak = 0;       // consecutive /search responses that parsed to 0 places
+
+// Resolve the search a worker tab is currently on, from PERSISTED batch state.
+// In-memory tabQuery/activeQuery die with the service worker; after an SW restart
+// this keeps captures attributed to the right project instead of the fallback bucket.
+async function queryForTab(tabId) {
+  if (tabId == null) return '';
+  try {
+    const b = await getBatch();
+    if (!b || !Array.isArray(b.workers)) return '';
+    const w = b.workers.find((x) => x.tabId === tabId);
+    if (!w || !w.batchId) return '';
+    const bt = b.queue.find((x) => x.id === w.batchId);
+    if (!bt) return '';
+    const it = bt.items[bt.itemIndex];
+    return (it && it.query) || '';
+  } catch { return ''; }
+}
+
 async function captureSearch(url, tabId) {
+  inFlightCaptures[tabId] = (inFlightCaptures[tabId] || 0) + 1;
   try {
     const res = await fetch(url, { credentials: 'include' });
     const text = await res.text();
     const records = self.GridLeadsParser.parseSearchResponse(text);
     if (!records.length) {
-      console.log('[GridLeads] /search captured but 0 parsed. diag=', self.__gridleadsDebug, 'len=', text.length);
+      zeroParseStreak++;
+      console.warn('[GridLeads] /search captured but 0 parsed (' + zeroParseStreak + ' in a row). diag=', self.__gridleadsDebug, 'len=', text.length);
+      // Surface a persistent parser blackout (Google likely changed the response
+      // shape) so an overnight run doesn't "succeed" with zero data unnoticed.
+      if (zeroParseStreak >= 5) {
+        try { chrome.action.setBadgeText({ text: '!' }); chrome.action.setBadgeBackgroundColor({ color: '#ef4444' }); } catch { /* */ }
+        try { chrome.action.setTitle({ title: `GridLeads: parser returned 0 leads for the last ${zeroParseStreak} pages — Google may have changed format.` }); } catch { /* */ }
+      }
       return;
     }
-    const q = tabQuery[tabId] || parseQ(url) || activeQuery || 'Google Maps leads';
+    if (zeroParseStreak >= 5) { try { chrome.action.setTitle({ title: 'GridLeads' }); } catch { /* */ } }
+    zeroParseStreak = 0; // recovered
+    const q = tabQuery[tabId] || (await queryForTab(tabId)) || parseQ(url) || activeQuery || 'Google Maps leads';
     if (!activeQuery) activeQuery = q;
     const added = await addRecords(q, records);
     sessionFound += added;
@@ -106,7 +153,17 @@ async function captureSearch(url, tabId) {
     console.log(`[GridLeads] captured ${records.length} (+${added} new) -> "${q}"`);
   } catch (e) {
     console.log('[GridLeads] capture error:', e && e.message);
+  } finally {
+    inFlightCaptures[tabId] = Math.max(0, (inFlightCaptures[tabId] || 1) - 1);
   }
+}
+
+// Wait until a tab has no in-flight capture re-fetches (bounded). Runs BEFORE
+// stream sync+delete, while tabQuery[tabId] still points at the finished search,
+// so any last-page capture lands in the right project before it is synced away.
+async function drainCaptures(tabId, capMs = 5000) {
+  const t0 = Date.now();
+  while ((inFlightCaptures[tabId] || 0) > 0 && Date.now() - t0 < capMs) await wait(150);
 }
 
 // ---------- batch automation (event-driven + persisted, survives SW restarts) ----------
@@ -161,10 +218,14 @@ async function syncProjectsToDb(queries) {
 // Remove the given projects from local browser storage (after they're safely in the DB).
 async function deleteLocalProjects(queries) {
   if (!queries || !queries.length) return;
-  const projects = await getProjects();
-  let changed = false;
-  for (const q of queries) if (projects[q]) { delete projects[q]; changed = true; }
-  if (changed) { await setProjects(projects); await refreshBadge(); }
+  const changed = await lockProjects(async () => {
+    const projects = await getProjects();
+    let ch = false;
+    for (const q of queries) if (projects[q]) { delete projects[q]; ch = true; }
+    if (ch) await setProjects(projects);
+    return ch;
+  });
+  if (changed) await refreshBadge();
 }
 
 // Stream mode: as soon as a single search finishes, push it to the DB, then drop
@@ -277,6 +338,12 @@ async function openWorkerWindow(idx, count) {
 // window.create calls (and a killed-then-revived SW) can't permanently cap us
 // below the requested count. Called at start AND from the watchdog to top up.
 let _opening = false;
+// In-memory guard so a double-click (two batchStartQueue/batchStartAdopt messages)
+// can't both pass the "already running?" pre-check and each reset workers=[] after
+// the other already opened windows, orphaning them. Only user actions call these,
+// all in this one SW, so an in-memory flag is sufficient (and is irrelevant across
+// SW restarts, which never happen mid-start-click).
+let _startingQueue = false;
 async function topUpWorkers(reuseTabId) {
   if (_opening) return;
   _opening = true;
@@ -310,31 +377,35 @@ async function topUpWorkers(reuseTabId) {
 
 // Start processing the queue with N parallel windows (one batch each).
 async function startQueue(reuseTabId) {
-  const b0 = await getBatch();
-  if (!b0 || !b0.queue.length) return { ok: false, error: 'empty' };
-  if (b0.active && Array.isArray(b0.workers) && b0.workers.length) return { ok: true }; // already running
-  // (active but no workers = a stale/broken run → fall through and (re)start it)
+  if (_startingQueue) return { ok: true, already: true };
+  _startingQueue = true;
+  try {
+    const b0 = await getBatch();
+    if (!b0 || !b0.queue.length) return { ok: false, error: 'empty' };
+    if (b0.active && Array.isArray(b0.workers) && b0.workers.some((w) => w.stage !== 'done')) return { ok: true }; // already running
+    // (active but no live workers = a stale/broken run → fall through and (re)start it)
 
-  const conc = await lockBatch(async () => {
-    const b = await getBatch(); if (!b) return 0;
-    b.active = true; b.mode = await getBatchMode(); b.streamSynced = b.streamSynced || 0;
-    b.concurrency = DEFAULT_CONCURRENCY; // fixed number of parallel windows
-    for (const x of b.queue) if (x.status === 'running') { x.status = 'pending'; x.workerId = null; } // recover stale
-    b.workers = [];
-    const pending = b.queue.filter((x) => x.status === 'pending').length;
-    if (!pending) { await setBatch(null); return 0; }
-    await setBatch(b);
-    return Math.min(b.concurrency || DEFAULT_CONCURRENCY, pending);
-  });
-  if (!conc) return { ok: false, error: 'empty' };
-  try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
+    const conc = await lockBatch(async () => {
+      const b = await getBatch(); if (!b) return 0;
+      b.active = true; b.mode = await getBatchMode(); b.streamSynced = b.streamSynced || 0;
+      b.concurrency = DEFAULT_CONCURRENCY; // fixed number of parallel windows
+      for (const x of b.queue) if (x.status === 'running') { x.status = 'pending'; x.workerId = null; } // recover stale
+      b.workers = [];
+      const pending = b.queue.filter((x) => x.status === 'pending').length;
+      if (!pending) { await setBatch(null); return 0; }
+      await setBatch(b);
+      return Math.min(b.concurrency || DEFAULT_CONCURRENCY, pending);
+    });
+    if (!conc) return { ok: false, error: 'empty' };
+    try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
 
-  // Open the windows (each starts scraping as soon as it opens). The watchdog
-  // keeps topping up toward the target if Chrome throttled some creates.
-  await topUpWorkers(reuseTabId);
-  const fin = await getBatch();
-  if (fin && fin.active && (!fin.workers || !fin.workers.length)) { await stopAllBatches(); return { ok: false, error: 'no-window' }; }
-  return { ok: true };
+    // Open the windows (each starts scraping as soon as it opens). The watchdog
+    // keeps topping up toward the target if Chrome throttled some creates.
+    await topUpWorkers(reuseTabId);
+    const fin = await getBatch();
+    if (fin && fin.active && (!fin.workers || !fin.workers.length)) { await stopAllBatches(); return { ok: false, error: 'no-window' }; }
+    return { ok: true };
+  } finally { _startingQueue = false; }
 }
 
 // ── manual "adopt my open windows" mode ────────────────────────────────────
@@ -381,36 +452,40 @@ async function adoptTab(tg) {
 async function isLiveTab(id) { if (id == null) return false; try { await chrome.tabs.get(id); return true; } catch { return false; } }
 
 async function startQueueAdopt() {
-  const b0 = await getBatch();
-  if (!b0 || !b0.queue.length) { console.warn('[GridLeads] adopt: no queue'); return { ok: false, error: 'empty' }; }
-  const pending0 = b0.queue.filter((x) => x.status === 'pending' || x.status === 'running').length;
-  if (!pending0) { console.warn('[GridLeads] adopt: queue has no pending batches (all done?)'); return { ok: false, error: 'empty' }; }
-  // Already running? Only believe it if at least one worker's tab is actually alive.
-  // A stale run (dead service worker / closed windows) left active:true behind → restart.
-  if (b0.active && Array.isArray(b0.workers) && b0.workers.length) {
-    let alive = 0;
-    for (const w of b0.workers) { if (w.stage !== 'done' && await isLiveTab(w.tabId)) alive++; }
-    if (alive > 0) { console.log('[GridLeads] adopt: already running with ' + alive + ' live worker(s)'); return { ok: true, already: true, adopted: alive }; }
-    console.warn('[GridLeads] adopt: stale run detected (active but 0 live workers) → restarting');
-  }
-  const targets = await listAdoptableTabs();
-  console.log('[GridLeads] adopt: found ' + targets.length + ' adoptable window(s), queue pending=' + pending0);
-  if (!targets.length) return { ok: false, error: 'no-maps' };
-  const mode = await getBatchMode();
-  await lockBatch(async () => {
-    const b = await getBatch(); if (!b) return;
-    b.active = true; b.adopt = true; b.mode = mode; b.streamSynced = b.streamSynced || 0;
-    b.concurrency = targets.length;
-    for (const x of b.queue) if (x.status === 'running') { x.status = 'pending'; x.workerId = null; } // recover stale
-    b.workers = [];
-    await setBatch(b);
-  });
-  try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
-  console.log('[GridLeads] adopting ' + targets.length + ' open window(s)');
-  for (const tg of targets) { await adoptTab(tg); await wait(300); } // small stagger between drives
-  const fin = await getBatch();
-  if (fin && fin.active && (!fin.workers || !fin.workers.length)) { await stopAllBatches(); return { ok: false, error: 'no-maps' }; }
-  return { ok: true, adopted: (fin && fin.workers) ? fin.workers.length : 0 };
+  if (_startingQueue) return { ok: true, already: true };
+  _startingQueue = true;
+  try {
+    const b0 = await getBatch();
+    if (!b0 || !b0.queue.length) { console.warn('[GridLeads] adopt: no queue'); return { ok: false, error: 'empty' }; }
+    const pending0 = b0.queue.filter((x) => x.status === 'pending' || x.status === 'running').length;
+    if (!pending0) { console.warn('[GridLeads] adopt: queue has no pending batches (all done?)'); return { ok: false, error: 'empty' }; }
+    // Already running? Only believe it if at least one worker's tab is actually alive.
+    // A stale run (dead service worker / closed windows) left active:true behind → restart.
+    if (b0.active && Array.isArray(b0.workers) && b0.workers.length) {
+      let alive = 0;
+      for (const w of b0.workers) { if (w.stage !== 'done' && await isLiveTab(w.tabId)) alive++; }
+      if (alive > 0) { console.log('[GridLeads] adopt: already running with ' + alive + ' live worker(s)'); return { ok: true, already: true, adopted: alive }; }
+      console.warn('[GridLeads] adopt: stale run detected (active but 0 live workers) → restarting');
+    }
+    const targets = await listAdoptableTabs();
+    console.log('[GridLeads] adopt: found ' + targets.length + ' adoptable window(s), queue pending=' + pending0);
+    if (!targets.length) return { ok: false, error: 'no-maps' };
+    const mode = await getBatchMode();
+    await lockBatch(async () => {
+      const b = await getBatch(); if (!b) return;
+      b.active = true; b.adopt = true; b.mode = mode; b.streamSynced = b.streamSynced || 0;
+      b.concurrency = targets.length;
+      for (const x of b.queue) if (x.status === 'running') { x.status = 'pending'; x.workerId = null; } // recover stale
+      b.workers = [];
+      await setBatch(b);
+    });
+    try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
+    console.log('[GridLeads] adopting ' + targets.length + ' open window(s)');
+    for (const tg of targets) { await adoptTab(tg); await wait(300); } // small stagger between drives
+    const fin = await getBatch();
+    if (fin && fin.active && (!fin.workers || !fin.workers.length)) { await stopAllBatches(); return { ok: false, error: 'no-maps' }; }
+    return { ok: true, adopted: (fin && fin.workers) ? fin.workers.length : 0 };
+  } finally { _startingQueue = false; }
 }
 
 // Watchdog hook (adopt mode): pick up any window the user opens mid-run.
@@ -494,7 +569,14 @@ async function onBatchTabComplete(tabId, url) {
   });
   if (!go) return;
   await wait(NAV_SETTLE);
-  await startContent(tabId);
+  const ok = await startContent(tabId);
+  if (!ok) {
+    // Content scraper never started (consent/interstitial page, injection blocked,
+    // dead tab). Skip this item NOW (advanceWorker keeps any page-1 captures and
+    // moves to the next search) instead of stalling ~4 min for the watchdog.
+    console.warn('[GridLeads] startContent failed for tab ' + tabId + ' → skipping item');
+    await advanceWorker(tabId);
+  }
 }
 
 // A worker's content script finished → advance its batch by one item.
@@ -511,6 +593,7 @@ async function advanceWorker(tabId) {
   });
   if (!info) return;
   if (info.mode === 'stream' && info.justDone) {
+    await drainCaptures(tabId); // let the last page's capture land before sync+delete
     await streamSyncItem(info.justDone);
     await lockBatch(async () => { const b = await getBatch(); if (b) { b.streamSynced = (b.streamSynced || 0) + 1; await setBatch(b); } });
   }
@@ -552,6 +635,13 @@ async function batchWatchdog() {
   if (!b || !b.active) { try { chrome.alarms.clear(HB_ALARM); } catch { /* */ } return; }
   const now = tsNow();
   for (const w of b.workers) {
+    if (w.stage === 'done') continue;
+    // Reap a worker whose tab died (browser restart, or a tabs.onRemoved we
+    // missed). Otherwise it counts as "live" forever: topUpWorkers won't open a
+    // replacement (live >= want), and the stage checks below re-drive it into a
+    // dead tab every tick → the whole run wedges. onWorkerTabClosed requeues its
+    // in-flight batch item so a fresh/adopted window resumes it.
+    if (!(await isLiveTab(w.tabId))) { await onWorkerTabClosed(w.tabId); continue; }
     const age = now - (w.ts || 0);
     if (w.stage === 'navigating' && age > 45000) driveWorker(w.id);          // nav/complete missed → re-issue
     else if (w.stage === 'scraping' && age > 240000) advanceWorker(w.tabId); // scrape stuck >4min → skip item
@@ -566,6 +656,22 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => { if (info.status === 'c
 chrome.tabs.onRemoved.addListener((tabId) => { onWorkerTabClosed(tabId); }); // adopted window closed → requeue its batch
 chrome.alarms.onAlarm.addListener((a) => { if (a.name === HB_ALARM) batchWatchdog(); });
 
+// A browser restart or extension update drops the in-memory SW state, and an
+// update also clears the HB_ALARM. If a batch was active, re-arm the watchdog and
+// kick it once so the run recovers instead of freezing with no heartbeat.
+async function resumeIfActive() {
+  try {
+    const b = await getBatch();
+    if (b && b.active) {
+      try { chrome.alarms.create(HB_ALARM, { periodInMinutes: 0.5 }); } catch { /* */ }
+      batchWatchdog();
+    }
+  } catch { /* */ }
+  try { await refreshBadge(); } catch { /* */ }
+}
+chrome.runtime.onStartup.addListener(resumeIfActive);
+chrome.runtime.onInstalled.addListener(resumeIfActive);
+
 // ---------- CSV export ----------
 const COLUMNS = [
   ['name', 'Business'], ['category', 'Category'], ['rating', 'Rating'], ['reviewCount', 'Reviews'],
@@ -575,7 +681,11 @@ const COLUMNS = [
 ];
 function csvEscape(v) {
   if (v === null || v === undefined) return '';
-  const s = String(v);
+  let s = String(v);
+  // Neutralize spreadsheet formula injection: a scraped business name/address that
+  // starts with = + - @ (or tab/CR) would run as a live formula in Excel/Sheets.
+  // Skip pure numbers so legitimate negative Lat/Lng values aren't turned into text.
+  if (/^[=+\-@\t\r]/.test(s) && !/^[+-]?\d+(\.\d+)?$/.test(s)) s = "'" + s;
   return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
 async function buildCsv({ query, onlyNoWebsite } = {}) {
@@ -773,34 +883,42 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         delete f[msg.id];
         await setFolders(f);
         // its projects fall back to ungrouped (not deleted)
-        const p = await getProjects();
-        for (const proj of Object.values(p)) if (proj.folderId === msg.id) delete proj.folderId;
-        await setProjects(p);
+        await lockProjects(async () => {
+          const p = await getProjects();
+          for (const proj of Object.values(p)) if (proj.folderId === msg.id) delete proj.folderId;
+          await setProjects(p);
+        });
         sendResponse({ ok: true });
         break;
       }
       case 'moveProjects': {
-        const p = await getProjects();
-        for (const q of (msg.queries || [])) {
-          if (p[q]) { if (msg.folderId) p[q].folderId = msg.folderId; else delete p[q].folderId; }
-        }
-        await setProjects(p);
+        await lockProjects(async () => {
+          const p = await getProjects();
+          for (const q of (msg.queries || [])) {
+            if (p[q]) { if (msg.folderId) p[q].folderId = msg.folderId; else delete p[q].folderId; }
+          }
+          await setProjects(p);
+        });
         sendResponse({ ok: true });
         break;
       }
       case 'renameProjects': {
-        const p = await getProjects();
-        if (msg.name && msg.name.trim()) {
-          for (const q of (msg.queries || [])) if (p[q]) p[q].name = msg.name.trim();
-          await setProjects(p);
-        }
+        await lockProjects(async () => {
+          const p = await getProjects();
+          if (msg.name && msg.name.trim()) {
+            for (const q of (msg.queries || [])) if (p[q]) p[q].name = msg.name.trim();
+            await setProjects(p);
+          }
+        });
         sendResponse({ ok: true });
         break;
       }
       case 'deleteProjects': {
-        const p = await getProjects();
-        for (const q of (msg.queries || [])) { delete p[q]; if (activeQuery === q) activeQuery = ''; }
-        await setProjects(p);
+        await lockProjects(async () => {
+          const p = await getProjects();
+          for (const q of (msg.queries || [])) { delete p[q]; if (activeQuery === q) activeQuery = ''; }
+          await setProjects(p);
+        });
         await refreshBadge();
         sendResponse({ ok: true });
         break;
@@ -835,35 +953,41 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         break;
       }
       case 'deleteRecord': {
-        const p = await getProjects();
-        const proj = p[msg.query];
-        if (proj && proj.records[msg.key]) {
-          delete proj.records[msg.key];
-          await setProjects(p);
-          await refreshBadge();
-        }
+        const hit = await lockProjects(async () => {
+          const p = await getProjects();
+          const proj = p[msg.query];
+          if (proj && proj.records[msg.key]) { delete proj.records[msg.key]; await setProjects(p); return true; }
+          return false;
+        });
+        if (hit) await refreshBadge();
         sendResponse({ ok: true });
         break;
       }
       case 'deleteRecords': {
         // bulk: [{query, key}, ...] — single storage write
-        const p = await getProjects();
-        let n = 0;
-        for (const it of (msg.items || [])) {
-          const proj = p[it.query];
-          if (proj && proj.records[it.key]) { delete proj.records[it.key]; n++; }
-        }
-        if (n) { await setProjects(p); await refreshBadge(); }
+        const n = await lockProjects(async () => {
+          const p = await getProjects();
+          let cnt = 0;
+          for (const it of (msg.items || [])) {
+            const proj = p[it.query];
+            if (proj && proj.records[it.key]) { delete proj.records[it.key]; cnt++; }
+          }
+          if (cnt) await setProjects(p);
+          return cnt;
+        });
+        if (n) await refreshBadge();
         sendResponse({ ok: true, deleted: n });
         break;
       }
       case 'setChecked': {
-        const p = await getProjects();
-        const proj = p[msg.query];
-        if (proj && proj.records[msg.key]) {
-          proj.records[msg.key].checked = !!msg.checked;
-          await setProjects(p);
-        }
+        await lockProjects(async () => {
+          const p = await getProjects();
+          const proj = p[msg.query];
+          if (proj && proj.records[msg.key]) {
+            proj.records[msg.key].checked = !!msg.checked;
+            await setProjects(p);
+          }
+        });
         sendResponse({ ok: true });
         break;
       }
@@ -876,11 +1000,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         break;
       }
       case 'renameProject': {
-        const p = await getProjects();
-        if (p[msg.query] && msg.name && msg.name.trim()) {
-          p[msg.query].name = msg.name.trim();
-          await setProjects(p);
-        }
+        await lockProjects(async () => {
+          const p = await getProjects();
+          if (p[msg.query] && msg.name && msg.name.trim()) {
+            p[msg.query].name = msg.name.trim();
+            await setProjects(p);
+          }
+        });
         sendResponse({ ok: true });
         break;
       }
@@ -908,36 +1034,41 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         // Merge an exported JSON back in (union of records; never deletes).
         const incoming = msg.data;
         if (!incoming || typeof incoming !== 'object' || !incoming.projects) { sendResponse({ ok: false, error: 'bad-file' }); break; }
-        const p = await getProjects();
-        const f = await getFolders();
-        for (const [id, fol] of Object.entries(incoming.folders || {})) if (!f[id]) f[id] = fol;
-        let addedProjects = 0, mergedRecords = 0;
-        for (const [q, pr] of Object.entries(incoming.projects)) {
-          if (!pr || typeof pr !== 'object') continue;
-          if (!p[q]) { p[q] = pr; addedProjects++; mergedRecords += Object.keys(pr.records || {}).length; }
-          else {
-            const recs = { ...p[q].records };
-            for (const [k, r] of Object.entries(pr.records || {})) if (!recs[k]) { recs[k] = r; mergedRecords++; }
-            p[q] = { ...p[q], records: recs };
+        const { addedProjects, mergedRecords } = await lockProjects(async () => {
+          const p = await getProjects();
+          const f = await getFolders();
+          for (const [id, fol] of Object.entries(incoming.folders || {})) if (!f[id]) f[id] = fol;
+          let added = 0, merged = 0;
+          for (const [q, pr] of Object.entries(incoming.projects)) {
+            if (!pr || typeof pr !== 'object') continue;
+            if (!p[q]) { p[q] = pr; added++; merged += Object.keys(pr.records || {}).length; }
+            else {
+              const recs = { ...p[q].records };
+              for (const [k, r] of Object.entries(pr.records || {})) if (!recs[k]) { recs[k] = r; merged++; }
+              p[q] = { ...p[q], records: recs };
+            }
           }
-        }
-        await setFolders(f);
-        await setProjects(p);
+          await setFolders(f);
+          await setProjects(p);
+          return { addedProjects: added, mergedRecords: merged };
+        });
         await refreshBadge();
         sendResponse({ ok: true, addedProjects, mergedRecords });
         break;
       }
       case 'deleteProject': {
-        const p = await getProjects();
-        delete p[msg.query];
-        if (activeQuery === msg.query) activeQuery = '';
-        await setProjects(p);
+        await lockProjects(async () => {
+          const p = await getProjects();
+          delete p[msg.query];
+          if (activeQuery === msg.query) activeQuery = '';
+          await setProjects(p);
+        });
         await refreshBadge();
         sendResponse({ ok: true });
         break;
       }
       case 'clearAll': {
-        await setProjects({});
+        await lockProjects(async () => { await setProjects({}); });
         activeQuery = '';
         await refreshBadge();
         sendResponse({ ok: true });

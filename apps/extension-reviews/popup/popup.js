@@ -41,7 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!res) $('status').textContent = '⚠ No response — reload the extension and try again.';
     else if (res.error === 'no-maps') { setRunning(false); $('status').textContent = '⚠ Open ≥1 OTHER Chrome window (a Maps tab, or an empty new window) first, then click again.'; }
     else if (res.already) $('status').textContent = `Already running on ${res.adopted} window(s).`;
-    else $('status').textContent = `✓ Claimed ${res.adopted || 0} window(s) — scraping…`;
+    else if (res.ok) $('status').textContent = `✓ Claimed ${res.adopted || 0} window(s) — scraping…`;
+    else { setRunning(false); $('status').textContent = '⚠ ' + (res.error || 'could not start'); }
     poll();
   });
   // AUTO: open the windows for you (may be throttled to ~2 on some machines).

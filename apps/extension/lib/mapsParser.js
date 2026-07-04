@@ -57,7 +57,8 @@
       }
     }
 
-    const placeId = pick(place, [78]) || '';
+    const pidRaw = pick(place, [78]);
+    const placeId = typeof pidRaw === 'string' ? pidRaw : ''; // guard like cid: a non-string [78] must not poison dedupKey/mapsUrl
     const cidRaw = pick(place, [10]);
     const cid = (typeof cidRaw === 'string') ? cidRaw : '';
     const lat = pick(place, [9, 2]) ?? null;

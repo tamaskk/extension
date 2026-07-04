@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "jose": "^6.2.3",
     "mongoose": "^9.7.0",
     "next": "^16.2.9",
     "react": "^19.2.7",

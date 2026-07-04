@@ -20,10 +20,14 @@ import ReviewsModal from './ReviewsModal';
 import IconPicker from './IconPicker';
 import CallsModal from './CallsModal';
 import StatsModal from './StatsModal';
+import ReviewsView from './ReviewsView';
 import OrganizeModal from './OrganizeModal';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
 const cityFromFolderName = (name: string) => { const p = String(name || '').trim().split(/\s+/); return p.length > 1 ? p.slice(0, -1).join(' ') : (name || ''); };
+
+// thousands separator with a dot: 520343 → "520.343"
+const fmtNum = (n: number) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 // ── folder coverage helpers (shared by the cheap badge + the accurate match) ──
 const covNorm = (s: string) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -57,7 +61,9 @@ const SORTABLE: Record<string, SortType> = {
   opportunityScore: 'num', leadScore: 'num', leadTemperature: 'temp', address: 'str',
 };
 const byCreated = (a: { createdAt: string }, b: { createdAt: string }) => (a.createdAt < b.createdAt ? -1 : 1);
-const byOrder = (a: { order?: number; createdAt: string }, b: { order?: number; createdAt: string }) => ((a.order ?? 0) - (b.order ?? 0)) || (a.createdAt < b.createdAt ? -1 : 1);
+// folders sort alphabetically by name (default), natural + case-insensitive
+const byName = (a: { name?: string; createdAt: string }, b: { name?: string; createdAt: string }) =>
+  (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' }) || byCreated(a, b);
 const PAGE_SIZES = [10, 20, 50, 100, 200, 500, 1000];
 
 const STATUS_MAP: Record<string, [string, string]> = {
@@ -173,7 +179,7 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [activeProject, setActiveProject] = useState<string | null>(null);
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email' | 'hasreviews'>('all');
+  const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email' | 'hasreviews' | 'hasai'>('all');
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [selTypes, setSelTypes] = useState<string[]>([]);
   const [selRegions, setSelRegions] = useState<string[]>([]);
@@ -194,7 +200,7 @@ export default function Dashboard() {
   const [dupesOpen, setDupesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [view, setView] = useState<'leads' | 'map' | 'stats'>('leads');
+  const [view, setView] = useState<'leads' | 'map' | 'stats' | 'reviews'>('leads');
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; regions: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [reviewRow, setReviewRow] = useState<LeadRow | null>(null);
@@ -338,7 +344,7 @@ export default function Dashboard() {
     // folders grouped by parent
     const childrenOf: Record<string, typeof folderList> = {};
     const roots: typeof folderList = [];
-    folderList.slice().sort(byOrder).forEach((f) => {
+    folderList.slice().sort(byName).forEach((f) => {
       const pid = f.parentId && exists[f.parentId] ? f.parentId : '';
       if (pid) (childrenOf[pid] = childrenOf[pid] || []).push(f);
       else roots.push(f);
@@ -500,8 +506,10 @@ export default function Dashboard() {
     const hot = scope.reduce((s, p) => s + p.hot, 0);
     const email = scope.reduce((s, p) => s + p.email, 0);
     const reviews = scope.reduce((s, p) => s + (p.reviews || 0), 0);
+    const reviewsSum = scope.reduce((s, p) => s + (p.reviewsSum || 0), 0);
+    const ai = scope.reduce((s, p) => s + (p.ai || 0), 0);
     const oppSum = scope.reduce((s, p) => s + (p.oppSum || 0), 0);
-    return { total, noweb, hot, email, reviews, avg: total ? Math.round(oppSum / total) : 0 };
+    return { total, noweb, hot, email, reviews, reviewsSum, ai, avg: total ? Math.round(oppSum / total) : 0 };
   }, [activeProject, activeFolder, summaries, summariesArr, tree]);
   const globalTotal = useMemo(() => summariesArr.reduce((s, p) => s + (p.total || 0), 0), [summariesArr]);
   const scopeName = activeFolder ? (folders[activeFolder]?.name || 'this folder') : activeProject ? (summaries[activeProject]?.name || activeProject) : '';
@@ -780,7 +788,7 @@ export default function Dashboard() {
       <aside className="sidebar">
         <div className="brand"><span className="brand-mark">✦</span> GridLeads</div>
         <nav className="navrail">
-          {[['🧾', 'Leads'], ['🗺️', 'Map'], ['📊', 'Stats'], ['📞', 'Calls'], ['⧉', 'Duplicates'], ['🗂️', 'Organize']].map(([ic, label], i) => (
+          {[['🧾', 'Leads'], ['🗺️', 'Map'], ['📊', 'Stats'], ['💬', 'Reviews'], ['📞', 'Calls'], ['⧉', 'Duplicates'], ['🗂️', 'Organize']].map(([ic, label], i) => (
             <div className={`navrail-item ${i === 0 ? 'active' : ''}`} key={label}><span className="ic">{ic}</span> {label}</div>
           ))}
           <div className="navrail-sep" />
@@ -805,7 +813,7 @@ export default function Dashboard() {
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skel-bar" style={{ width: 78, height: 28, borderRadius: 20 }} />)}
         </div>
         <section className="widgets">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: 5 }).map((_, i) => (
             <div className="widget" key={i}><div className="skel-bar" style={{ height: 26, width: '55%' }} /><div className="skel-bar" style={{ height: 11, width: '40%', marginTop: 9 }} /></div>
           ))}
         </section>
@@ -829,6 +837,7 @@ export default function Dashboard() {
             <button className={`crail-i ${view === 'leads' ? 'active' : ''}`} title="Leads" onClick={() => setView('leads')}>🧾</button>
             <button className={`crail-i ${view === 'map' ? 'active' : ''}`} title="Map" onClick={() => setView('map')}>🗺️</button>
             <button className={`crail-i ${view === 'stats' ? 'active' : ''}`} title="Stats" onClick={() => setView('stats')}>📊</button>
+            <button className={`crail-i ${view === 'reviews' ? 'active' : ''}`} title="Reviews" onClick={() => setView('reviews')}>💬</button>
             <button className="crail-i" title="Calls" onClick={() => setCallsOpen(true)}>📞</button>
             <button className="crail-i" title="Duplicates" onClick={() => setDupesOpen(true)}>⧉</button>
             <button className="crail-i" title="Organize" onClick={() => setOrganizeOpen(true)}>🗂️</button>
@@ -854,12 +863,15 @@ export default function Dashboard() {
           <button className={`navrail-item ${view === 'leads' ? 'active' : ''}`} onClick={() => { setView('leads'); setSidebarOpen(false); }}><span className="ic">🧾</span> Leads</button>
           <button className={`navrail-item ${view === 'map' ? 'active' : ''}`} onClick={() => { setView('map'); setSidebarOpen(false); }}><span className="ic">🗺️</span> Map</button>
           <button className={`navrail-item ${view === 'stats' ? 'active' : ''}`} onClick={() => { setView('stats'); setSidebarOpen(false); }}><span className="ic">📊</span> Stats</button>
+          <button className={`navrail-item ${view === 'reviews' ? 'active' : ''}`} onClick={() => { setView('reviews'); setSidebarOpen(false); }}><span className="ic">💬</span> Reviews</button>
           <button className="navrail-item" onClick={() => setCallsOpen(true)}><span className="ic">📞</span> Calls{callCount > 0 && <span className="nb">{callCount.toLocaleString()}</span>}</button>
           <button className="navrail-item" onClick={() => setDupesOpen(true)}><span className="ic">⧉</span> Duplicates</button>
           <button className="navrail-item" onClick={() => setOrganizeOpen(true)}><span className="ic">🗂️</span> Organize</button>
           <div className="navrail-sep" />
           <button className="navrail-item" onClick={() => setImportOpen(true)}><span className="ic">⤴</span> Import</button>
           <button className="navrail-item" onClick={() => exportJsonScope({}, 'all')}><span className="ic">⤓</span> Export</button>
+          <div className="navrail-sep" />
+          <button className="navrail-item" onClick={async () => { await fetch('/api/logout', { method: 'POST' }).catch(() => {}); window.location.href = '/login'; }}><span className="ic">🚪</span> Log out</button>
         </nav>
 
         <div className="side-h">
@@ -987,12 +999,14 @@ export default function Dashboard() {
           />
         )}
 
-        {view === 'stats' && <StatsModal inline folders={folderList.slice().sort(byOrder)} onClose={() => setView('leads')} />}
+        {view === 'stats' && <StatsModal inline folders={folderList.slice().sort(byName)} onClose={() => setView('leads')} />}
+
+        {view === 'reviews' && <ReviewsView />}
 
         {view === 'leads' && <>
         <div className="filters">
           <div className="filterchips">
-            {([['all', 'All'], ['nowebsite', 'No website'], ['haswebsite', 'Has website'], ['hot', '🔥 Hot'], ['email', 'Email found'], ['hasreviews', '💬 Has reviews']] as const).map(([key, label]) => (
+            {([['all', 'All'], ['nowebsite', 'No website'], ['haswebsite', 'Has website'], ['hot', '🔥 Hot'], ['email', 'Email found'], ['hasreviews', '💬 Has reviews'], ['hasai', '✨ Has AI']] as const).map(([key, label]) => (
               <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
             ))}
             <CategoryFilter project={activeProject} folder={activeFolder} value={selectedCats} onChange={setSelectedCats} />
@@ -1020,10 +1034,11 @@ export default function Dashboard() {
           </div>
         )}
         <section className="widgets">
-          <div className="widget"><span className="w-ic blue">📋</span><div className="w-body"><div className="w-num">{stats.total}</div><div className="w-label">{(activeFolder || activeProject) ? 'Leads in view' : 'Total leads'}</div></div></div>
-          <div className="widget"><span className="w-ic rose">🚫</span><div className="w-body"><div className="w-num rose">{stats.noweb}</div><div className="w-label">No website</div></div></div>
-          <div className="widget"><span className="w-ic amber">🔥</span><div className="w-body"><div className="w-num amber">{stats.hot}</div><div className="w-label">Hot leads</div></div></div>
-          <div className="widget"><span className="w-ic green">💬</span><div className="w-body"><div className="w-num green">{stats.reviews}</div><div className="w-label">Has reviews</div></div></div>
+          <div className="widget"><span className="w-ic blue">📋</span><div className="w-body"><div className="w-num">{fmtNum(stats.total)}</div><div className="w-label">{(activeFolder || activeProject) ? 'Leads in view' : 'Total leads'}</div></div></div>
+          <div className="widget"><span className="w-ic rose">🚫</span><div className="w-body"><div className="w-num rose">{fmtNum(stats.noweb)}</div><div className="w-label">No website</div></div></div>
+          <div className="widget"><span className="w-ic amber">🔥</span><div className="w-body"><div className="w-num amber">{fmtNum(stats.hot)}</div><div className="w-label">Hot leads</div></div></div>
+          <div className="widget"><span className="w-ic green">💬</span><div className="w-body"><div className="w-num green">{fmtNum(stats.reviews)} <span className="w-sub">({fmtNum(stats.reviewsSum)})</span></div><div className="w-label">Has reviews</div></div></div>
+          <div className="widget"><span className="w-ic violet">✨</span><div className="w-body"><div className="w-num violet">{fmtNum(stats.ai)}</div><div className="w-label">Has AI Analysis</div></div></div>
         </section>
 
         <section className="tablewrap">

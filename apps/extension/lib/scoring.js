@@ -18,8 +18,10 @@
     if (!website) return 'NO_WEBSITE';
     let host = '';
     try { host = new URL(website).hostname.replace(/^www\./, '').toLowerCase(); } catch { return 'HAS_WEBSITE'; }
-    if (host.endsWith('facebook.com') || host === 'fb.me' || host.endsWith('fb.com')) return 'FACEBOOK_ONLY';
-    if (host.endsWith('instagram.com')) return 'INSTAGRAM_ONLY';
+    // Exact domain or subdomain only — endsWith() would misclassify e.g. myfacebook.com.
+    const isDomain = (d) => host === d || host.endsWith('.' + d);
+    if (isDomain('facebook.com') || host === 'fb.me' || isDomain('fb.com')) return 'FACEBOOK_ONLY';
+    if (isDomain('instagram.com')) return 'INSTAGRAM_ONLY';
     return 'HAS_WEBSITE';
   }
 
@@ -36,8 +38,10 @@
   function score(b) {
     const status = b.websiteStatus || classifyWebsite(b.website);
     const noSite = WEBSITELESS.has(status);
-    const reviews = Math.max(0, b.reviewCount ?? 0);
-    const rating = b.rating ?? 0;
+    // Number() coercion so a non-numeric field from an imported bundle can't turn
+    // reviewBoost/log10 (and thus opportunityScore) into NaN.
+    const reviews = Math.max(0, Number(b.reviewCount) || 0);
+    const rating = Number(b.rating) || 0;
     const pitches = [];
 
     let opp = 0;

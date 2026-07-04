@@ -18,7 +18,9 @@ export async function GET(req: Request) {
     const folder = u.get('folder') || '';
     // dedupKeys other parallel windows are scraping right now — skip them so two
     // windows never claim the same business.
-    const exclude = (u.get('exclude') || '').split(',').map((s) => s.trim()).filter(Boolean);
+    // Newline-delimited (the extension joins with "\n") so dedupKeys that contain a
+    // comma ("name|lat|lng" fallback) aren't split into non-matching fragments.
+    const exclude = (u.get('exclude') || '').split('\n').map((s) => s.trim()).filter(Boolean);
 
     const match: Record<string, unknown> = {
       reviewsScrapedAt: { $in: [null, ''] },       // not done yet

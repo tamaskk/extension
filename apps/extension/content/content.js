@@ -8,8 +8,16 @@
 // end-of-list detection (the feed's last child becomes a ~64px end spacer).
 
 (function () {
+  // Guard against double-injection: the manifest auto-injects this file AND
+  // startContent() re-injects it via chrome.scripting.executeScript. Without this
+  // guard two IIFE instances would each register a message listener and run their
+  // own scroll loop → duplicate scrapeDone → the batch skips a search.
+  if (window.__glLoaded) return;
+  window.__glLoaded = true;
+
   const FEED = '[role="feed"]';
   let running = false;
+  let stopped = false;   // set by the 'stop' action so loop() knows it was aborted
   let note = '';
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -106,7 +114,7 @@
     if (!feed) {
       note = 'No results list found — run a Maps search first.';
       running = false;
-      safeSend({ type: 'scrapeDone' }); // let batch advance
+      if (!stopped) safeSend({ type: 'scrapeDone' }); // genuine no-results → advance; but not if the user stopped
       return;
     }
 
@@ -151,18 +159,20 @@
 
     running = false;
     note = '';
-    safeSend({ type: 'scrapeDone' }); // natural end → batch advances
+    if (!stopped) safeSend({ type: 'scrapeDone' }); // natural end → batch advances; a manual stop must NOT advance
   }
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.action === 'start') {
       if (!running) {
+        stopped = false;
         running = true;
         safeSend({ type: 'scrapeStart', query: currentQuery() });
         loop();
       }
       sendResponse({ ok: true, query: currentQuery() });
     } else if (msg.action === 'stop') {
+      stopped = true;
       running = false;
       safeSend({ type: 'scrapeStop' });
       sendResponse({ ok: true });

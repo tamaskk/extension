@@ -40,12 +40,15 @@
     const tabs = [...document.querySelectorAll('button[role="tab"], [role="tab"]')];
     return tabs.find((t) => /reviews?|értékelés/i.test(t.getAttribute('aria-label') || '') || /^\s*reviews?\b|értékelés/i.test(t.textContent || '')) || tabs[1] || null;
   }
+  // 'no-tab'   → the place genuinely has no reviews tab (0 reviews) — a real success
+  // 'no-cards' → the tab exists but nothing rendered in time — a load failure
+  // 'ok'       → review cards are present
   async function openReviews() {
     const tab = await waitFor(findReviewsTab, 15000);
-    if (!tab) return false;
+    if (!tab) return 'no-tab';
     if (tab.getAttribute('aria-selected') !== 'true') { try { tab.click(); } catch {} }
-    await waitFor(() => document.querySelector('div[data-review-id], div.jftiEf'), 15000);
-    return true;
+    const cards = await waitFor(() => document.querySelector('div[data-review-id], div.jftiEf'), 15000);
+    return cards ? 'ok' : 'no-cards';
   }
 
   // ── sort by Newest so we collect the most-recent reviews first ───────────
@@ -103,13 +106,25 @@
     return { id, author, authorUrl, rating, time, text, ownerResponse };
   }
 
+  // A card still showing a visible "See more" button holds truncated text — its
+  // expandAll() click may not have taken effect when we first parsed it.
+  function isTruncated(card) {
+    const b = card.querySelector('button.w8nwRe, button[aria-label*="See more" i], button[jsaction*="expandReview"], button[aria-label*="Tovább" i]');
+    return !!(b && b.offsetParent !== null);
+  }
+
   function harvest(container, seen, max) {
     for (const card of container.querySelectorAll('div[data-review-id]')) {
       const id = card.getAttribute('data-review-id');
-      if (!id || seen.has(id)) continue;
+      if (!id) continue;
       if (!card.querySelector('.d4r55')) continue; // skip non-review wrappers
-      seen.set(id, parseReview(card));
-      if (seen.size >= max) break;
+      // Re-parse an already-seen card only while its text is still truncated, so a
+      // late "See more" expansion is captured instead of a permanently clipped review.
+      if (seen.has(id) && !isTruncated(card)) continue;
+      const parsed = parseReview(card);
+      const prev = seen.get(id);
+      if (!prev || (parsed.text || '').length >= (prev.text || '').length) seen.set(id, parsed);
+      if (!prev && seen.size >= max) break; // cap only counts distinct reviews
     }
   }
 
@@ -121,17 +136,19 @@
     const place = (document.querySelector('h1.DUwDvf')?.textContent || document.querySelector('h1')?.textContent || '').trim();
 
     const opened = await openReviews();
-    if (!opened) {
-      // no reviews tab / zero reviews — treat as an empty (but successful) result
-      if (!document.querySelector('div[data-review-id]')) return { place, reviews: [] };
+    if (opened === 'no-tab') return { place, reviews: [] }; // genuine: place has no reviews
+    if (opened === 'no-cards' && !document.querySelector('div[data-review-id]')) {
+      // the reviews tab exists but nothing loaded — a failure, NOT a real zero.
+      // Report it so the background can retry instead of marking the business done.
+      return { place, reviews: [], error: 'reviews-did-not-load' };
     }
-    await sortNewest();
+    const sorted = await sortNewest();
 
     const container = await waitFor(getScrollContainer, 12000);
     if (!container) {
       // last-ditch: maybe a tiny list with no scroll container
       const seen0 = new Map(); harvest(document, seen0, max);
-      return { place, reviews: [...seen0.values()].slice(0, max) };
+      return { place, reviews: [...seen0.values()].slice(0, max), sortStale: !sorted };
     }
 
     const seen = new Map();
@@ -153,7 +170,7 @@
       if (stall >= MAX_STALL && atBottom) break;
     }
     expandAll(container); await sleep(80); harvest(container, seen, max);
-    return { place, reviews: [...seen.values()].slice(0, max) };
+    return { place, reviews: [...seen.values()].slice(0, max), sortStale: !sorted };
   }
 
   let running = false;
@@ -167,7 +184,7 @@
         try { result = await scrapeGoogleReviews(100); }
         catch (e) { result = { error: String((e && e.message) || e), reviews: [] }; }
         running = false;
-        safeSend({ type: 'reviewsScraped', place: result.place || '', reviews: result.reviews || [], count: (result.reviews || []).length, error: result.error || '' });
+        safeSend({ type: 'reviewsScraped', place: result.place || '', reviews: result.reviews || [], count: (result.reviews || []).length, error: result.error || '', sortStale: !!result.sortStale });
       })();
       return true;
     }
