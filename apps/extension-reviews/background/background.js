@@ -283,7 +283,10 @@ async function stopRun(message) {
 async function failBusiness(tabId, label) {
   await lockState(async () => {
     const s = await getState(); if (!s.active) return;
-    const w = s.workers.find((x) => x.tabId === tabId); if (!w || !w.current) return;
+    // stage==='scraping' guard: a watchdog snapshot can race a late reviewsScraped
+    // that already advanced this worker to a new business — without the guard we'd
+    // charge the error/save-failure to that healthy new business.
+    const w = s.workers.find((x) => x.tabId === tabId); if (!w || !w.current || w.stage !== 'scraping') return;
     const key = w.current.dedupKey;
     s.errors = (s.errors || 0) + 1;
     s.lastError = label;

@@ -18,9 +18,11 @@ export async function GET(req: Request) {
     const folder = u.get('folder') || '';
     // dedupKeys other parallel windows are scraping right now — skip them so two
     // windows never claim the same business.
-    // Newline-delimited (the extension joins with "\n") so dedupKeys that contain a
-    // comma ("name|lat|lng" fallback) aren't split into non-matching fragments.
-    const exclude = (u.get('exclude') || '').split('\n').map((s) => s.trim()).filter(Boolean);
+    // Split on newline OR comma: the extension now joins with "\n" (so dedupKeys can
+    // safely contain a comma), but accepting both delimiters keeps older comma-based
+    // clients working with no deploy-skew window. Served businesses always have a
+    // cid/placeId dedupKey (no comma), so tolerating comma here loses nothing.
+    const exclude = (u.get('exclude') || '').split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
 
     const match: Record<string, unknown> = {
       reviewsScrapedAt: { $in: [null, ''] },       // not done yet
