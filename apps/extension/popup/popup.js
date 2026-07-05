@@ -248,7 +248,7 @@ async function init() {
   });
 
   // Batch mode switch: stream-to-DB vs keep-in-browser (persisted in the background).
-  const applyModeHint = (on) => { $('bModeHint').textContent = on ? 'On — upload each batch to DB, free browser storage' : 'Off — keep everything in the browser'; };
+  const applyModeHint = (on) => { $('bModeHint').textContent = on ? 'On — upload each finished search to DB, free browser storage' : 'Off — keep everything in the browser'; };
   bg({ type: 'getBatchMode' }).then((r) => { const on = r && r.mode === 'stream'; $('bMode').checked = on; applyModeHint(on); }).catch(() => {});
   $('bMode').addEventListener('change', async () => { const on = $('bMode').checked; applyModeHint(on); await bg({ type: 'setBatchMode', mode: on ? 'stream' : 'local' }); });
 

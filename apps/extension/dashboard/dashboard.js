@@ -915,7 +915,7 @@ document.querySelectorAll('#bd_geo .seg-btn').forEach((b) => {
 $('bd_source').addEventListener('change', async (e) => { const f = e.target.value; if (f) await loadSourceFile(f); e.target.value = ''; });
 
 // Batch mode switch (shared persisted setting; same as the popup).
-const bdModeHint = (on) => { $('bd_modeHint').textContent = on ? 'On — upload each batch to DB, free browser storage' : 'Off — keep everything in the browser'; };
+const bdModeHint = (on) => { $('bd_modeHint').textContent = on ? 'On — upload each finished search to DB, free browser storage' : 'Off — keep everything in the browser'; };
 msg({ type: 'getBatchMode' }).then((r) => { const on = r && r.mode === 'stream'; $('bd_mode').checked = on; bdModeHint(on); }).catch(() => {});
 $('bd_mode').addEventListener('change', async () => { const on = $('bd_mode').checked; bdModeHint(on); await msg({ type: 'setBatchMode', mode: on ? 'stream' : 'local' }); });
 

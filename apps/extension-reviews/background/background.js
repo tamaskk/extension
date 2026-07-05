@@ -68,6 +68,40 @@ async function postReviews(body) {
   return r.json().catch(() => ({}));
 }
 
+// ── image/tile blocking (declarativeNetRequest) ──────────────────────────────
+// Google Maps renders a full map (raster tiles) + business photos + avatars in
+// every worker window. The review scraper reads only DOM TEXT — never images — and
+// the review DATA arrives over XHR/fetch. Blocking just image+media on the worker
+// TABS (session rules keyed by tabId, so the user's own Maps tabs are untouched)
+// stops Chrome caching gigabytes of tiles/photos to disk, and cuts per-window RAM.
+// Rule id == tabId (tabIds are unique positive ints; only we use session rules here).
+async function blockImagesOnTab(tabId) {
+  if (tabId == null || tabId < 1) return;
+  try {
+    await chrome.declarativeNetRequest.updateSessionRules({
+      removeRuleIds: [tabId],
+      addRules: [{
+        id: tabId,
+        priority: 1,
+        action: { type: 'block' },
+        condition: { tabIds: [tabId], resourceTypes: ['image', 'media'] },
+      }],
+    });
+  } catch (e) { console.warn('[GLR] image-block rule failed:', e && e.message); }
+}
+async function unblockTab(tabId) {
+  if (tabId == null) return;
+  try { await chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [tabId] }); } catch { /* */ }
+}
+// Drop every image-block rule (run finished/stopped) so adopted user windows get
+// their images back.
+async function clearAllImageBlocks() {
+  try {
+    const rules = await chrome.declarativeNetRequest.getSessionRules();
+    if (rules.length) await chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: rules.map((r) => r.id) });
+  } catch { /* */ }
+}
+
 // ── tab/window helpers ──────────────────────────────────────────────────────
 function placeUrl(b) {
   const base = (b.mapsUrl && /maps\?cid=/.test(b.mapsUrl)) ? b.mapsUrl : ('https://www.google.com/maps?cid=' + b.cid);
@@ -126,7 +160,7 @@ async function topUpWorkers() {
         ss.workers.push({ id: nid, windowId: win.windowId, tabId: win.tabId, created: true, stage: 'init', current: null, ts: now() });
         await setState(ss); return nid;
       });
-      if (id != null) driveWorker(id);
+      if (id != null) { await blockImagesOnTab(win.tabId); driveWorker(id); }
       await sleep(800);
     }
   } finally { _opening = false; }
@@ -166,7 +200,7 @@ async function adoptWorkers() {
         ss.workers.push({ id: nid, windowId: tg.windowId, tabId: tg.tabId, created: false, stage: 'init', current: null, ts: now() });
         await setState(ss); return nid;
       });
-      if (id != null) driveWorker(id);
+      if (id != null) { await blockImagesOnTab(tg.tabId); driveWorker(id); }
       await sleep(300);
     }
   } finally { _opening = false; }
@@ -263,6 +297,7 @@ async function finishRun(message) {
     const s = await getState();
     await setState(Object.assign({}, BLANK, { message: message || 'Stopped.', done: s.done, reviews: s.reviews, errors: s.errors, lastError: s.lastError }));
   });
+  await clearAllImageBlocks(); // restore images on any adopted user windows
   try { await chrome.alarms.clear(HB_ALARM); } catch {}
 }
 async function stopRun(message) {
@@ -350,6 +385,7 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
 // (the business is still un-done in the DB, so another worker re-claims it).
 chrome.tabs.onRemoved.addListener((tabId) => {
   (async () => {
+    await unblockTab(tabId); // drop this tab's image-block rule (id == tabId)
     await lockState(async () => {
       const s = await getState(); if (!s.active) return;
       const w = s.workers.find((x) => x.tabId === tabId); if (!w || w.stage === 'done') return;

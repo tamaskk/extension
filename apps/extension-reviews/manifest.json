@@ -3,7 +3,7 @@
   "name": "GridLeads — Review Scraper",
   "version": "0.1.0",
   "description": "Auto-scrape up to the 100 newest Google Maps reviews for each business in the GridLeads database, one at a time, skipping businesses already done.",
-  "permissions": ["storage", "unlimitedStorage", "scripting", "tabs", "alarms", "activeTab"],
+  "permissions": ["storage", "unlimitedStorage", "scripting", "tabs", "alarms", "activeTab", "declarativeNetRequest"],
   "host_permissions": [
     "https://www.google.com/*",
     "https://consent.google.com/*",
