@@ -51,9 +51,12 @@ export async function GET(req: Request) {
     }
 
     const field = sortField(sort);
+    // Empty match (default "all leads" view) → estimatedDocumentCount reads the
+    // collection metadata instantly instead of scanning 1.2M docs for a count.
+    const isEmptyMatch = Object.keys(match).length === 0;
     const [docs, total] = await Promise.all([
       Lead.find(match).sort({ [field]: dir, _id: 1 }).allowDiskUse(true).skip((page - 1) * pageSize).limit(pageSize).lean(),
-      Lead.countDocuments(match),
+      isEmptyMatch ? Lead.estimatedDocumentCount() : Lead.countDocuments(match),
     ]);
     const rows = (docs as Record<string, unknown>[]).map(({ _id, ...r }) => r);
     return json({ rows, total });

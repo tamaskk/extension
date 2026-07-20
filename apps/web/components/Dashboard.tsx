@@ -33,6 +33,17 @@ const fmtNum = (n: number) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(
 const covNorm = (s: string) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const COV_STATE_SET = new Set(STATE_REGIONS.map(covNorm));
 const COV_STATE_KEY: Record<string, string> = {}; STATE_REGIONS.forEach((s) => { COV_STATE_KEY[covNorm(s)] = s; });
+// States sorted longest-first so "West Virginia" wins over "Virginia".
+const COV_STATE_DESC = [...STATE_REGIONS].map(covNorm).sort((a, b) => b.length - a.length);
+// Extract the US state a folder name STARTS WITH ("Alabama Physical Therapy" →
+// "alabama"). The old covRegionOf dropped only the last word, so any 2+ word
+// business type ("Physical Therapy") broke state detection → the badge fell to
+// the city branch and showed a wrong (>51) missing count.
+const covStateOf = (name: string): string | null => {
+  const n = covNorm(name);
+  for (const sk of COV_STATE_DESC) if (n === sk || n.startsWith(sk + ' ')) return sk;
+  return null;
+};
 const COV_CITY_SET = new Set<string>(); for (const c of COUNTRY_NAMES) for (const city of (COUNTRY_CITIES[c] || [])) COV_CITY_SET.add(covNorm(city));
 const COV_COUNTRIES_DESC = [...COUNTRY_NAMES].sort((a, b) => b.length - a.length);
 const covRegionOf = (name: string) => { const w = String(name || '').trim().split(/\s+/); return w.length > 1 ? w.slice(0, -1).join(' ') : (name || ''); };
@@ -54,11 +65,12 @@ function parseProject(q: string): { type: string; region: string } {
 }
 import TagsCell from './TagsCell';
 
-type SortType = 'has' | 'str' | 'num' | 'temp';
+type SortType = 'has' | 'str' | 'num' | 'temp' | 'date';
 const SORTABLE: Record<string, SortType> = {
   checked: 'has', name: 'str', category: 'str', rating: 'num', reviewCount: 'num',
   phone: 'has', email: 'has', websiteStatus: 'str',
   opportunityScore: 'num', leadScore: 'num', leadTemperature: 'temp', address: 'str',
+  scrapedAt: 'date',
 };
 const byCreated = (a: { createdAt: string }, b: { createdAt: string }) => (a.createdAt < b.createdAt ? -1 : 1);
 // folders sort alphabetically by name (default), natural + case-insensitive
@@ -120,6 +132,7 @@ const DROPDOWN_SORT: Record<string, [string, number]> = {
   opportunity_desc: ['opportunityScore', -1], score_desc: ['leadScore', -1],
   rating_desc: ['rating', -1], rating_asc: ['rating', 1],
   reviews_desc: ['reviewCount', -1], name_asc: ['name', 1],
+  date_desc: ['scrapedAt', -1], date_asc: ['scrapedAt', 1],
 };
 // All reorderable columns (the far-left select-all checkbox stays fixed).
 const ALL_COLUMNS: { key: string; label: string; sortable: boolean }[] = [
@@ -128,7 +141,8 @@ const ALL_COLUMNS: { key: string; label: string; sortable: boolean }[] = [
   { key: 'reviewCount', label: 'Reviews', sortable: true }, { key: 'phone', label: 'Phone', sortable: true },
   { key: 'email', label: 'Email', sortable: true }, { key: 'websiteStatus', label: 'Website', sortable: true },
   { key: 'opportunityScore', label: 'Opportunity', sortable: true }, { key: 'leadTemperature', label: 'Temp', sortable: true },
-  { key: 'address', label: 'Location', sortable: true }, { key: 'tags', label: 'Tags', sortable: false },
+  { key: 'address', label: 'Location', sortable: true }, { key: 'scrapedAt', label: 'Date', sortable: true },
+  { key: 'tags', label: 'Tags', sortable: false },
   { key: 'salesStatus', label: 'Status', sortable: true }, { key: 'maps', label: 'Maps', sortable: false },
   { key: 'online', label: 'OP', sortable: false }, { key: 'call', label: 'Call', sortable: true },
 ];
@@ -377,11 +391,13 @@ export default function Dashboard() {
     // per-folder counts of nested sub-folders and projects (for the sidebar badges)
     const folderCountOf: Record<string, number> = {};
     const projCountOf: Record<string, number> = {};
+    const zeroCountOf: Record<string, number> = {}; // projects with 0 leads (orange badge)
     for (const id of Object.keys(descOf)) {
       const set = descOf[id];
       folderCountOf[id] = set.size - 1; // descendants, excluding self
-      let pc = 0; set.forEach((did) => { pc += (projsOf[did] || []).length; });
-      projCountOf[id] = pc;
+      let pc = 0, zc = 0;
+      set.forEach((did) => (projsOf[did] || []).forEach((p) => { pc++; if (!p.total) zc++; }));
+      projCountOf[id] = pc; zeroCountOf[id] = zc;
     }
     // coverage "missing" per folder (red badge) — CHEAP estimate (reference count −
     // present count). The accurate, modal-matching number replaces it once the full
@@ -391,18 +407,20 @@ export default function Dashboard() {
       let miss: number | null = null;
       const cp = covCountryPrefix(f.name);
       if (cp) {
-        const kidRegions = (childrenOf[f.id] || []).map((k) => covNorm(covRegionOf(k.name)));
-        const stateKids = kidRegions.filter((r) => COV_STATE_SET.has(r));
-        if (covNorm(cp) === 'usa' && stateKids.length > 0 && stateKids.length >= kidRegions.length / 2) {
-          miss = Math.max(0, STATE_REGIONS.length - new Set(stateKids).size); // missing US states
+        const kids = childrenOf[f.id] || [];
+        // State detection by prefix (robust to multi-word business types).
+        const stateKids = kids.map((k) => covStateOf(k.name)).filter(Boolean) as string[];
+        if (covNorm(cp) === 'usa' && stateKids.length > 0 && stateKids.length >= kids.length / 2) {
+          miss = Math.max(0, STATE_REGIONS.length - new Set(stateKids).size); // missing US states (of 51)
         } else {
           const cities = COUNTRY_CITIES[cp] || [];
           const citySet = new Set(cities.map(covNorm));
+          const kidRegions = kids.map((k) => covNorm(covRegionOf(k.name)));
           const present = new Set(kidRegions.filter((r) => citySet.has(r))).size;
           miss = Math.max(0, cities.length - present); // missing cities
         }
       } else {
-        const reg = covNorm(covRegionOf(f.name));
+        const reg = covStateOf(f.name) || covNorm(covRegionOf(f.name));
         if (COV_STATE_SET.has(reg) && STATE_PLACE_COUNTS[reg] != null) miss = Math.max(0, STATE_PLACE_COUNTS[reg] - (projCountOf[f.id] || 0));
         else if (COV_CITY_SET.has(reg) && CITY_AREA_COUNTS[reg] != null) miss = Math.max(0, CITY_AREA_COUNTS[reg] - (projCountOf[f.id] || 0));
       }
@@ -422,7 +440,7 @@ export default function Dashboard() {
     const flat: { f: typeof folderList[number]; depth: number }[] = [];
     const flatten = (f: typeof folderList[number], depth: number) => { flat.push({ f, depth }); (childrenOf[f.id] || []).forEach((c) => flatten(c, depth + 1)); };
     roots.forEach((f) => flatten(f, 0));
-    return { childrenOf, roots, projsOf, ungrouped, totalOf, descOf, folderCountOf, projCountOf, missingOf, order, flat };
+    return { childrenOf, roots, projsOf, ungrouped, totalOf, descOf, folderCountOf, projCountOf, zeroCountOf, missingOf, order, flat };
   }, [summariesArr, folderList]);
 
   // lazy-load the full reference lists (states + country areas) once, so the red
@@ -446,7 +464,7 @@ export default function Dashboard() {
     for (const file of Object.values(covData.areas)) for (const [city, arr] of Object.entries(file)) if (!areasByNorm[covNorm(city)]) areasByNorm[covNorm(city)] = arr;
     for (const f of folderList) {
       if (covCountryPrefix(f.name)) continue; // roots keep the cheap estimate
-      const reg = covNorm(covRegionOf(f.name));
+      const reg = covStateOf(f.name) || covNorm(covRegionOf(f.name)); // prefix state match (multi-word types)
       const refNames = (COV_STATE_SET.has(reg) && placesByNorm[reg]) ? placesByNorm[reg] : areasByNorm[reg];
       if (!refNames) continue;
       const ids = tree.descOf[f.id] || new Set([f.id]);
@@ -548,7 +566,7 @@ export default function Dashboard() {
 
   const clickHeader = (key: string) => {
     if (sortKey === key) setSortDir((d) => -d);
-    else { setSortKey(key); setSortDir(SORTABLE[key] === 'num' || SORTABLE[key] === 'temp' ? -1 : 1); }
+    else { setSortKey(key); setSortDir(SORTABLE[key] === 'num' || SORTABLE[key] === 'temp' || SORTABLE[key] === 'date' ? -1 : 1); }
   };
 
   // ----- resizable sidebar + right detail panel -----
@@ -717,6 +735,7 @@ export default function Dashboard() {
       case 'opportunityScore': return <td key={key}><OppEdit value={r.opportunityScore || 0} onCommit={(n) => setRowOpportunity(r, n)} /></td>;
       case 'leadTemperature': return <td key={key}><span className={`temp ${r.leadTemperature}`}>{r.leadTemperature || ''}</span></td>;
       case 'address': return <td key={key} className="muted loc" title={r.address || ''}>{r.address || ''}</td>;
+      case 'scrapedAt': return <td key={key} className="muted" title={r.scrapedAt || ''}>{r.scrapedAt ? new Date(r.scrapedAt).toLocaleDateString() : '—'}</td>;
       case 'tags': return <td key={key} className="tagstd"><TagsCell tags={r.tags || []} registry={tagReg} allNames={tagNames} onAdd={(name) => addRowTag(r, name)} onRemove={(name) => removeRowTag(r, name)} onCreate={createTag} /></td>;
       case 'salesStatus': return <td key={key}><div className="sales-cell"><SalesSelect value={r.salesStatus || ''} onChange={(s) => setRowSales(r, s)} />{SALES_NEEDS_DATE.has(r.salesStatus || '') && <input type="datetime-local" className="sales-date" value={r.salesDate || ''} onClick={(e) => e.stopPropagation()} onChange={(e) => setRowSalesDate(r, e.target.value)} />}{r.salesDate && SALES_NEEDS_DATE.has(r.salesStatus || '') && <a className="cal-btn" href={googleCalendarUrl({ title: `${r.salesStatus} — ${r.name}`, when: r.salesDate, location: r.address })} target="_blank" rel="noreferrer" title="Add to Google Calendar" onClick={(e) => e.stopPropagation()}>📅</a>}</div></td>;
       case 'maps': return <td key={key}>{r.mapsUrl ? <a className="mlink" href={r.mapsUrl} target="_blank" rel="noreferrer">open ↗</a> : ''}</td>;
@@ -764,6 +783,7 @@ export default function Dashboard() {
             {(() => { const m = accurateMissing[f.id] ?? tree.missingOf[f.id]; return (m || 0) > 0 ? <span className="cnt-badge red" title={`${m} missing (not yet scraped vs the full list)`}>{m}</span> : null; })()}
             {(tree.folderCountOf[f.id] || 0) > 0 && <span className="cnt-badge gold" title={`${tree.folderCountOf[f.id]} sub-folder(s)`}>{tree.folderCountOf[f.id]}</span>}
             {(tree.projCountOf[f.id] || 0) > 0 && <span className="cnt-badge green" title={`${tree.projCountOf[f.id]} project(s)`}>{tree.projCountOf[f.id]}</span>}
+            {(tree.zeroCountOf[f.id] || 0) > 0 && <span className="cnt-badge orange" title={`${tree.zeroCountOf[f.id]} projekt 0 leaddel`}>{tree.zeroCountOf[f.id]}</span>}
             <IconPicker trigger={<span className="ficon" title="Change folder icon">🎨</span>} onPick={(ic) => actions.setFolderIcon(f.id, ic)} />
             <span className="finfo" title="City coverage — which cities are missing?" onClick={(e) => { e.stopPropagation(); openFolderInfo(f); }}>ⓘ</span>
             <span className="fadd" title="New sub-folder" onClick={(e) => { e.stopPropagation(); const n = prompt(`New folder inside "${f.name}":`); if (n && n.trim()) { actions.createFolder(n.trim(), f.id); if (f.collapsed) actions.setFolderCollapsed(f.id, false); } }}>＋</span>
@@ -974,6 +994,8 @@ export default function Dashboard() {
             <option value="rating_asc">Lowest rating</option>
             <option value="reviews_desc">Most reviews</option>
             <option value="name_asc">Name A–Z</option>
+            <option value="date_desc">Date: newest first</option>
+            <option value="date_asc">Date: oldest first</option>
           </select>
           <div className="spacer" />
           <button className="btn" onClick={refreshAll} title="Reload data">⟳ Refresh</button>

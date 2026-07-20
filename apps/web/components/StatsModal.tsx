@@ -84,17 +84,19 @@ export default function StatsModal({ folders, onClose, inline }:
   const [type, setType] = useState<'bar' | 'line'>('bar');
   const [buckets, setBuckets] = useState<Bucket[]>([]);
   const [total, setTotal] = useState(0);
+  const [metrics, setMetrics] = useState<{ total: number; noWebsite: number; hot: number; email: number; reviews: number; reviewsSum: number; ai: number; avgOpp: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     api.getStats({ ...(scope ? { folder: scope } : {}), granularity: gran })
-      .then((r) => { if (!cancelled) { setBuckets(r.buckets || []); setTotal(r.total || 0); } })
-      .catch(() => { if (!cancelled) { setBuckets([]); setTotal(0); } })
+      .then((r) => { if (!cancelled) { setBuckets(r.buckets || []); setTotal(r.total || 0); setMetrics(r.metrics || null); } })
+      .catch(() => { if (!cancelled) { setBuckets([]); setTotal(0); setMetrics(null); } })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [scope, gran]);
+  const fmt = (n: number) => (n || 0).toLocaleString();
 
   const data = useMemo(() => toPoints(buckets, gran), [buckets, gran]);
   const sub = loading ? 'Loading…'
@@ -124,9 +126,21 @@ export default function StatsModal({ folders, onClose, inline }:
       {!inline && <button className="btn" onClick={onClose}>✕ Close</button>}
     </div>
   );
-  const body = loading ? <div className="muted" style={{ padding: 24 }}>Loading…</div>
+  const metricsRow = metrics && (
+    <section className="widgets sv-metrics">
+      <div className="widget"><span className="w-ic blue">📋</span><div className="w-body"><div className="w-num">{fmt(metrics.total)}</div><div className="w-label">Total leads</div></div></div>
+      <div className="widget"><span className="w-ic rose">🚫</span><div className="w-body"><div className="w-num rose">{fmt(metrics.noWebsite)}</div><div className="w-label">No website</div></div></div>
+      <div className="widget"><span className="w-ic amber">🔥</span><div className="w-body"><div className="w-num amber">{fmt(metrics.hot)}</div><div className="w-label">Hot leads</div></div></div>
+      <div className="widget"><span className="w-ic green">💬</span><div className="w-body"><div className="w-num green">{fmt(metrics.reviews)} <span className="w-sub">({fmt(metrics.reviewsSum)})</span></div><div className="w-label">Has reviews</div></div></div>
+      <div className="widget"><span className="w-ic violet">✨</span><div className="w-body"><div className="w-num violet">{fmt(metrics.ai)}</div><div className="w-label">Has AI Analysis</div></div></div>
+      <div className="widget"><span className="w-ic blue">📧</span><div className="w-body"><div className="w-num">{fmt(metrics.email)}</div><div className="w-label">Emails found</div></div></div>
+      <div className="widget"><span className="w-ic amber">🎯</span><div className="w-body"><div className="w-num">{fmt(metrics.avgOpp)}</div><div className="w-label">Avg opportunity</div></div></div>
+    </section>
+  );
+  const chart = loading ? <div className="muted" style={{ padding: 24 }}>Loading…</div>
     : !data.length ? <div className="empty" style={{ padding: 24 }}>No scrape dates here yet.</div>
     : <Chart data={data} type={type} />;
+  const body = <>{metricsRow}{chart}</>;
 
   if (inline) return (
     <section className="statsview">

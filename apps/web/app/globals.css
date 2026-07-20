@@ -127,6 +127,7 @@ body.resizing { cursor: col-resize; user-select: none; }
 .cnt-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; font-size: 10px; font-weight: 700; margin-left: 4px; flex-shrink: 0; }
 .cnt-badge.gold { background: rgba(245,158,11,.2); color: #b45309; }
 .cnt-badge.green { background: rgba(34,197,94,.2); color: #15803d; }
+.cnt-badge.orange { background: rgba(249,115,22,.2); color: #c2410c; }
 
 /* call-flagged rows + calls modal */
 .table tbody tr.callrow { background: rgba(34,197,94,.07); box-shadow: inset 3px 0 0 #22c55e; }
@@ -826,6 +827,7 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .w-num.green { color: #15803d; }
 .w-num.violet { color: #7c3aed; }
 .w-sub { font-size: 13px; font-weight: 600; color: var(--muted); }
+.sv-metrics { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); padding: 12px 0 6px; }
 
 /* ── Reviews view ─────────────────────────────────────────────────────────── */
 .rvv { flex: 1; min-height: 0; overflow-y: auto; padding: 0 18px 24px; }
