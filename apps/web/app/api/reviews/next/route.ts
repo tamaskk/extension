@@ -6,7 +6,7 @@ export const maxDuration = 60;
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
 
 // GET /api/reviews/next?project=&folder=
-//   The most-recently-scraped business that has NO reviews yet AND has reviews to
+//   The oldest-scraped business that has NO reviews yet AND has reviews to
 //   scrape (reviewCount > 0) AND can be opened on Maps (cid or mapsUrl). Returns
 //   one business, or { done:true } when none remain. This is what makes the
 //   scraper skip businesses that already have reviews.
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
     }
 
     const doc = await Lead.findOne(match)
-      .sort({ scrapedAt: -1, _id: -1 })             // most recent business first
+      .sort({ scrapedAt: 1, _id: 1 })               // oldest business first
       .select('project dedupKey name cid placeId mapsUrl reviewCount -_id')
       .lean() as Record<string, unknown> | null;
 
