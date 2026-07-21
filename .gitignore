@@ -27,3 +27,4 @@ LeadsMap_Crx/
 *.log
 .gstack/
 .vercel
+*.tsbuildinfo
