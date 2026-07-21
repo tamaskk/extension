@@ -152,6 +152,55 @@ const DEFAULT_COLS = ALL_COLUMNS.map((c) => c.key);
 const COLS_LS = 'gridleads_cols';
 const HIDDEN_LS = 'gridleads_hidden_cols';
 
+// "🗂 Group" button with a dropdown: add the given leads to an existing group
+// or create a new one. Leads come either as dedupKeys (row selection) or as
+// the server-side set of checked leads (fromChecked).
+function GroupPickBtn({ label, className = 'chipbtn', alignRight = false, keys, fromChecked = false, onDone }:
+  { label: string; className?: string; alignRight?: boolean; keys?: () => string[]; fromChecked?: boolean; onDone?: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [groups, setGroups] = useState<{ groupId: string; name: string; count: number }[] | null>(null);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    api.getGroups().then((r) => setGroups(r.groups || [])).catch(() => setGroups([]));
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
+  const opts = () => (fromChecked ? { fromChecked: true } : { keys: keys ? keys() : [] });
+  const addTo = async (g: { groupId: string; name: string }) => {
+    setOpen(false);
+    const r = await api.addToGroup(g.groupId, opts()).catch(() => null);
+    if (r?.ok) { alert(`Added ${r.added?.toLocaleString() || ''} lead(s) to "${g.name}".`); onDone?.(); }
+    else alert(r?.error || 'Adding to the group failed.');
+  };
+  const createNew = async () => {
+    setOpen(false);
+    const name = prompt('New group name:');
+    if (!name || !name.trim()) return;
+    const r = await api.createGroup(name.trim(), opts()).catch(() => null);
+    if (r?.ok) { alert(`Group "${name.trim()}" created with ${r.count?.toLocaleString()} lead(s).`); onDone?.(); }
+    else alert(r?.error || 'Creating the group failed.');
+  };
+  return (
+    <span className="grouppick" ref={ref}>
+      <button className={className} onClick={() => setOpen((o) => !o)} title="Add these leads to a group">{label}</button>
+      {open && (
+        <div className={`grouppick-pop ${alignRight ? 'right' : ''}`}>
+          <button className="grouppick-opt new" onClick={createNew}>＋ New group…</button>
+          {groups === null && <div className="grouppick-empty">Loading…</div>}
+          {groups?.map((g) => (
+            <button key={g.groupId} className="grouppick-opt" onClick={() => addTo(g)}>
+              <span className="grouppick-name">🗂 {g.name}</span><span className="grouppick-count">{g.count.toLocaleString()}</span>
+            </button>
+          ))}
+          {groups && !groups.length && <div className="grouppick-empty">No groups yet</div>}
+        </div>
+      )}
+    </span>
+  );
+}
+
 // dropdown to show/hide table columns
 function ColumnsMenu({ order, hidden, onToggle, onAll, onReset }:
   { order: string[]; hidden: Set<string>; onToggle: (k: string) => void; onAll: (show: boolean) => void; onReset: () => void }) {
@@ -316,15 +365,6 @@ export default function Dashboard() {
     setCheckedCount(0);
     await api.uncheckAll().catch(() => {});
     setReloadKey((k) => k + 1);
-  };
-  // save all currently-checked leads as a named group (shown in the Groups tab)
-  const createGroupFromChecked = async () => {
-    if (!checkedCount) return;
-    const name = prompt(`Group name for the ${checkedCount.toLocaleString()} checked lead(s):`);
-    if (!name || !name.trim()) return;
-    const res = await api.createGroup(name.trim(), { fromChecked: true }).catch(() => null);
-    if (!res?.ok) { alert(res?.error || 'Creating the group failed.'); return; }
-    if (confirm(`Group "${name.trim()}" saved with ${res.count?.toLocaleString()} lead(s). Open the Groups tab?`)) setView('groups');
   };
 
   const catsKey = selectedCats.join('');
@@ -1035,7 +1075,7 @@ export default function Dashboard() {
           <button className="btn" onClick={runRecalc} disabled={!!recalc?.running} title="Recompute opportunity scores for all leads with the new ranking">
             {recalc?.running ? `⏳ ${recalc.total ? Math.round((recalc.done / recalc.total) * 100) : 0}%` : '★ Recalc'}
           </button>
-          {checkedCount > 0 && <button className="btn" onClick={createGroupFromChecked} title="Save all checked leads as a named group (Groups tab)">🗂 Group {checkedCount.toLocaleString()}</button>}
+          {checkedCount > 0 && <GroupPickBtn label={`🗂 Group ${checkedCount.toLocaleString()}`} className="btn" alignRight fromChecked />}
           {checkedCount > 0 && <button className="btn" onClick={uncheckAllLeads} title="Clear the Checked status on all checked leads">☐ Uncheck {checkedCount.toLocaleString()}</button>}
         </header>
 
@@ -1072,6 +1112,7 @@ export default function Dashboard() {
           {rowSel.size > 0 && (
             <span className="rowsel-bar">
               <b>{rowSel.size}</b>&nbsp;selected
+              <GroupPickBtn label="🗂 Group" keys={() => [...rowSel].map((id) => id.slice(id.indexOf('|') + 1))} onDone={() => setRowSel(new Set())} />
               <button className="chipbtn danger" onClick={deleteSelectedRows}>🗑 Delete</button>
               <span className="rowsel-clear" onClick={() => setRowSel(new Set())}>clear</span>
             </span>

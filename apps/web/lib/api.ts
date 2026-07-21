@@ -50,6 +50,8 @@ export const api = {
   createGroup: (name: string, opts: { keys?: string[]; fromChecked?: boolean } = {}) =>
     jsend('/api/groups', 'POST', { name, ...opts }) as Promise<{ ok: boolean; groupId?: string; count?: number; error?: string }>,
   renameGroup: (id: string, name: string) => jsend('/api/groups', 'PATCH', { id, name }),
+  addToGroup: (id: string, opts: { keys?: string[]; fromChecked?: boolean }) =>
+    jsend('/api/groups', 'PATCH', { id, add: opts.keys || [], fromChecked: !!opts.fromChecked }) as Promise<{ ok: boolean; added?: number; error?: string }>,
   removeFromGroup: (id: string, keys: string[]) => jsend('/api/groups', 'PATCH', { id, remove: keys }),
   deleteGroup: (id: string) => jsend('/api/groups', 'DELETE', { id }),
   refreshProjectStats: (body: { after?: string | null; at?: string } = {}) =>

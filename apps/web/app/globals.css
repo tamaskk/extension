@@ -914,3 +914,14 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .group-card-actions .del:hover { color: var(--hot); }
 .groups-pager { display: flex; align-items: center; gap: 12px; justify-content: center; padding: 6px 0 14px; }
 .groups-wrap .tablewrap { overflow: auto; border: 1px solid var(--line); border-radius: 10px; }
+
+/* group-picker dropdown (add selection to a group / create new) */
+.grouppick { position: relative; display: inline-flex; }
+.grouppick-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 200; min-width: 220px; max-height: 300px; overflow-y: auto; background: var(--panel2, #14161c); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 30px rgba(31,41,68,.16); padding: 4px; }
+.grouppick-pop.right { left: auto; right: 0; }
+.grouppick-opt { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; text-align: left; background: none; border: none; color: var(--text); font-size: 13px; padding: 7px 9px; border-radius: 7px; cursor: pointer; }
+.grouppick-opt:hover { background: var(--panel); }
+.grouppick-opt.new { font-weight: 700; border-bottom: 1px solid var(--line); border-radius: 7px 7px 0 0; }
+.grouppick-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grouppick-count { color: var(--muted); font-size: 12px; }
+.grouppick-empty { color: var(--muted); font-size: 12px; padding: 8px 9px; }

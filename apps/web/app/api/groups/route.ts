@@ -56,7 +56,8 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH { id, name?, add?: string[], remove?: string[] } → rename / edit members
+// PATCH { id, name?, add?: string[], remove?: string[], fromChecked? } → rename / edit members
+//   fromChecked → add all currently-checked leads
 export async function PATCH(req: Request) {
   try {
     await dbConnect();
@@ -65,10 +66,12 @@ export async function PATCH(req: Request) {
     if (!id) return json({ ok: false, error: 'id required' }, { status: 400 });
     const upd: Record<string, unknown> = {};
     if (typeof b?.name === 'string' && b.name.trim()) upd.$set = { name: b.name.trim() };
-    if (Array.isArray(b?.add) && b.add.length) upd.$addToSet = { keys: { $each: b.add.map(String) } };
+    let add: string[] = Array.isArray(b?.add) ? b.add.map(String) : [];
+    if (b?.fromChecked) add = add.concat((await Lead.distinct('dedupKey', { checked: true })) as string[]);
+    if (add.length) upd.$addToSet = { keys: { $each: add } };
     if (Array.isArray(b?.remove) && b.remove.length) upd.$pull = { keys: { $in: b.remove.map(String) } };
     if (Object.keys(upd).length) await LeadGroup.updateOne({ groupId: id }, upd);
-    return json({ ok: true });
+    return json({ ok: true, added: add.length });
   } catch (e: any) {
     return json({ ok: false, error: e?.message || 'update failed' }, { status: 500 });
   }
