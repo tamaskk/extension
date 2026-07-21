@@ -53,14 +53,21 @@ export async function recomputeProjectStats(projects: (string | null | undefined
 // Full rebuild over every lead — the ⟳ Recount button and the one-time
 // bootstrap. A single $group over 1.2M leads → 100k+ buckets exceeds the 100MB
 // group limit on the shared Atlas tier (allowDiskUse is ignored there), so the
-// project-key space is partitioned into contiguous ranges and merged.
+// project-key space is partitioned into contiguous ranges. Each range counts
+// AND writes entirely inside Mongo via $merge — pulling the buckets into the
+// serverless function and bulk-writing them back blew Vercel's 60s limit
+// mid-write and left partial counters.
 export async function recomputeAllProjectStats(): Promise<number> {
   await dbConnect();
-  const leadsColl = mongoose.connection.db!.collection('leads');
+  const db = mongoose.connection.db!;
+  const leadsColl = db.collection('leads');
   const names = ((await Project.find().select('query -_id').lean()) as { query: string }[])
     .map((p) => p.query).filter(Boolean).sort();
   const at = new Date().toISOString();
   if (!names.length) { await ProjectStat.deleteMany({}); await invalidateProjectsCache(); return 0; }
+
+  // $merge requires a unique index on its join key
+  await db.collection('projectstats').createIndex({ project: 1 }, { unique: true });
 
   const N = Math.min(40, names.length);
   const bounds: string[] = [];
@@ -70,7 +77,6 @@ export async function recomputeAllProjectStats(): Promise<number> {
   for (const b of bounds) { ranges.push([lo, b]); lo = b; }
   ranges.push([lo, null]);
 
-  const ops: object[] = [];
   let idx = 0;
   const worker = async () => {
     while (idx < ranges.length) {
@@ -79,13 +85,16 @@ export async function recomputeAllProjectStats(): Promise<number> {
       if (a !== null) range.$gte = a;
       if (b !== null) range.$lt = b;
       const match = Object.keys(range).length ? { project: range } : {};
-      const rows = await leadsColl.aggregate([{ $match: match }, GROUP_STAGE]).toArray();
-      for (const r of rows) ops.push({ updateOne: { filter: { project: r._id }, update: { $set: statSet(r._id as string, r as unknown as Record<string, number>, at) }, upsert: true } });
+      await leadsColl.aggregate([
+        { $match: match },
+        GROUP_STAGE,
+        { $project: { _id: 0, project: '$_id', total: 1, noWebsite: 1, hot: 1, email: 1, reviews: 1, reviewsSum: 1, ai: 1, oppSum: 1, updatedAt: { $literal: at } } },
+        { $merge: { into: 'projectstats', on: 'project', whenMatched: 'replace', whenNotMatched: 'insert' } },
+      ]).toArray(); // toArray() drives the pipeline; $merge emits no rows
     }
   };
   await Promise.all(Array.from({ length: 8 }, worker));
-  for (let i = 0; i < ops.length; i += 1000) await ProjectStat.bulkWrite(ops.slice(i, i + 1000) as never[], { ordered: false });
   await ProjectStat.deleteMany({ updatedAt: { $lt: at } }); // projects whose leads are gone
   await invalidateProjectsCache();
-  return ops.length;
+  return ProjectStat.estimatedDocumentCount();
 }

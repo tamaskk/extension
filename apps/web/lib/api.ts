@@ -44,7 +44,8 @@ export interface GeoPoint {
 export const api = {
   getFolders: () => jget('/api/folders'),
   getProjects: () => jget('/api/projects'),
-  refreshProjectStats: () => jsend('/api/projects/refresh', 'POST', {}) as Promise<{ ok: boolean; projects?: number; ms?: number; error?: string }>,
+  refreshProjectStats: (body: { after?: string | null; at?: string } = {}) =>
+    jsend('/api/projects/refresh', 'POST', body) as Promise<{ ok: boolean; done?: boolean; after?: string | null; at?: string; projects?: number; error?: string }>,
 
   getLeads: (q: LeadsQuery): Promise<{ rows: LeadRow[]; total: number }> => {
     const p = new URLSearchParams();

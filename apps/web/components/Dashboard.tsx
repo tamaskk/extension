@@ -628,12 +628,22 @@ export default function Dashboard() {
     api.setOpportunity(r._project, r._key, v).catch(() => {});
   };
   const refreshAll = () => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); };
-  // Rebuild every cached per-project counter from the live leads collection,
-  // then reload the sidebar/tiles from the fresh cache.
+  // Rebuild every cached per-project counter from the live leads collection.
+  // Chunked: each request covers a slice of the project-key space (a full pass
+  // exceeds the 60s serverless limit), looping until the server reports done.
+  const fullRecount = async () => {
+    let after: string | null | undefined; let at: string | undefined;
+    for (;;) {
+      const res = await api.refreshProjectStats({ after, at });
+      if (!res?.ok) throw new Error(res?.error || 'recount failed');
+      if (res.done) return;
+      after = res.after; at = res.at;
+    }
+  };
   const runRecount = async () => {
     if (recounting) return;
     setRecounting(true);
-    try { await api.refreshProjectStats(); await actions.refresh(); setReloadKey((k) => k + 1); }
+    try { await fullRecount(); await actions.refresh(); setReloadKey((k) => k + 1); }
     catch { /* leave old numbers up */ }
     finally { setRecounting(false); }
   };
@@ -668,7 +678,7 @@ export default function Dashboard() {
       }
       setRecalc({ running: false, done, total });
       setReloadKey((k) => k + 1); // reload the table with new scores
-      api.refreshProjectStats().then(() => actions.refresh()).catch(() => {}); // scores changed → recount cached counters
+      fullRecount().then(() => actions.refresh()).catch(() => {}); // scores changed → recount cached counters
       setTimeout(() => setRecalc(null), 4000);
     } catch {
       setRecalc({ running: false, done, total });
