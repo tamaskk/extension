@@ -243,6 +243,8 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [activeProject, setActiveProject] = useState<string | null>(null);
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
+  // when set, the main leads table is scoped to this saved group's members
+  const [activeGroup, setActiveGroup] = useState<{ groupId: string; name: string; count: number } | null>(null);
   const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email' | 'hasreviews' | 'hasai'>('all');
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [selTypes, setSelTypes] = useState<string[]>([]);
@@ -348,7 +350,9 @@ export default function Dashboard() {
   // debounce the search box
   useEffect(() => { const t = setTimeout(() => setDebTerm(term.trim()), 300); return () => clearTimeout(t); }, [term]);
   // any change that affects the result set goes back to page 1
-  useEffect(() => { setPage(1); }, [activeProject, activeFolder, filter, debTerm, sortKey, sortDir, pageSize, selectedCats, selTypes, selRegions]);
+  useEffect(() => { setPage(1); }, [activeProject, activeFolder, activeGroup, filter, debTerm, sortKey, sortDir, pageSize, selectedCats, selTypes, selRegions]);
+  // picking a project/folder scope leaves any group scope
+  useEffect(() => { if (activeProject || activeFolder) setActiveGroup(null); }, [activeProject, activeFolder]);
   // category options are scope-specific, so reset the picks when the scope changes
   useEffect(() => { setSelectedCats([]); }, [activeProject, activeFolder]);
   const refreshCallCount = useCallback(() => {
@@ -373,7 +377,7 @@ export default function Dashboard() {
     if (!hydrated) return;
     let cancelled = false;
     setLoading(true);
-    api.getLeads({ project: activeProject, folder: activeFolder, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, sort: sortKey, dir: sortDir, page, pageSize })
+    api.getLeads({ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, sort: sortKey, dir: sortDir, page, pageSize })
       .then((res) => {
         if (cancelled) return;
         const rows = (res.rows || []).map((r: any) => ({ ...r, _project: r.project, _key: r.dedupKey })) as LeadRow[];
@@ -384,7 +388,7 @@ export default function Dashboard() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, activeProject, activeFolder, filter, debTerm, catsKey, selTypes.join('|'), selRegions.join('|'), sortKey, sortDir, page, pageSize, reloadKey]);
+  }, [hydrated, activeProject, activeFolder, activeGroup?.groupId, filter, debTerm, catsKey, selTypes.join('|'), selRegions.join('|'), sortKey, sortDir, page, pageSize, reloadKey]);
 
   const summariesArr = useMemo(() => Object.values(summaries), [summaries]);
   const folderList = useMemo(() => Object.values(folders), [folders]);
@@ -924,7 +928,7 @@ export default function Dashboard() {
         <aside className="sidebar collapsed">
           <button className="brand-mark only" title="Expand sidebar" onClick={() => setCol(false)}>✦</button>
           <div className="crail">
-            <button className={`crail-i ${view === 'leads' ? 'active' : ''}`} title="Leads" onClick={() => setView('leads')}>🧾</button>
+            <button className={`crail-i ${view === 'leads' ? 'active' : ''}`} title="Leads" onClick={() => { setActiveGroup(null); setView('leads'); }}>🧾</button>
             <button className={`crail-i ${view === 'map' ? 'active' : ''}`} title="Map" onClick={() => setView('map')}>🗺️</button>
             <button className={`crail-i ${view === 'stats' ? 'active' : ''}`} title="Stats" onClick={() => setView('stats')}>📊</button>
             <button className={`crail-i ${view === 'reviews' ? 'active' : ''}`} title="Reviews" onClick={() => setView('reviews')}>💬</button>
@@ -951,7 +955,7 @@ export default function Dashboard() {
         <div className="brand"><span className="brand-mark">✦</span> GridLeads <button className="side-collapse" title="Collapse sidebar" onClick={() => setCol(true)}>«</button></div>
 
         <nav className="navrail">
-          <button className={`navrail-item ${view === 'leads' ? 'active' : ''}`} onClick={() => { setView('leads'); setSidebarOpen(false); }}><span className="ic">🧾</span> Leads</button>
+          <button className={`navrail-item ${view === 'leads' ? 'active' : ''}`} onClick={() => { setActiveGroup(null); setView('leads'); setSidebarOpen(false); }}><span className="ic">🧾</span> Leads</button>
           <button className={`navrail-item ${view === 'map' ? 'active' : ''}`} onClick={() => { setView('map'); setSidebarOpen(false); }}><span className="ic">🗺️</span> Map</button>
           <button className={`navrail-item ${view === 'stats' ? 'active' : ''}`} onClick={() => { setView('stats'); setSidebarOpen(false); }}><span className="ic">📊</span> Stats</button>
           <button className={`navrail-item ${view === 'reviews' ? 'active' : ''}`} onClick={() => { setView('reviews'); setSidebarOpen(false); }}><span className="ic">💬</span> Reviews</button>
@@ -1099,9 +1103,27 @@ export default function Dashboard() {
 
         {view === 'reviews' && <ReviewsView />}
 
-        {view === 'groups' && <GroupsView />}
+        {view === 'groups' && <GroupsView onOpen={(g) => { setActiveProject(null); setActiveFolder(null); setActiveGroup(g); setView('leads'); }} />}
 
         {view === 'leads' && <>
+        {activeGroup && (
+          <div className="groupbar">
+            <button className="btn" onClick={() => { setActiveGroup(null); setView('groups'); }}>← Groups</button>
+            <div className="groups-title">🗂 {activeGroup.name}</div>
+            <div className="spacer" />
+            <button className="btn" onClick={() => {
+              const name = prompt('Rename group:', activeGroup.name);
+              if (!name || !name.trim() || name.trim() === activeGroup.name) return;
+              api.renameGroup(activeGroup.groupId, name.trim()).catch(() => {});
+              setActiveGroup({ ...activeGroup, name: name.trim() });
+            }}>✎ Rename</button>
+            <button className="btn" onClick={() => {
+              if (!confirm(`Delete group "${activeGroup.name}"? The leads themselves stay.`)) return;
+              api.deleteGroup(activeGroup.groupId).catch(() => {});
+              setActiveGroup(null); setView('groups');
+            }}>🗑 Delete group</button>
+          </div>
+        )}
         <div className="filters">
           <div className="filterchips">
             {([['all', 'All'], ['nowebsite', 'No website'], ['haswebsite', 'Has website'], ['hot', '🔥 Hot'], ['email', 'Email found'], ['hasreviews', '💬 Has reviews'], ['hasai', '✨ Has AI']] as const).map(([key, label]) => (
@@ -1113,6 +1135,11 @@ export default function Dashboard() {
             <span className="rowsel-bar">
               <b>{rowSel.size}</b>&nbsp;selected
               <GroupPickBtn label="🗂 Group" keys={() => [...rowSel].map((id) => id.slice(id.indexOf('|') + 1))} onDone={() => setRowSel(new Set())} />
+              {activeGroup && <button className="chipbtn" onClick={async () => {
+                const keys = [...rowSel].map((id) => id.slice(id.indexOf('|') + 1));
+                await api.removeFromGroup(activeGroup.groupId, keys).catch(() => {});
+                setRowSel(new Set()); setReloadKey((k) => k + 1);
+              }}>✕ Remove from group</button>}
               <button className="chipbtn danger" onClick={deleteSelectedRows}>🗑 Delete</button>
               <span className="rowsel-clear" onClick={() => setRowSel(new Set())}>clear</span>
             </span>

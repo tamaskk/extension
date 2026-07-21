@@ -1,5 +1,5 @@
 import { dbConnect } from '@/lib/db';
-import { Lead, Project, NO_SITE, CORS, json, descendantFolderIds, applyProjectFacets } from '@/lib/models';
+import { Lead, Project, LeadGroup, NO_SITE, CORS, json, descendantFolderIds, applyProjectFacets } from '@/lib/models';
 import { recomputeProjectStats } from '@/lib/projectStats';
 
 export const runtime = 'nodejs';
@@ -36,6 +36,11 @@ export async function GET(req: Request) {
       match.project = { $in: (projs as { query: string }[]).map((p) => p.query) };
     } else if (project) {
       match.project = project;
+    }
+    const groupId = u.get('group') || '';
+    if (groupId) { // scope to a saved lead group's members
+      const g = await LeadGroup.findOne({ groupId }).select('keys -_id').lean() as { keys?: string[] } | null;
+      match.dedupKey = { $in: g?.keys || [] };
     }
     if (filter === 'nowebsite') match.websiteStatus = { $in: NO_SITE };
     else if (filter === 'haswebsite') match.websiteStatus = 'HAS_WEBSITE';

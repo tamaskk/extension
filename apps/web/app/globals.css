@@ -925,3 +925,6 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .grouppick-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .grouppick-count { color: var(--muted); font-size: 12px; }
 .grouppick-empty { color: var(--muted); font-size: 12px; padding: 8px 9px; }
+
+/* group scope bar above the leads table */
+.groupbar { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }

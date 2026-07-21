@@ -11,6 +11,7 @@ async function jsend(url: string, method: string, body: unknown) {
 export interface LeadsQuery {
   project?: string | null;
   folder?: string | null;
+  group?: string | null;
   filter?: string;
   search?: string;
   categories?: string[];
@@ -61,6 +62,7 @@ export const api = {
     const p = new URLSearchParams();
     if (q.project) p.set('project', q.project);
     if (q.folder) p.set('folder', q.folder);
+    if (q.group) p.set('group', q.group);
     if (q.filter) p.set('filter', q.filter);
     if (q.search) p.set('search', q.search);
     (q.categories || []).forEach((c) => p.append('cat', c));
