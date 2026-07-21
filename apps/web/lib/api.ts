@@ -44,6 +44,14 @@ export interface GeoPoint {
 export const api = {
   getFolders: () => jget('/api/folders'),
   getProjects: () => jget('/api/projects'),
+  getGroups: () => jget('/api/groups') as Promise<{ ok: boolean; groups: { groupId: string; name: string; createdAt: string; count: number }[] }>,
+  getGroupLeads: (id: string, page = 1, pageSize = 100) =>
+    jget(`/api/groups?id=${encodeURIComponent(id)}&page=${page}&pageSize=${pageSize}`) as Promise<{ ok: boolean; name?: string; rows: any[]; total: number; error?: string }>,
+  createGroup: (name: string, opts: { keys?: string[]; fromChecked?: boolean } = {}) =>
+    jsend('/api/groups', 'POST', { name, ...opts }) as Promise<{ ok: boolean; groupId?: string; count?: number; error?: string }>,
+  renameGroup: (id: string, name: string) => jsend('/api/groups', 'PATCH', { id, name }),
+  removeFromGroup: (id: string, keys: string[]) => jsend('/api/groups', 'PATCH', { id, remove: keys }),
+  deleteGroup: (id: string) => jsend('/api/groups', 'DELETE', { id }),
   refreshProjectStats: (body: { after?: string | null; at?: string } = {}) =>
     jsend('/api/projects/refresh', 'POST', body) as Promise<{ ok: boolean; done?: boolean; after?: string | null; at?: string; projects?: number; error?: string }>,
 

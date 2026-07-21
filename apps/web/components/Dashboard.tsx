@@ -21,6 +21,7 @@ import IconPicker from './IconPicker';
 import CallsModal from './CallsModal';
 import StatsModal from './StatsModal';
 import ReviewsView from './ReviewsView';
+import GroupsView from './GroupsView';
 import OrganizeModal from './OrganizeModal';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
@@ -214,7 +215,7 @@ export default function Dashboard() {
   const [dupesOpen, setDupesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [view, setView] = useState<'leads' | 'map' | 'stats' | 'reviews'>('leads');
+  const [view, setView] = useState<'leads' | 'map' | 'stats' | 'reviews' | 'groups'>('leads');
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; regions: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [reviewRow, setReviewRow] = useState<LeadRow | null>(null);
@@ -315,6 +316,15 @@ export default function Dashboard() {
     setCheckedCount(0);
     await api.uncheckAll().catch(() => {});
     setReloadKey((k) => k + 1);
+  };
+  // save all currently-checked leads as a named group (shown in the Groups tab)
+  const createGroupFromChecked = async () => {
+    if (!checkedCount) return;
+    const name = prompt(`Group name for the ${checkedCount.toLocaleString()} checked lead(s):`);
+    if (!name || !name.trim()) return;
+    const res = await api.createGroup(name.trim(), { fromChecked: true }).catch(() => null);
+    if (!res?.ok) { alert(res?.error || 'Creating the group failed.'); return; }
+    if (confirm(`Group "${name.trim()}" saved with ${res.count?.toLocaleString()} lead(s). Open the Groups tab?`)) setView('groups');
   };
 
   const catsKey = selectedCats.join('');
@@ -878,6 +888,7 @@ export default function Dashboard() {
             <button className={`crail-i ${view === 'map' ? 'active' : ''}`} title="Map" onClick={() => setView('map')}>🗺️</button>
             <button className={`crail-i ${view === 'stats' ? 'active' : ''}`} title="Stats" onClick={() => setView('stats')}>📊</button>
             <button className={`crail-i ${view === 'reviews' ? 'active' : ''}`} title="Reviews" onClick={() => setView('reviews')}>💬</button>
+            <button className={`crail-i ${view === 'groups' ? 'active' : ''}`} title="Groups" onClick={() => setView('groups')}>🗂</button>
             <button className="crail-i" title="Calls" onClick={() => setCallsOpen(true)}>📞</button>
             <button className="crail-i" title="Duplicates" onClick={() => setDupesOpen(true)}>⧉</button>
             <button className="crail-i" title="Organize" onClick={() => setOrganizeOpen(true)}>🗂️</button>
@@ -904,6 +915,7 @@ export default function Dashboard() {
           <button className={`navrail-item ${view === 'map' ? 'active' : ''}`} onClick={() => { setView('map'); setSidebarOpen(false); }}><span className="ic">🗺️</span> Map</button>
           <button className={`navrail-item ${view === 'stats' ? 'active' : ''}`} onClick={() => { setView('stats'); setSidebarOpen(false); }}><span className="ic">📊</span> Stats</button>
           <button className={`navrail-item ${view === 'reviews' ? 'active' : ''}`} onClick={() => { setView('reviews'); setSidebarOpen(false); }}><span className="ic">💬</span> Reviews</button>
+          <button className={`navrail-item ${view === 'groups' ? 'active' : ''}`} onClick={() => { setView('groups'); setSidebarOpen(false); }}><span className="ic">🗂</span> Groups</button>
           <button className="navrail-item" onClick={() => setCallsOpen(true)}><span className="ic">📞</span> Calls{callCount > 0 && <span className="nb">{callCount.toLocaleString()}</span>}</button>
           <button className="navrail-item" onClick={() => setDupesOpen(true)}><span className="ic">⧉</span> Duplicates</button>
           <button className="navrail-item" onClick={() => setOrganizeOpen(true)}><span className="ic">🗂️</span> Organize</button>
@@ -1023,6 +1035,7 @@ export default function Dashboard() {
           <button className="btn" onClick={runRecalc} disabled={!!recalc?.running} title="Recompute opportunity scores for all leads with the new ranking">
             {recalc?.running ? `⏳ ${recalc.total ? Math.round((recalc.done / recalc.total) * 100) : 0}%` : '★ Recalc'}
           </button>
+          {checkedCount > 0 && <button className="btn" onClick={createGroupFromChecked} title="Save all checked leads as a named group (Groups tab)">🗂 Group {checkedCount.toLocaleString()}</button>}
           {checkedCount > 0 && <button className="btn" onClick={uncheckAllLeads} title="Clear the Checked status on all checked leads">☐ Uncheck {checkedCount.toLocaleString()}</button>}
         </header>
 
@@ -1045,6 +1058,8 @@ export default function Dashboard() {
         {view === 'stats' && <StatsModal inline folders={folderList.slice().sort(byName)} onClose={() => setView('leads')} />}
 
         {view === 'reviews' && <ReviewsView />}
+
+        {view === 'groups' && <GroupsView />}
 
         {view === 'leads' && <>
         <div className="filters">

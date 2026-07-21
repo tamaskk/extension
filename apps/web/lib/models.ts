@@ -97,6 +97,16 @@ const ProjectStatSchema = new Schema({
   updatedAt: String,
 }, { versionKey: false });
 
+// ── LeadGroup (a named, hand-picked set of leads) ────────────────────────
+// Created from the currently-checked leads; members are dedupKeys (globally
+// single-homed per the cross-project dedup rule, so no project needed).
+const LeadGroupSchema = new Schema({
+  groupId: { type: String, required: true, unique: true, index: true },
+  name: { type: String, required: true },
+  createdAt: String,
+  keys: { type: [String], default: [] },
+}, { versionKey: false });
+
 // ── Tag (a reusable, colored label) — registry shared across all leads ────
 const TagSchema = new Schema({
   name: { type: String, required: true, unique: true, index: true },
@@ -128,6 +138,7 @@ export const Folder = models.Folder || model('Folder', FolderSchema);
 export const Project = models.Project || model('Project', ProjectSchema);
 export const Lead = models.Lead || model('Lead', LeadSchema);
 export const ProjectStat = models.ProjectStat || model('ProjectStat', ProjectStatSchema);
+export const LeadGroup = models.LeadGroup || model('LeadGroup', LeadGroupSchema);
 export const Tag = models.Tag || model('Tag', TagSchema);
 export const Review = models.Review || model('Review', ReviewSchema);
 
