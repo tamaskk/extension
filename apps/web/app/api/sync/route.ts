@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Folder, Project, Lead, CORS, json } from '@/lib/models';
+import { recomputeProjectStats, invalidateProjectsCache } from '@/lib/projectStats';
 
 export const runtime = 'nodejs';
 
@@ -52,15 +53,18 @@ export async function POST(req: Request) {
     }
 
     const ops: any[] = [];
+    const touched = new Set<string>(); // projects whose counters must be recomputed
     let added = 0, updated = 0, skipped = 0;
     for (const it of incoming) {
       const ownerProject = owner.get(it.dedupKey);
       if (ownerProject === undefined) {
         ops.push({ updateOne: { filter: { project: it.project, dedupKey: it.dedupKey }, update: { $set: { ...it.fields, project: it.project } }, upsert: true } });
         owner.set(it.dedupKey, it.project); // now owned (also dedupes within this batch)
+        touched.add(it.project);
         added++;
       } else if (ownerProject === it.project) {
         ops.push({ updateOne: { filter: { project: it.project, dedupKey: it.dedupKey }, update: { $set: { ...it.fields, project: it.project } }, upsert: true } });
+        touched.add(it.project);
         updated++;
       } else {
         skipped++; // already in a different project → don't duplicate
@@ -68,6 +72,9 @@ export async function POST(req: Request) {
     }
 
     for (let i = 0; i < ops.length; i += 1000) await Lead.bulkWrite(ops.slice(i, i + 1000), { ordered: false });
+
+    if (touched.size) await recomputeProjectStats([...touched]);
+    else if (projectCount || folderOps.length) await invalidateProjectsCache(); // structure changed, counts didn't
 
     return json({ ok: true, folders: folderOps.length, projects: projectCount, added, updated, skippedDuplicates: skipped });
   } catch (e: any) {

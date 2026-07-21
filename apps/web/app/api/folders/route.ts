@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Folder, Project, CORS, json } from '@/lib/models';
+import { invalidateProjectsCache } from '@/lib/projectStats';
 
 export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
@@ -53,5 +54,6 @@ export async function DELETE(req: Request) {
   await Folder.updateMany({ parentId: b.id }, { $set: { parentId: newParent } });
   await Folder.deleteOne({ folderId: b.id });
   await Project.updateMany({ folderId: b.id }, { $set: { folderId: null } });
+  await invalidateProjectsCache(); // projects moved to root → sidebar payload changed
   return json({ ok: true });
 }

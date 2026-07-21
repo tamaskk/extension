@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Folder, Project, CORS, json } from '@/lib/models';
+import { invalidateProjectsCache } from '@/lib/projectStats';
 import { COUNTRY_CITIES } from '@/lib/countries';
 import { STATE_REGIONS } from '@/lib/regionNames';
 import { buildRegionIndex, planFor, norm } from '@/lib/organize.mjs';
@@ -188,6 +189,7 @@ export async function POST(req: Request) {
     if (toDelete.length) {
       await Folder.deleteMany({ folderId: { $in: toDelete.map((d) => d.folderId) } });
     }
+    await invalidateProjectsCache(); // folderId moves must show in the sidebar
 
     return json(summary);
   } catch (e: any) {

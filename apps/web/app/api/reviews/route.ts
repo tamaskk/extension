@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, Review, CORS, json } from '@/lib/models';
+import { recomputeProjectStats } from '@/lib/projectStats';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
       { project, dedupKey },
       { $set: { reviewsScrapedAt: now, reviewsCount: items.length, reviewsError: b?.error ? String(b.error) : '' } },
     );
+    await recomputeProjectStats([project]); // reviews/reviewsSum counters changed
 
     return json({ ok: true, saved: items.length });
   } catch (e: any) {

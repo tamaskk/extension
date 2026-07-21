@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
-import { Lead, Project, CORS, json } from '@/lib/models';
+import { Lead, Project, ProjectStat, CORS, json } from '@/lib/models';
+import { recomputeProjectStats } from '@/lib/projectStats';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -66,6 +67,11 @@ export async function POST(req: Request) {
       leadsUpdated += (r2 as any).modifiedCount || 0;
       await Project.deleteOne({ query: m.from });
     }
+
+    // counters are keyed by project name — drop the old keys, recount the new ones
+    const froms = [...rename, ...merge].map((r) => r.from);
+    if (froms.length) await ProjectStat.deleteMany({ project: { $in: froms } });
+    await recomputeProjectStats([...rename, ...merge].map((r) => r.to));
 
     return json({ ...summary, leadsUpdated, leadsDropped });
   } catch (e: any) {

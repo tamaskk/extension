@@ -224,6 +224,7 @@ export default function Dashboard() {
   const [callCount, setCallCount] = useState(0);
   const [checkedCount, setCheckedCount] = useState(0);
   const [recalc, setRecalc] = useState<{ running: boolean; done: number; total: number } | null>(null);
+  const [recounting, setRecounting] = useState(false); // full rebuild of the cached per-project counters
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [pageRows, setPageRows] = useState<LeadRow[]>([]);
@@ -627,6 +628,15 @@ export default function Dashboard() {
     api.setOpportunity(r._project, r._key, v).catch(() => {});
   };
   const refreshAll = () => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); };
+  // Rebuild every cached per-project counter from the live leads collection,
+  // then reload the sidebar/tiles from the fresh cache.
+  const runRecount = async () => {
+    if (recounting) return;
+    setRecounting(true);
+    try { await api.refreshProjectStats(); await actions.refresh(); setReloadKey((k) => k + 1); }
+    catch { /* leave old numbers up */ }
+    finally { setRecounting(false); }
+  };
 
   // delete the rows ticked with the left-most (selection) checkbox
   const deleteSelectedRows = async () => {
@@ -658,7 +668,7 @@ export default function Dashboard() {
       }
       setRecalc({ running: false, done, total });
       setReloadKey((k) => k + 1); // reload the table with new scores
-      actions.refresh().catch(() => {});
+      api.refreshProjectStats().then(() => actions.refresh()).catch(() => {}); // scores changed → recount cached counters
       setTimeout(() => setRecalc(null), 4000);
     } catch {
       setRecalc({ running: false, done, total });
@@ -999,6 +1009,7 @@ export default function Dashboard() {
           </select>
           <div className="spacer" />
           <button className="btn" onClick={refreshAll} title="Reload data">⟳ Refresh</button>
+          <button className="btn" onClick={runRecount} disabled={recounting} title="Rebuild the cached project counters from the live leads (use if the numbers look stale)">{recounting ? '⏳ Counting…' : 'Σ Recount'}</button>
           <button className="btn" onClick={runRecalc} disabled={!!recalc?.running} title="Recompute opportunity scores for all leads with the new ranking">
             {recalc?.running ? `⏳ ${recalc.total ? Math.round((recalc.done / recalc.total) * 100) : 0}%` : '★ Recalc'}
           </button>

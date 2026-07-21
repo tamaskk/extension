@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, Project, NO_SITE, CORS, json, descendantFolderIds, applyProjectFacets } from '@/lib/models';
+import { recomputeProjectStats } from '@/lib/projectStats';
 
 export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
@@ -76,6 +77,7 @@ export async function POST(req: Request) {
   await Project.updateOne({ query: proj.query }, { $set: { query: proj.query, name: proj.name || proj.query, createdAt: proj.createdAt || new Date().toISOString() } }, { upsert: true });
   const { _id, ...rest } = lead;
   await Lead.updateOne({ project: proj.query, dedupKey: lead.dedupKey }, { $set: { ...rest, project: proj.query, dedupKey: lead.dedupKey } }, { upsert: true });
+  await recomputeProjectStats([proj.query]);
   return json({ ok: true });
 }
 
@@ -109,7 +111,11 @@ export async function PATCH(req: Request) {
     else if (f === 'opportunityScore') { const v = Math.max(0, Math.min(100, Math.round(Number(val) || 0))); set.opportunityScore = v; set.leadTemperature = v >= 70 ? 'HOT' : v >= 40 ? 'WARM' : 'COLD'; }
     if (set[f] === undefined) delete set[f];
   }
-  if (Object.keys(set).length) await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: set });
+  if (Object.keys(set).length) {
+    await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: set });
+    // only edits that change the sidebar counters trigger a recount
+    if (['websiteStatus', 'opportunityScore', 'leadTemperature', 'email'].some((f) => f in set)) await recomputeProjectStats([b.project]);
+  }
   return json({ ok: true });
 }
 
@@ -117,8 +123,16 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   await dbConnect();
   const b = await req.json();
-  if (b.allChecked) { const r = await Lead.deleteMany({ checked: true }); return json({ ok: true, deleted: r.deletedCount || 0 }); }
+  if (b.allChecked) {
+    const projs = await Lead.distinct('project', { checked: true });
+    const r = await Lead.deleteMany({ checked: true });
+    await recomputeProjectStats(projs as string[]);
+    return json({ ok: true, deleted: r.deletedCount || 0 });
+  }
   const items: { query: string; key: string }[] = b.items || [];
-  if (items.length) await Lead.bulkWrite(items.map((it) => ({ deleteOne: { filter: { project: it.query, dedupKey: it.key } } })), { ordered: false });
+  if (items.length) {
+    await Lead.bulkWrite(items.map((it) => ({ deleteOne: { filter: { project: it.query, dedupKey: it.key } } })), { ordered: false });
+    await recomputeProjectStats(items.map((it) => it.query));
+  }
   return json({ ok: true });
 }

@@ -8,6 +8,7 @@
 //                       scope?: { folder?, project?, hasReviews? } }   un-enriched leads
 import { dbConnect } from '@/lib/db';
 import { Lead, Review, Project, CORS, json, descendantFolderIds } from '@/lib/models';
+import { recomputeProjectStats } from '@/lib/projectStats';
 import { spawn } from 'child_process';
 
 export const runtime = 'nodejs';
@@ -101,12 +102,13 @@ async function enrichOne(lead: any, tag = '') {
   const ai = parseInsights(text);
   const aiAt = new Date().toISOString();
   await Lead.updateOne({ dedupKey: lead.dedupKey }, { $set: { ...ai, aiAt } });
+  await recomputeProjectStats([lead.project]); // ai counter changed
   const secs = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`[enrich]${tag} ✓ ${name} — ${ai.aiSummary.length}c summary · ${nLines(ai.aiAdvantages)} advantages · ${nLines(ai.aiPainPoints)} pain points · pitch ${ai.aiPitch.length}c  (${secs}s)`);
   return { ...ai, aiAt };
 }
 
-const LEAD_FIELDS = 'dedupKey name category address phone website websiteStatus rating reviewCount aiAt -_id';
+const LEAD_FIELDS = 'project dedupKey name category address phone website websiteStatus rating reviewCount aiAt -_id';
 
 export async function POST(req: Request) {
   if (!isLocal(req)) return json({ ok: false, error: 'AI enrichment only runs on localhost (it spawns your local Claude CLI). Run the app with `npm run dev` and call it from localhost.' }, { status: 403 });
