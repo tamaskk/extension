@@ -13,10 +13,13 @@ export function OPTIONS() { return new Response(null, { headers: CORS }); }
 
 // Mongo-backed cache of the final gzipped payload, so EVERY serverless instance
 // serves it in ~100ms — an in-memory cache is useless here because Vercel
-// spreads requests across cold instances. No TTL: the doc is served until a
-// write path invalidates it (every ingest/edit recomputes the touched projects'
-// counters and drops this doc), so reads never pay a 1.2M-lead scan.
+// spreads requests across cold instances. Short TTL: lead-count recomputes do
+// NOT drop this doc (during scraping that happens every few seconds and killed
+// both the cache and the browser's 304s); the payload just expires and is
+// rebuilt from ProjectStat (cheap join, no lead scan). Structural edits
+// (rename/move/delete/organize/Recount) still invalidate instantly.
 const CACHE_KEY = 'projects';
+const TTL_MS = 120_000;
 
 async function cacheColl() {
   await dbConnect();
@@ -35,7 +38,7 @@ function toBuf(gz: unknown): Buffer {
 async function getProjectsGz(): Promise<{ gz: Buffer; at: number }> {
   const coll = await cacheColl();
   const doc = await coll.findOne({ key: CACHE_KEY });
-  if (doc?.gz) return { gz: toBuf(doc.gz), at: (doc.at as number) || 0 };
+  if (doc?.gz && Date.now() - ((doc.at as number) || 0) < TTL_MS) return { gz: toBuf(doc.gz), at: (doc.at as number) || 0 };
   const out = await computeProjects();
   const gz = await gzip(JSON.stringify(out));
   const at = Date.now();
@@ -77,7 +80,9 @@ export async function GET(req: Request) {
       ETag: etag,
       'Cache-Control': 'private, no-cache', // always revalidate, never serve stale without asking
     };
-    if (req.headers.get('if-none-match') === etag) return new Response(null, { status: 304, headers });
+    // tolerate weak validators — Vercel's edge may transform the body and mark the ETag W/
+    const inm = (req.headers.get('if-none-match') || '').replace(/^W\//, '');
+    if (inm === etag) return new Response(null, { status: 304, headers });
     // Buffer is a valid response body at runtime; cast past the strict lib type.
     return new Response(gz as unknown as BodyInit, {
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip' },

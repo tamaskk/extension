@@ -47,7 +47,10 @@ export async function recomputeProjectStats(projects: (string | null | undefined
   await ProjectStat.bulkWrite(uniq.map((p) => ({
     updateOne: { filter: { project: p }, update: { $set: statSet(p, by.get(p) || ZERO, at) }, upsert: true },
   })), { ordered: false });
-  await invalidateProjectsCache();
+  // Deliberately NOT invalidating the gz payload cache here: during scraping
+  // this runs every few seconds, and dropping the cache per batch forced every
+  // /api/projects GET to rebuild + re-download the multi-MB payload (no 304s).
+  // The route's short TTL picks these counter changes up instead.
 }
 
 // Full rebuild over every lead — the ⟳ Recount button and the one-time

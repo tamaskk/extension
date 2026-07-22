@@ -1,6 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Folder, Project, Lead, CORS, json } from '@/lib/models';
-import { recomputeProjectStats, invalidateProjectsCache } from '@/lib/projectStats';
+import { recomputeProjectStats } from '@/lib/projectStats';
 
 export const runtime = 'nodejs';
 
@@ -73,8 +73,7 @@ export async function POST(req: Request) {
 
     for (let i = 0; i < ops.length; i += 1000) await Lead.bulkWrite(ops.slice(i, i + 1000), { ordered: false });
 
-    if (touched.size) await recomputeProjectStats([...touched]);
-    else if (projectCount || folderOps.length) await invalidateProjectsCache(); // structure changed, counts didn't
+    if (touched.size) await recomputeProjectStats([...touched]); // payload cache TTL picks the new counts up
 
     return json({ ok: true, folders: folderOps.length, projects: projectCount, added, updated, skippedDuplicates: skipped });
   } catch (e: any) {
