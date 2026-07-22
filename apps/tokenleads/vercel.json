@@ -1,0 +1,8 @@
+{
+  "crons": [
+    { "path": "/api/cron/facets", "schedule": "0 2 * * *" },
+    { "path": "/api/cron/reconcile", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/subscriptions", "schedule": "0 4 * * *" },
+    { "path": "/api/cron/radar", "schedule": "0 7 * * *" }
+  ]
+}
