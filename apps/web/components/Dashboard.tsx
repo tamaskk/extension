@@ -372,6 +372,16 @@ export default function Dashboard() {
     await api.uncheckAll().catch(() => {});
     setReloadKey((k) => k + 1);
   };
+  // permanently delete every checked lead from the database
+  const deleteAllChecked = async () => {
+    if (!checkedCount) return;
+    if (!confirm(`Delete all ${checkedCount.toLocaleString()} CHECKED lead(s) from the database? This cannot be undone.`)) return;
+    const r = await api.deleteAllChecked().catch(() => null);
+    if (!r?.ok) { alert('Deleting failed.'); return; }
+    setCheckedCount(0);
+    actions.refresh().catch(() => {});
+    setReloadKey((k) => k + 1);
+  };
 
   const catsKey = selectedCats.join('');
   // ----- server-side page fetch -----
@@ -1083,6 +1093,7 @@ export default function Dashboard() {
           </button>
           {checkedCount > 0 && <GroupPickBtn label={`🗂 Group ${checkedCount.toLocaleString()}`} className="btn" alignRight fromChecked />}
           {checkedCount > 0 && <button className="btn" onClick={uncheckAllLeads} title="Clear the Checked status on all checked leads">☐ Uncheck {checkedCount.toLocaleString()}</button>}
+          {checkedCount > 0 && <button className="btn danger" onClick={deleteAllChecked} title="Permanently delete every checked lead from the database">🗑 Delete {checkedCount.toLocaleString()}</button>}
         </header>
 
         {view === 'map' && (
