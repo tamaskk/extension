@@ -55,6 +55,12 @@ export const api = {
     jsend('/api/groups', 'PATCH', { id, add: opts.keys || [], fromChecked: !!opts.fromChecked }) as Promise<{ ok: boolean; added?: number; error?: string }>,
   removeFromGroup: (id: string, keys: string[]) => jsend('/api/groups', 'PATCH', { id, remove: keys }),
   deleteGroup: (id: string) => jsend('/api/groups', 'DELETE', { id }),
+  getVapiQueue: (group: string) =>
+    jget(`/api/vapi?group=${encodeURIComponent(group)}`) as Promise<{ ok: boolean; name?: string; rows: { dedupKey: string; name: string; phone: string; address: string; e164: string | null }[]; envError?: string | null; error?: string }>,
+  vapiCall: (b: { phone: string; name?: string; address?: string; dedupKey?: string }) =>
+    jsend('/api/vapi', 'POST', b) as Promise<{ ok: boolean; callId?: string; status?: string; error?: string }>,
+  vapiStatus: (id: string) =>
+    jget(`/api/vapi?id=${encodeURIComponent(id)}`) as Promise<{ ok: boolean; status?: string; endedReason?: string; error?: string }>,
   refreshProjectStats: (body: { after?: string | null; at?: string } = {}) =>
     jsend('/api/projects/refresh', 'POST', body) as Promise<{ ok: boolean; done?: boolean; after?: string | null; at?: string; projects?: number; error?: string }>,
 

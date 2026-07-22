@@ -928,3 +928,8 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 
 /* group scope bar above the leads table */
 .groupbar { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }
+
+/* Vapi group-calling modal */
+.vapi-warn { background: rgba(244,63,94,.1); color: #e11d48; font-size: 13px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.vapi-warn.info { background: rgba(99,102,241,.1); color: var(--accent, #818cf8); }
+.vapi-live td { background: rgba(99,102,241,.07); }

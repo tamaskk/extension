@@ -8,7 +8,7 @@ export type GroupRow = { groupId: string; name: string; createdAt: string; count
 // Groups tab: card list of saved lead groups. Opening one hands off to the
 // main leads table (Dashboard scopes it to the group), so members get the
 // full table UI — columns, sorting, filters, detail panel.
-export default function GroupsView({ onOpen }: { onOpen: (g: GroupRow) => void }) {
+export default function GroupsView({ onOpen, onCall }: { onOpen: (g: GroupRow) => void; onCall: (g: GroupRow) => void }) {
   const [groups, setGroups] = useState<GroupRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,6 +49,8 @@ export default function GroupsView({ onOpen }: { onOpen: (g: GroupRow) => void }
             <div className="group-card-meta">
               <span className="badge">{g.count.toLocaleString()} leads</span>
               <span className="muted">{(g.createdAt || '').slice(0, 10)}</span>
+              <span className="spacer" />
+              <button className="mini" title="Call this group with the Vapi voice assistant" onClick={(e) => { e.stopPropagation(); onCall(g); }}>📞 Call</button>
             </div>
             <div className="group-card-actions">
               <span className="edit" title="Rename" onClick={(e) => { e.stopPropagation(); rename(g); }}>✎</span>

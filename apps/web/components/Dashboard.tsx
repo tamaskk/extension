@@ -22,6 +22,7 @@ import CallsModal from './CallsModal';
 import StatsModal from './StatsModal';
 import ReviewsView from './ReviewsView';
 import GroupsView from './GroupsView';
+import VapiCallModal from './VapiCallModal';
 import OrganizeModal from './OrganizeModal';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
@@ -245,6 +246,7 @@ export default function Dashboard() {
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   // when set, the main leads table is scoped to this saved group's members
   const [activeGroup, setActiveGroup] = useState<{ groupId: string; name: string; count: number } | null>(null);
+  const [vapiGroup, setVapiGroup] = useState<{ groupId: string; name: string } | null>(null); // Vapi calling modal target
   const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email' | 'hasreviews' | 'hasai'>('all');
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [selTypes, setSelTypes] = useState<string[]>([]);
@@ -1103,7 +1105,7 @@ export default function Dashboard() {
 
         {view === 'reviews' && <ReviewsView />}
 
-        {view === 'groups' && <GroupsView onOpen={(g) => { setActiveProject(null); setActiveFolder(null); setActiveGroup(g); setView('leads'); }} />}
+        {view === 'groups' && <GroupsView onOpen={(g) => { setActiveProject(null); setActiveFolder(null); setActiveGroup(g); setView('leads'); }} onCall={(g) => setVapiGroup(g)} />}
 
         {view === 'leads' && <>
         {activeGroup && (
@@ -1111,6 +1113,7 @@ export default function Dashboard() {
             <button className="btn" onClick={() => { setActiveGroup(null); setView('groups'); }}>← Groups</button>
             <div className="groups-title">🗂 {activeGroup.name}</div>
             <div className="spacer" />
+            <button className="btn primary" onClick={() => setVapiGroup(activeGroup)} title="Call every lead in this group with the Vapi voice assistant, one after another">📞 Call group</button>
             <button className="btn" onClick={() => {
               const name = prompt('Rename group:', activeGroup.name);
               if (!name || !name.trim() || name.trim() === activeGroup.name) return;
@@ -1231,6 +1234,8 @@ export default function Dashboard() {
       {infoFolder && <FolderInfoModal name={infoFolder.name} cities={infoFolder.cities} names={infoFolder.names} regions={infoFolder.regions} folderCount={infoFolder.folderCount} projectCount={infoFolder.projectCount} onClose={() => setInfoFolder(null)} />}
 
       {organizeOpen && <OrganizeModal onClose={() => setOrganizeOpen(false)} onDone={() => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); }} />}
+
+      {vapiGroup && <VapiCallModal group={vapiGroup} onClose={() => setVapiGroup(null)} />}
 
       {callsOpen && <CallsModal onClose={() => setCallsOpen(false)} onToggleCall={(r, call) => {
         setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, call } : x)));
