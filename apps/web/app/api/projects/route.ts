@@ -32,14 +32,15 @@ function toBuf(gz: unknown): Buffer {
 // the 15MB / 143k-project payload under Vercel's 4.5MB response limit (~1.4MB
 // compressed) — the raw JSON exceeds it and 500s, which is why the sidebar
 // stopped loading as the project count grew.
-async function getProjectsGz(): Promise<Buffer> {
+async function getProjectsGz(): Promise<{ gz: Buffer; at: number }> {
   const coll = await cacheColl();
   const doc = await coll.findOne({ key: CACHE_KEY });
-  if (doc?.gz) return toBuf(doc.gz);
+  if (doc?.gz) return { gz: toBuf(doc.gz), at: (doc.at as number) || 0 };
   const out = await computeProjects();
   const gz = await gzip(JSON.stringify(out));
-  await coll.updateOne({ key: CACHE_KEY }, { $set: { key: CACHE_KEY, gz, at: Date.now() } }, { upsert: true });
-  return gz;
+  const at = Date.now();
+  await coll.updateOne({ key: CACHE_KEY }, { $set: { key: CACHE_KEY, gz, at } }, { upsert: true });
+  return { gz, at };
 }
 
 // Join Project docs with their precomputed ProjectStat counters — no lead scan.
@@ -63,12 +64,23 @@ export async function computeProjects() {
 }
 
 // Project summaries with lead counts (folderId, total, noWebsite, hot, email).
-export async function GET() {
+// ETag'd: the browser revalidates each load and gets a body-less 304 while the
+// cached payload is unchanged — the ~1.4MB gz only transfers after a rebuild.
+// This payload was eating the Fast Origin Transfer quota (every dashboard
+// load/refresh re-downloaded it).
+export async function GET(req: Request) {
   try {
-    const gz = await getProjectsGz();
+    const { gz, at } = await getProjectsGz();
+    const etag = `"p${at}"`;
+    const headers = {
+      ...CORS,
+      ETag: etag,
+      'Cache-Control': 'private, no-cache', // always revalidate, never serve stale without asking
+    };
+    if (req.headers.get('if-none-match') === etag) return new Response(null, { status: 304, headers });
     // Buffer is a valid response body at runtime; cast past the strict lib type.
     return new Response(gz as unknown as BodyInit, {
-      headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip' },
+      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip' },
     });
   } catch (e: any) {
     return json({ error: e?.message || 'projects failed' }, { status: 500 });
