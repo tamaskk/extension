@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
+import { buildContactPrompt } from '@/lib/contactPrompt';
 import type { LeadRow, ReviewRow } from '@/lib/types';
 
 const EMAIL_CTX = 'gridleads_email_ctx';
@@ -126,6 +127,14 @@ function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEd
   const [ai, setAi] = useState({ summary: lead.aiSummary || '', painPoints: lead.aiPainPoints || '', advantages: lead.aiAdvantages || '', pitch: lead.aiPitch || '', at: lead.aiAt || '' });
   const [gen, setGen] = useState(false);
   const [genErr, setGenErr] = useState('');
+  const [promptCopied, setPromptCopied] = useState(false);
+  const copyContactPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(buildContactPrompt(lead));
+      setPromptCopied(true);
+      setTimeout(() => setPromptCopied(false), 2500);
+    } catch { alert('Copying to the clipboard failed.'); }
+  };
   useEffect(() => {
     setAi({ summary: lead.aiSummary || '', painPoints: lead.aiPainPoints || '', advantages: lead.aiAdvantages || '', pitch: lead.aiPitch || '', at: lead.aiAt || '' });
     setGenErr('');
@@ -184,6 +193,7 @@ function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEd
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {onEditAll && <button className="btn primary" onClick={() => onEditAll(lead)}>✎ Edit all fields</button>}
         {lead.mapsUrl && <a className="btn" href={lead.mapsUrl} target="_blank" rel="noreferrer">Open in Maps ↗</a>}
+        <button className="btn" onClick={copyContactPrompt} title="Copy a deep contact-research (OSINT) prompt filled with this business's data — paste it into an LLM">{promptCopied ? '✓ Copied' : '🔎 Contact search prompt'}</button>
         {lead.website && <a className="btn" href={lead.website} target="_blank" rel="noreferrer">Website ↗</a>}
       </div>
     </>
