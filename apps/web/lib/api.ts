@@ -61,6 +61,10 @@ export const api = {
     jsend('/api/vapi', 'POST', b) as Promise<{ ok: boolean; callId?: string; status?: string; error?: string }>,
   vapiStatus: (id: string) =>
     jget(`/api/vapi?id=${encodeURIComponent(id)}`) as Promise<{ ok: boolean; status?: string; endedReason?: string; error?: string }>,
+  getCategorySummary: () =>
+    jget('/api/categories/summary') as Promise<{ ok: boolean; rows: { category: string; count: number; projects: number }[]; at: number; stale: boolean; error?: string }>,
+  refreshCategorySummary: (body: { after?: string | null; at?: number } = {}) =>
+    jsend('/api/categories/summary', 'POST', body) as Promise<{ ok: boolean; done?: boolean; after?: string | null; at?: number; categories?: number; error?: string }>,
   refreshProjectStats: (body: { after?: string | null; at?: string } = {}) =>
     jsend('/api/projects/refresh', 'POST', body) as Promise<{ ok: boolean; done?: boolean; after?: string | null; at?: string; projects?: number; error?: string }>,
 

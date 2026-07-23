@@ -933,3 +933,10 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .vapi-warn { background: rgba(244,63,94,.1); color: #e11d48; font-size: 13px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
 .vapi-warn.info { background: rgba(99,102,241,.1); color: var(--accent, #818cf8); }
 .vapi-live td { background: rgba(99,102,241,.07); }
+
+/* Categories tab */
+.cats-search, .catmodal-search { max-width: 220px; }
+.cats-table th.sortable { cursor: pointer; user-select: none; }
+.cats-row { cursor: pointer; }
+.cats-row:hover td { background: var(--panel); }
+.cats-table tfoot td { border-top: 1px solid var(--line); font-size: 12px; }
