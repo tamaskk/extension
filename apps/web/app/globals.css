@@ -948,3 +948,13 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .notes-state.saved { color: #16a34a; }
 .notes-area { width: 100%; box-sizing: border-box; min-height: 96px; resize: vertical; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: inherit; font-family: inherit; outline: none; }
 .notes-area:focus { border-color: var(--accent, #6366f1); }
+
+/* Notes tab */
+.notes-list { display: flex; flex-direction: column; gap: 10px; }
+.note-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: border-color .15s; }
+.note-card:hover { border-color: var(--accent, #6366f1); }
+.note-card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.note-card-name { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note-card-date { font-size: 11px; flex-shrink: 0; }
+.note-card-meta { font-size: 12px; margin: 2px 0 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note-card-text { font-size: 13px; white-space: pre-wrap; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }

@@ -109,6 +109,7 @@ export async function PATCH(req: Request) {
     const WS = new Set(['HAS_WEBSITE', 'NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'DOMAIN_PARKED', 'UNDER_CONSTRUCTION', 'NOT_WORKING', 'REDIRECTS']);
     const TEMP = new Set(['COLD', 'WARM', 'HOT']);
     if (STR.has(f)) set[f] = val == null ? '' : String(val);
+    if (f === 'notes') set.notesAt = set.notes ? new Date().toISOString() : ''; // Notes view filter+sort key
     else if (NUM.has(f)) set[f] = (val === '' || val == null) ? null : (isNaN(Number(val)) ? undefined : Number(val));
     else if (f === 'websiteStatus' && WS.has(val)) set.websiteStatus = val;
     else if (f === 'leadTemperature' && TEMP.has(val)) set.leadTemperature = val;

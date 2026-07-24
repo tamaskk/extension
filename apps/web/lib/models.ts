@@ -48,6 +48,7 @@ const LeadSchema = new Schema({
   salesStatus: { type: String, default: '' }, // sales pipeline stage
   salesDate: { type: String, default: '' },   // date for callback / follow-up / meeting stages
   notes: { type: String, default: '' },       // free-form notes (auto-saved from the detail panel)
+  notesAt: { type: String, default: '' },     // ISO of the last notes edit; '' = no notes (Notes view filter+sort)
 
   // ── review scraping (separate Review collection holds the texts) ──────────
   reviewsScrapedAt: { type: String, default: '' }, // ISO when reviews were scraped; '' = not done yet (skip-if-done flag)
@@ -124,6 +125,7 @@ LeadSchema.index({ leadScore: 1 });
 LeadSchema.index({ rating: 1 });
 LeadSchema.index({ reviewCount: 1 });
 LeadSchema.index({ scrapedAt: 1 }); // Date column sort
+LeadSchema.index({ notesAt: -1 }); // Notes view: leads with notes, newest edit first
 LeadSchema.index({ tags: 1 }); // tag filtering
 LeadSchema.index({ call: 1 }); // calls modal
 LeadSchema.index({ reviewsScrapedAt: 1, scrapedAt: -1 }); // "next business without reviews, most recent first"

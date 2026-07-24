@@ -31,6 +31,7 @@ export interface Lead {
   salesStatus?: string;
   salesDate?: string; // YYYY-MM-DD for date-bound stages (callback, follow-up, meeting…)
   notes?: string;     // free-form notes, auto-saved from the detail panel
+  notesAt?: string;   // ISO of the last notes edit ('' = none)
   hasBookingHint?: boolean | null;
   scrapedAt?: string;
   reviewsCount?: number | null; // how many reviews we scraped & stored
