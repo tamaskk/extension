@@ -47,6 +47,7 @@ const LeadSchema = new Schema({
   tags: { type: [String], default: [] },
   salesStatus: { type: String, default: '' }, // sales pipeline stage
   salesDate: { type: String, default: '' },   // date for callback / follow-up / meeting stages
+  notes: { type: String, default: '' },       // free-form notes (auto-saved from the detail panel)
 
   // ── review scraping (separate Review collection holds the texts) ──────────
   reviewsScrapedAt: { type: String, default: '' }, // ISO when reviews were scraped; '' = not done yet (skip-if-done flag)

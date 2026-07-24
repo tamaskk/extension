@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import { buildContactPrompt } from '@/lib/contactPrompt';
 import type { LeadRow, ReviewRow } from '@/lib/types';
@@ -128,6 +128,36 @@ function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEd
   const [gen, setGen] = useState(false);
   const [genErr, setGenErr] = useState('');
   const [promptCopied, setPromptCopied] = useState(false);
+  // free-form notes — debounced auto-save, no save button
+  const [notes, setNotes] = useState(lead.notes || '');
+  const [noteState, setNoteState] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const noteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notesRef = useRef({ value: lead.notes || '', dirty: false });
+  useEffect(() => {
+    setNotes(lead.notes || ''); setNoteState('idle');
+    notesRef.current = { value: lead.notes || '', dirty: false };
+  }, [lead.dedupKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const saveNotes = async (v: string) => {
+    try {
+      await api.updateLeadField(lead._project, lead._key, 'notes', v);
+      lead.notes = v; // keep the row object in sync so reopening shows the saved text
+      notesRef.current.dirty = false;
+      setNoteState('saved');
+    } catch { setNoteState('idle'); }
+  };
+  const onNotesChange = (v: string) => {
+    setNotes(v); setNoteState('saving');
+    notesRef.current = { value: v, dirty: true };
+    if (noteTimer.current) clearTimeout(noteTimer.current);
+    noteTimer.current = setTimeout(() => saveNotes(v), 800);
+  };
+  useEffect(() => () => { // flush a pending save when the panel closes
+    if (noteTimer.current) clearTimeout(noteTimer.current);
+    if (notesRef.current.dirty) {
+      api.updateLeadField(lead._project, lead._key, 'notes', notesRef.current.value).catch(() => {});
+      lead.notes = notesRef.current.value;
+    }
+  }, [lead._project, lead._key]); // eslint-disable-line react-hooks/exhaustive-deps
   const copyContactPrompt = async () => {
     try {
       await navigator.clipboard.writeText(buildContactPrompt(lead));
@@ -189,6 +219,15 @@ function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEd
         {rowsData.map(([k, v]) => (
           <div className="si-row" key={k}><span className="si-k">{k}</span><span className="si-v">{v}</span></div>
         ))}
+      </div>
+
+      <div className="rvp-card">
+        <div className="notes-head">
+          <h4>📝 Notes</h4>
+          <span className={`notes-state ${noteState}`}>{noteState === 'saving' ? 'Saving…' : noteState === 'saved' ? '✓ Saved' : ''}</span>
+        </div>
+        <textarea className="notes-area" placeholder="Write anything about this lead — saves automatically…"
+          value={notes} onChange={(e) => onNotesChange(e.target.value)} />
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {onEditAll && <button className="btn primary" onClick={() => onEditAll(lead)}>✎ Edit all fields</button>}

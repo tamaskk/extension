@@ -940,3 +940,11 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .cats-row { cursor: pointer; }
 .cats-row:hover td { background: var(--panel); }
 .cats-table tfoot td { border-top: 1px solid var(--line); font-size: 12px; }
+
+/* auto-saved notes card (lead detail Info tab) */
+.notes-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.notes-head h4 { margin: 0; }
+.notes-state { font-size: 11px; color: var(--muted); }
+.notes-state.saved { color: #16a34a; }
+.notes-area { width: 100%; box-sizing: border-box; min-height: 96px; resize: vertical; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: inherit; font-family: inherit; outline: none; }
+.notes-area:focus { border-color: var(--accent, #6366f1); }
