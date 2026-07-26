@@ -292,10 +292,14 @@ async function releaseAndAdvance(tabId, reviewCount, errMsg, isErr) {
   if (wid != null) driveWorker(wid);
 }
 
+// End the run. Every business was saved to the DB the moment it was scraped
+// (postReviews per business), so nothing is pending — the counters reset to 0
+// and the final tally moves into the status message.
 async function finishRun(message) {
   await lockState(async () => {
     const s = await getState();
-    await setState(Object.assign({}, BLANK, { message: message || 'Stopped.', done: s.done, reviews: s.reviews, errors: s.errors, lastError: s.lastError }));
+    const tally = `${s.done || 0} business(es), ${s.reviews || 0} review(s) saved to DB` + (s.errors ? `, ${s.errors} error(s)` : '');
+    await setState(Object.assign({}, BLANK, { message: (message || 'Stopped.') + ' — ' + tally, lastError: s.lastError }));
   });
   await clearAllImageBlocks(); // restore images on any adopted user windows
   try { await chrome.alarms.clear(HB_ALARM); } catch {}
