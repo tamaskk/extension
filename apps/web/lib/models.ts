@@ -162,7 +162,7 @@ export async function descendantFolderIds(rootId: string): Promise<string[]> {
 export const CORS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, x-gl-gzip',
 };
 
 // Apply business-type (project starts-with) + region (project ends-with) facet

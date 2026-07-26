@@ -261,10 +261,20 @@ async function exportJsonFile(opts, hintFallback) {
 const SYNC_BASE = 'https://gridleads-wheat.vercel.app'; // deployed web app (use http://localhost:3000 for local dev)
 const SYNC_CHUNK = 500; // leads per request — stays well under Vercel's 4.5MB body limit
 
+// Gzipped (~5-8× smaller) — raw JSON uploads were burning Vercel's Fast Origin
+// Transfer quota.
 async function postSync(payload) {
-  const r = await fetch(SYNC_BASE + '/api/sync', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-  });
+  const json = JSON.stringify(payload);
+  let body = json;
+  let headers = { 'Content-Type': 'application/json' };
+  try {
+    if (typeof CompressionStream !== 'undefined') {
+      const stream = new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'));
+      body = await new Response(stream).blob();
+      headers = { 'Content-Type': 'application/octet-stream', 'x-gl-gzip': '1' };
+    }
+  } catch { body = json; headers = { 'Content-Type': 'application/json' }; }
+  const r = await fetch(SYNC_BASE + '/api/sync', { method: 'POST', headers, body });
   if (!r.ok) throw new Error('HTTP ' + r.status + (r.status === 413 ? ' (chunk too large)' : ''));
   return r.json();
 }

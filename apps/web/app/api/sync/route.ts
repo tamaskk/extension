@@ -1,3 +1,4 @@
+import { gunzipSync } from 'zlib';
 import { dbConnect } from '@/lib/db';
 import { Folder, Project, Lead, CORS, json } from '@/lib/models';
 import { recomputeProjectStats } from '@/lib/projectStats';
@@ -13,7 +14,14 @@ export function OPTIONS() {
 export async function POST(req: Request) {
   try {
     await dbConnect();
-    const body = await req.json();
+    // The extension gzips sync payloads (x-gl-gzip: 1) — inbound JSON was the
+    // main Fast Origin Transfer cost, and it compresses ~5-8×.
+    let body: any;
+    if (req.headers.get('x-gl-gzip') === '1') {
+      body = JSON.parse(gunzipSync(Buffer.from(await req.arrayBuffer())).toString('utf8'));
+    } else {
+      body = await req.json();
+    }
     const folders = body?.folders || {};
     const projects = body?.projects || {};
 

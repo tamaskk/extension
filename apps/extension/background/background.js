@@ -184,9 +184,20 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function getBatchMode() { const o = await chrome.storage.local.get(SKEY); return o[SKEY] === 'stream' ? 'stream' : 'local'; }
 
-// POST one sync chunk to the web app.
+// POST one sync chunk to the web app. Gzipped (~5-8× smaller) — the raw JSON
+// uploads were burning Vercel's Fast Origin Transfer quota.
 async function postSync(body) {
-  const r = await fetch(SYNC_BASE + '/api/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const json = JSON.stringify(body);
+  let payload = json;
+  let headers = { 'Content-Type': 'application/json' };
+  try {
+    if (typeof CompressionStream !== 'undefined') {
+      const stream = new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'));
+      payload = await new Response(stream).blob();
+      headers = { 'Content-Type': 'application/octet-stream', 'x-gl-gzip': '1' };
+    }
+  } catch { payload = json; headers = { 'Content-Type': 'application/json' }; }
+  const r = await fetch(SYNC_BASE + '/api/sync', { method: 'POST', headers, body: payload });
   if (!r.ok) throw new Error('sync HTTP ' + r.status);
   return r.json().catch(() => ({}));
 }
