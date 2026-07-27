@@ -24,6 +24,7 @@ export default function ReviewsModal({ lead, onClose, initialTab, onEditAll, onR
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rvKey, setRvKey] = useState(0); // bump to re-fetch (after an on-demand scrape)
 
   useEffect(() => {
     let cancelled = false;
@@ -33,7 +34,7 @@ export default function ReviewsModal({ lead, onClose, initialTab, onEditAll, onR
       .catch((e) => { if (!cancelled) setError(e?.message || 'Could not load reviews'); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [lead.dedupKey]);
+  }, [lead.dedupKey, rvKey]);
 
   const stats = useMemo(() => {
     const rated = rows.filter((r) => r.rating != null);
@@ -66,7 +67,7 @@ export default function ReviewsModal({ lead, onClose, initialTab, onEditAll, onR
 
         <div className="rvp-body">
           {tab === 'info' && <InfoTab lead={lead} stats={stats} onEditAll={onEditAll} />}
-          {tab === 'reviews' && <ReviewsTab lead={lead} rows={rows} stats={stats} loading={loading} error={error} />}
+          {tab === 'reviews' && <ReviewsTab lead={lead} rows={rows} stats={stats} loading={loading} error={error} onScraped={() => setRvKey((k) => k + 1)} />}
           {tab === 'emails' && <EmailsTab lead={lead} />}
         </div>
     </aside>
@@ -75,10 +76,51 @@ export default function ReviewsModal({ lead, onClose, initialTab, onEditAll, onR
 
 type Stats = { avg: number; dist: Record<number, number>; positive: number; respRate: number; count: number };
 
-function ReviewsTab({ lead, rows, stats, loading, error }: { lead: LeadRow; rows: ReviewRow[]; stats: Stats; loading: boolean; error: string | null }) {
+// "Scrape reviews now" — asks the installed Review Scraper extension (via a
+// window.postMessage bridge) to open ONE Maps window for this business, scrape,
+// save and close. No extension → friendly hint after a short ack timeout.
+function ScrapeNowBtn({ lead, onDone }: { lead: LeadRow; onDone: () => void }) {
+  const [st, setSt] = useState<'idle' | 'asking' | 'scraping' | 'noext' | 'err'>('idle');
+  const [err, setErr] = useState('');
+  useEffect(() => {
+    const h = (e: MessageEvent) => {
+      const d = e.data;
+      if (!d || d.dedupKey !== lead.dedupKey) return;
+      if (d.__glr === 'ack') {
+        if (d.ok) setSt('scraping');
+        else { setSt('err'); setErr(d.error || 'The extension rejected the request.'); }
+      } else if (d.__glr === 'done') {
+        if (d.error) { setSt('err'); setErr(d.error); }
+        else { setSt('idle'); onDone(); }
+      }
+    };
+    window.addEventListener('message', h);
+    return () => window.removeEventListener('message', h);
+  }, [lead.dedupKey, onDone]);
+  const start = () => {
+    setSt('asking'); setErr('');
+    window.postMessage({ __glr: 'scrapeOne', business: { project: lead._project, dedupKey: lead._key, cid: lead.cid || '', placeId: lead.placeId || '', mapsUrl: lead.mapsUrl || '', name: lead.name || '' } }, '*');
+    setTimeout(() => setSt((s) => (s === 'asking' ? 'noext' : s)), 2500);
+  };
+  if (st === 'scraping') return <div className="muted" style={{ padding: '8px 0' }}>⏳ Scraping this business&apos;s reviews (a Maps window opened — 30–60s)…</div>;
+  return (
+    <div style={{ padding: '6px 0' }}>
+      <button className="btn primary" onClick={start} disabled={st === 'asking'}>{st === 'asking' ? '…' : '⚡ Scrape reviews now'}</button>
+      {st === 'noext' && <p className="ai-err" style={{ marginTop: 8 }}>⚠ Review Scraper extension not found in this browser — install/enable it (and reload this page), or use the batch scraper.</p>}
+      {st === 'err' && <p className="ai-err" style={{ marginTop: 8 }}>⚠ {err}</p>}
+    </div>
+  );
+}
+
+function ReviewsTab({ lead, rows, stats, loading, error, onScraped }: { lead: LeadRow; rows: ReviewRow[]; stats: Stats; loading: boolean; error: string | null; onScraped: () => void }) {
   if (loading) return <div className="muted" style={{ padding: 20 }}>Loading reviews…</div>;
   if (error) return <div className="empty" style={{ padding: 20, color: '#e11d48' }}>⚠ {error}</div>;
-  if (!rows.length) return <div className="empty" style={{ padding: 24 }}>No reviews stored yet — run the Review Scraper extension to collect them.</div>;
+  if (!rows.length) return (
+    <div className="empty" style={{ padding: 24 }}>
+      No reviews stored yet.
+      <div style={{ marginTop: 10 }}><ScrapeNowBtn lead={lead} onDone={onScraped} /></div>
+    </div>
+  );
   const max = Math.max(1, ...Object.values(stats.dist));
   return (
     <>
@@ -240,6 +282,16 @@ function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEd
 }
 
 const EM_SERVICES = ['Website', 'AI Automation', 'Social media marketing'];
+const EM_WEBSITES = [
+  'Has no website at all',
+  'Outdated website — needs a full redesign',
+  'Website is broken / not loading',
+  'Not mobile-friendly',
+  'Slow to load',
+  'No online booking or contact form',
+  'Only a Facebook/Instagram page — no real website',
+  'Domain expired / parked',
+];
 const EM_AUTOMATIONS = [
   'AI phone agent — answers missed calls & books appointments',
   'Website chatbot — answers questions & takes bookings 24/7',
@@ -264,10 +316,11 @@ const EM_VALUES = [
 ];
 const EM_DEFAULTS = {
   services: ['Website'] as string[],
+  websites: [] as string[],
   automations: [] as string[],
   value: EM_VALUES[0],
-  offer: "I've already put together a first version for you — if you're interested, I can show it on a quick 15-minute call and we can talk through everything.",
-  objective: 'Get them to book the 15-minute call to see what I built',
+  offer: "I've already put together a first version for you — if you're interested, I can show it on a quick 30-minute call and we can talk through everything.",
+  objective: 'Get them to book the 30-minute call to see what I built',
   sender: 'Tom',
   link: 'https://calendly.com/tom-itsblitzdeep/30min',
   tone: 'Professional but friendly',
@@ -293,7 +346,7 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
     try { localStorage.setItem(EMAIL_CTX, JSON.stringify(next)); } catch { /* */ }
     return next;
   });
-  const toggle = (k: 'services' | 'automations', v: string) => set(k, ctx[k].includes(v) ? ctx[k].filter((x) => x !== v) : [...ctx[k], v]);
+  const toggle = (k: 'services' | 'automations' | 'websites', v: string) => set(k, ctx[k].includes(v) ? ctx[k].filter((x) => x !== v) : [...ctx[k], v]);
 
   useEffect(() => {
     setSubject(lead.emailSubject || ''); setBody(lead.emailBody || ''); setEmailAt(lead.emailAt || ''); setDraftState('idle');
@@ -344,6 +397,13 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
             <label key={s} className="em-check"><input type="checkbox" checked={ctx.services.includes(s)} onChange={() => toggle('services', s)} /> {s}</label>
           ))}
         </div>
+        {ctx.services.includes('Website') && (
+          <div className="em-sub">
+            {EM_WEBSITES.map((w) => (
+              <label key={w} className="em-check sub"><input type="checkbox" checked={ctx.websites.includes(w)} onChange={() => toggle('websites', w)} /> {w}</label>
+            ))}
+          </div>
+        )}
         {ctx.services.includes('AI Automation') && (
           <div className="em-sub">
             {EM_AUTOMATIONS.map((a) => (

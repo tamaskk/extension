@@ -365,9 +365,54 @@ async function onReviewsScraped(msg, tid) {
   await releaseAndAdvance(tid, reviews.length, '', false);
 }
 
+// ── single-shot scrape (dashboard "Scrape reviews now" button) ──────────────
+// Independent of the batch engine: one window for ONE business, save, close,
+// report back to the dashboard tab that asked. In-memory only — if the SW dies
+// mid-scrape the user just clicks again.
+const singles = {}; // tabId -> { biz, windowId, replyTabId, timer }
+
+async function startSingle(biz, replyTabId) {
+  const win = await chrome.windows.create({ url: placeUrl(biz), type: 'normal', focused: false, width: 980, height: 760 });
+  let tabId = (win && win.tabs && win.tabs[0]) ? win.tabs[0].id : null;
+  if (tabId == null && win && win.id != null) { try { const ts = await chrome.tabs.query({ windowId: win.id }); if (ts && ts[0]) tabId = ts[0].id; } catch {} }
+  if (tabId == null) throw new Error('could not open a scrape window');
+  singles[tabId] = { biz, windowId: win.id, replyTabId, timer: setTimeout(() => finishSingle(tabId, 0, 'timeout — Maps did not finish in 2.5 min'), 150000) };
+  await blockImagesOnTab(tabId);
+}
+async function finishSingle(tabId, count, error) {
+  const s = singles[tabId]; if (!s) return;
+  delete singles[tabId];
+  clearTimeout(s.timer);
+  try { await chrome.windows.remove(s.windowId); } catch {}
+  await unblockTab(tabId);
+  if (s.replyTabId != null) {
+    try { await chrome.tabs.sendMessage(s.replyTabId, { type: 'glrOneDone', dedupKey: s.biz.dedupKey, count, error: error || '' }); } catch {}
+  }
+}
+async function onSingleScraped(msg, tid) {
+  const s = singles[tid]; if (!s) return;
+  const reviews = Array.isArray(msg.reviews) ? msg.reviews : [];
+  if (msg.error) { await finishSingle(tid, 0, 'scrape: ' + String(msg.error)); return; }
+  try {
+    await postReviews({ project: s.biz.project, dedupKey: s.biz.dedupKey, cid: s.biz.cid || '', placeId: s.biz.placeId || '', name: s.biz.name || '', reviews, error: '' });
+  } catch (e) { await finishSingle(tid, 0, 'save: ' + String(e.message || e)); return; }
+  await finishSingle(tid, reviews.length, '');
+}
+
 // ── events ───────────────────────────────────────────────────────────────
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   if (info.status !== 'complete') return;
+  if (singles[tabId]) { // single-shot window finished navigating → scrape it
+    (async () => {
+      const url = (tab && tab.url) || '';
+      if (url.includes('consent.google.com')) return;
+      if (!/^https:\/\/www\.google\.com\/maps/.test(url)) return;
+      await sleep(NAV_SETTLE);
+      const ok = await startContent(tabId);
+      if (!ok) await finishSingle(tabId, 0, 'could not start the scraper on the Maps page');
+    })();
+    return;
+  }
   (async () => {
     const s = await getState();
     if (!s.active) return;
@@ -389,6 +434,10 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
 // (the business is still un-done in the DB, so another worker re-claims it).
 chrome.tabs.onRemoved.addListener((tabId) => {
   (async () => {
+    if (singles[tabId]) { // user closed the single-shot window mid-scrape
+      const s = singles[tabId]; delete singles[tabId]; clearTimeout(s.timer);
+      if (s.replyTabId != null) { try { await chrome.tabs.sendMessage(s.replyTabId, { type: 'glrOneDone', dedupKey: s.biz.dedupKey, count: 0, error: 'window closed' }); } catch {} }
+    }
     await unblockTab(tabId); // drop this tab's image-block rule (id == tabId)
     await lockState(async () => {
       const s = await getState(); if (!s.active) return;
@@ -405,7 +454,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const tid = sender && sender.tab && sender.tab.id;
     try {
       switch (msg && msg.type) {
-        case 'reviewsScraped': await onReviewsScraped(msg, tid); sendResponse({ ok: true }); break;
+        case 'reviewsScraped': {
+          if (tid != null && singles[tid]) { await onSingleScraped(msg, tid); sendResponse({ ok: true }); break; }
+          await onReviewsScraped(msg, tid); sendResponse({ ok: true }); break;
+        }
+        case 'glrScrapeOne': { // from the dashboard bridge — scrape ONE business now
+          const biz = msg.business || {};
+          if (!biz.dedupKey || !(biz.cid || biz.mapsUrl)) { sendResponse({ ok: false, error: 'business is not openable (no cid / maps url)' }); break; }
+          try { await startSingle(biz, tid); sendResponse({ ok: true }); }
+          catch (e) { sendResponse({ ok: false, error: (e && e.message) || String(e) }); }
+          break;
+        }
         case 'reviewStart': { // AUTO: open up to N windows ourselves
           const s = await getState();
           if (s.active) { sendResponse({ ok: true, already: true }); break; }

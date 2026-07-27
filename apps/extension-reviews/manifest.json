@@ -28,6 +28,11 @@
       "matches": ["https://consent.google.com/*"],
       "js": ["content/consent.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://gridleads-wheat.vercel.app/*", "http://localhost:3000/*", "http://127.0.0.1:3000/*"],
+      "js": ["content/bridge.js"],
+      "run_at": "document_idle"
     }
   ],
   "icons": {

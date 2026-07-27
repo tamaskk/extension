@@ -20,6 +20,7 @@ export async function POST(req: Request) {
     const c = b.context || {};
     const services: string[] = Array.isArray(c.services) ? c.services : [];
     const automations: string[] = Array.isArray(c.automations) ? c.automations : [];
+    const websites: string[] = Array.isArray(c.websites) ? c.websites : [];
 
     const biz = [
       `Name: ${lead.name || ''}`,
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
 
     const brief = [
       `Services we sell: ${services.join(', ') || 'digital services'}`,
+      websites.length ? `Website problems to address: ${websites.join('; ')}` : '',
       automations.length ? `AI automations to highlight: ${automations.join('; ')}` : '',
       c.value ? `Core value proposition: ${c.value}` : '',
       c.offer ? `Offer / hook (use this idea): ${c.offer}` : '',
