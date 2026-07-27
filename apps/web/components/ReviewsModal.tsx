@@ -7,9 +7,6 @@ import type { LeadRow, ReviewRow } from '@/lib/types';
 
 const EMAIL_CTX = 'gridleads_email_ctx';
 
-// US timezone map — takes ?q=<address> and geocodes it to highlight the state.
-const TIMEZONE_APP = 'https://timezone-khaki.vercel.app';
-
 function Stars({ n, big }: { n: number; big?: boolean }) {
   const full = Math.round(n);
   return (
@@ -28,6 +25,25 @@ export default function ReviewsModal({ lead, onClose, initialTab, onEditAll, onR
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rvKey, setRvKey] = useState(0); // bump to re-fetch (after an on-demand scrape)
+  const [tzState, setTzState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+  // Push this business's address to the timezone map. It polls for the change,
+  // so a tab already open on another screen updates itself.
+  async function sendToTimezoneMap() {
+    if (!lead.address) return;
+    setTzState('sending');
+    try {
+      const res = await fetch('/api/timezone-focus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: lead.address, label: lead.name }),
+      });
+      setTzState(res.ok ? 'sent' : 'error');
+    } catch {
+      setTzState('error');
+    }
+    setTimeout(() => setTzState('idle'), 1800);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -61,15 +77,14 @@ export default function ReviewsModal({ lead, onClose, initialTab, onEditAll, onR
             </div>
             <div className="rvp-headbtns">
               {lead.address && (
-                <a
+                <button
                   className="rvp-tz"
-                  href={`${TIMEZONE_APP}/?q=${encodeURIComponent(lead.address)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={`Show ${lead.address} on the US timezone map`}
+                  onClick={sendToTimezoneMap}
+                  disabled={tzState === 'sending'}
+                  title={`Show ${lead.address} on the timezone map already open elsewhere`}
                 >
-                  🕐 Timezone
-                </a>
+                  {tzState === 'sent' ? '✓ Sent' : tzState === 'error' ? '⚠ Failed' : '🕐 Timezone'}
+                </button>
               )}
               <button className="rvp-x" onClick={onClose}>✕</button>
             </div>

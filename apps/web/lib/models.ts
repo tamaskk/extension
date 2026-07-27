@@ -163,6 +163,18 @@ export async function descendantFolderIds(rootId: string): Promise<string[]> {
   return out;
 }
 
+// ── Timezone map focus (cross-app relay) ─────────────────────────────────
+// A single row the standalone timezone-map app polls, so clicking a lead here
+// updates a map already open on another screen instead of opening a new tab.
+const TimezoneFocusSchema = new Schema({
+  key: { type: String, required: true, unique: true, index: true }, // always 'current'
+  q: String,      // address for the map to geocode
+  label: String,  // business name, for display
+  ts: Number,     // bumped on every write so pollers can spot a change
+}, { versionKey: false });
+
+export const TimezoneFocus = models.TimezoneFocus || model('TimezoneFocus', TimezoneFocusSchema);
+
 // shared CORS headers so the Chrome extension can call these endpoints
 export const CORS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
