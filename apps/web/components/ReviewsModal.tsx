@@ -164,6 +164,41 @@ function ReviewsTab({ lead, rows, stats, loading, error, onScraped }: { lead: Le
   );
 }
 
+// Double-click the Email value in the Info list to edit it in place; blur or
+// Enter saves automatically (Escape cancels).
+function InlineEmailEdit({ lead }: { lead: LeadRow }) {
+  const [editing, setEditing] = useState(false);
+  const [v, setV] = useState(lead.email || '');
+  const [st, setSt] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const commit = async () => {
+    setEditing(false);
+    const nv = v.trim();
+    if (nv === (lead.email || '')) return;
+    setSt('saving');
+    try {
+      await api.updateLeadField(lead._project, lead._key, 'email', nv);
+      lead.email = nv;
+      setSt('saved'); setTimeout(() => setSt('idle'), 2000);
+    } catch { setSt('idle'); }
+  };
+  if (editing) return (
+    <input className="si-edit" autoFocus value={v} placeholder="email@company.com"
+      onChange={(e) => setV(e.target.value)} onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+        if (e.key === 'Escape') { setV(lead.email || ''); setEditing(false); }
+      }} />
+  );
+  return (
+    <span className="si-editable" title="Double-click to edit" onDoubleClick={() => { setV(lead.email || ''); setEditing(true); }}>
+      {lead.email || '—'}
+      {lead.email && <a className="mlink" href={`mailto:${lead.email}`} onClick={(e) => e.stopPropagation()} title="Write email"> ✉</a>}
+      {st === 'saving' && <span className="notes-state"> Saving…</span>}
+      {st === 'saved' && <span className="notes-state saved"> ✓ Saved</span>}
+    </span>
+  );
+}
+
 function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEditAll?: (lead: LeadRow) => void }) {
   const opp = lead.opportunityScore || 0;
   const [ai, setAi] = useState({ summary: lead.aiSummary || '', painPoints: lead.aiPainPoints || '', advantages: lead.aiAdvantages || '', pitch: lead.aiPitch || '', at: lead.aiAt || '' });
@@ -230,7 +265,7 @@ function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEd
     ['Temperature', <span className={`temp ${lead.leadTemperature}`} key="t">{lead.leadTemperature || '—'}</span>],
     ['Website', <span key="w">{lead.websiteStatus || '—'}{lead.website ? <> · <a href={lead.website} target="_blank" rel="noreferrer">{lead.website}</a></> : ''}</span>],
     ['Phone', lead.phone ? <a href={`tel:${lead.phone}`} key="ph">{lead.phone}</a> : '—'],
-    ['Email', lead.email ? <a href={`mailto:${lead.email}`} key="em">{lead.email}</a> : '—'],
+    ['Email', <InlineEmailEdit key={`em-${lead.dedupKey}`} lead={lead} />],
     ['Address', lead.address || '—'],
     ['Sales status', lead.salesStatus || '—'],
     ['Tags', (lead.tags && lead.tags.length) ? lead.tags.join(', ') : '—'],

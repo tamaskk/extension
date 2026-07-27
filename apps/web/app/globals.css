@@ -969,3 +969,7 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .em-draft-body { min-height: 220px; }
 
 .em-sent { color: #16a34a; font-size: 12px; font-weight: 600; margin: 6px 0 0; }
+
+/* inline email edit in the Info field list */
+.si-editable { cursor: text; }
+.si-edit { width: 100%; box-sizing: border-box; border: 1px solid var(--accent, #6366f1); border-radius: 6px; padding: 3px 7px; font-size: 13px; font-family: inherit; color: inherit; background: #fff; outline: none; }
