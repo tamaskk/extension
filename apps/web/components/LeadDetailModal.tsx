@@ -192,6 +192,23 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
     [row.name, row.category, row.address, row.phone, row.rating ? `★${row.rating} (${row.reviewCount ?? 0} reviews)` : '', row.website].filter(Boolean).join(' · '));
   const toggleAcc = (label: string) => setOpenAcc((s) => { const n = new Set(s); if (n.has(label)) n.delete(label); else n.add(label); return n; });
 
+  // Pull this business's scraped Google reviews into the website prompt so the
+  // generated site's testimonials/tone come from real guest voices.
+  useEffect(() => {
+    let cancelled = false;
+    api.getReviews(row.dedupKey).then((r) => {
+      if (cancelled || !r.ok) return;
+      const lines = (r.rows || [])
+        .filter((x) => (x.text || '').trim())
+        .slice(0, 8)
+        .map((x) => `- ★${x.rating ?? '?'} ${x.author || 'Guest'}: "${(x.text || '').replace(/\s+/g, ' ').trim().slice(0, 220)}"`);
+      if (!lines.length) return;
+      const block = `\n\nGUEST REVIEWS (real Google reviews of this business — use them for the testimonials section, tone of voice and USP research):\n${lines.join('\n')}`;
+      setWpData((prev) => (prev.includes('GUEST REVIEWS') ? prev : prev + block));
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [row.dedupKey]);
+
   const save = (field: string, value: unknown) => {
     setData((d) => {
       const next = { ...d, [field]: value } as LeadRow;
