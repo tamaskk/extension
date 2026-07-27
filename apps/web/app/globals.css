@@ -616,6 +616,13 @@ body { background: linear-gradient(135deg,#e9edfb 0%, #f3eefc 45%, #e7f1fe 100%)
 .rvp-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .rvp-x { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 2px 4px; border-radius: 6px; }
 .rvp-x:hover { color: var(--text); background: #f1f3fc; }
+.rvp-headbtns { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.rvp-tz {
+  background: var(--panel); border: 1px solid var(--line); color: var(--text);
+  padding: 5px 9px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  white-space: nowrap; text-decoration: none; cursor: pointer;
+}
+.rvp-tz:hover { border-color: #cbd2e0; background: #f1f3fc; }
 .rvp-tabs { display: flex; gap: 22px; margin-top: 14px; border-bottom: 1px solid var(--line); }
 .rvp-tab { background: none; border: none; padding: 9px 2px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .rvp-tab:hover { color: var(--text); }

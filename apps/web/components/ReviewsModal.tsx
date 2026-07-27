@@ -7,6 +7,9 @@ import type { LeadRow, ReviewRow } from '@/lib/types';
 
 const EMAIL_CTX = 'gridleads_email_ctx';
 
+// US timezone map — takes ?q=<address> and geocodes it to highlight the state.
+const TIMEZONE_APP = 'https://timezone-khaki.vercel.app';
+
 function Stars({ n, big }: { n: number; big?: boolean }) {
   const full = Math.round(n);
   return (
@@ -56,7 +59,20 @@ export default function ReviewsModal({ lead, onClose, initialTab, onEditAll, onR
               <div className="rvp-title">{lead.name}</div>
               <div className="rvp-sub">{lead.category || ''}{lead.address ? ` · ${lead.address}` : ''}</div>
             </div>
-            <button className="rvp-x" onClick={onClose}>✕</button>
+            <div className="rvp-headbtns">
+              {lead.address && (
+                <a
+                  className="rvp-tz"
+                  href={`${TIMEZONE_APP}/?q=${encodeURIComponent(lead.address)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={`Show ${lead.address} on the US timezone map`}
+                >
+                  🕐 Timezone
+                </a>
+              )}
+              <button className="rvp-x" onClick={onClose}>✕</button>
+            </div>
           </div>
           <div className="rvp-tabs">
             <button className={`rvp-tab ${tab === 'info' ? 'active' : ''}`} onClick={() => setTab('info')}>Info</button>
