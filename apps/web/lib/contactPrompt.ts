@@ -194,70 +194,23 @@ Minden adat mellé adj bizalmi szintet:
 
 ## Kötelező kimeneti formátum
 
-### 1. Vállalkozás összefoglalója
-
-* Hivatalos név:
-* Márkanév:
-* Weboldal:
-* Domain:
-* Iparág:
-* Cím:
-* Általános e-mail:
-* Központi telefonszám:
-* LinkedIn:
-* Facebook:
-* Instagram:
-* Egyéb releváns profilok:
-
-### 2. Talált személyek
+A válaszod KIZÁRÓLAG az alábbi táblázat legyen — semmilyen más szöveg, bevezető, összefoglaló, forrásjegyzék, magyarázat vagy megjegyzés nem szerepelhet előtte és utána:
 
 | Név | Munkakör | Kapcsolat a céghez | Céges e-mail | Telefonszám | Szakmai profil | Megbízhatóság |
 | --- | -------- | ------------------ | ------------ | ----------- | -------------- | ------------- |
 
-### 3. Kapcsolati adatok részletes ellenőrzése
+Ha egyetlen személyt sem sikerült megbízhatóan azonosítani, akkor a TELJES válaszod pontosan ennyi legyen:
 
-Minden talált e-mailhez és telefonszámhoz add meg:
-
-* adat;
-* típus;
-* publikált vagy becsült;
-* pontos forrás;
-* forrás dátuma, ha ismert;
-* megbízhatósági szint;
-* rövid indoklás.
-
-### 4. E-mail-minta elemzése
-
-* Biztosan megtalált céges e-mailek:
-* Feltételezett e-mail-formátum:
-* A formátum alapjául szolgáló bizonyíték:
-* Becsült e-mail-címek:
-* Megbízhatóság:
-
-### 5. Forrásjegyzék
-
-Sorold fel az összes felhasznált forrást közvetlen hivatkozással, és röviden írd le, melyik információt támasztja alá.
-
-### 6. Kutatási hiányosságok
-
-Egyértelműen írd le:
-
-* mit nem sikerült megtalálni;
-* mely adatok lehetnek elavultak;
-* mely adatok csak becslések;
-* mely személyek vállalati kapcsolata bizonytalan;
-* milyen további nyilvános forrásokat lenne érdemes ellenőrizni.
+Nincs találat.
 
 ## Fontos működési szabályok
 
 * Ne találj ki neveket vagy elérhetőségeket.
 * Ne keverd össze az azonos nevű személyeket vagy vállalkozásokat.
-* Minden érdemi állításhoz adj forrást.
 * A pontosság fontosabb, mint a találatok száma.
-* A sikertelen keresést is dokumentáld.
-* A becsült adatokat mindig látványosan különítsd el az igazolt adatoktól.
+* Becsült (nem igazolt) e-mail-címet a cellában jelölj "(becsült)" utótaggal, a Megbízhatóság oszlopban pedig "Becsült" értékkel.
 * Csak nyilvánosan hozzáférhető, szakmai vagy üzleti célra közzétett adatokat közölj.
-* A végén rangsorold a három legjobb kapcsolatfelvételi lehetőséget aszerint, hogy kinél a legnagyobb az esély az érdemi válaszra.
+* A kimenet tényleg csak a táblázat legyen (vagy a "Nincs találat." sor) — semmi más.
 
 Most végezd el a teljes kutatást erre a vállalkozásra:
 
