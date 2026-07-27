@@ -195,35 +195,36 @@ function ReviewsTab({ lead, rows, stats, loading, error, onScraped }: { lead: Le
   );
 }
 
-// Double-click the Email value in the Info list to edit it in place; blur or
-// Enter saves automatically (Escape cancels).
-function InlineEmailEdit({ lead }: { lead: LeadRow }) {
+// Double-click a value in the Info list to edit it in place; blur or Enter
+// saves automatically (Escape cancels). Used for Email and Phone.
+function InlineFieldEdit({ lead, field, placeholder, mailtoIcon }:
+  { lead: LeadRow; field: 'email' | 'phone'; placeholder: string; mailtoIcon?: boolean }) {
   const [editing, setEditing] = useState(false);
-  const [v, setV] = useState(lead.email || '');
+  const [v, setV] = useState(lead[field] || '');
   const [st, setSt] = useState<'idle' | 'saving' | 'saved'>('idle');
   const commit = async () => {
     setEditing(false);
     const nv = v.trim();
-    if (nv === (lead.email || '')) return;
+    if (nv === (lead[field] || '')) return;
     setSt('saving');
     try {
-      await api.updateLeadField(lead._project, lead._key, 'email', nv);
-      lead.email = nv;
+      await api.updateLeadField(lead._project, lead._key, field, nv);
+      lead[field] = nv;
       setSt('saved'); setTimeout(() => setSt('idle'), 2000);
     } catch { setSt('idle'); }
   };
   if (editing) return (
-    <input className="si-edit" autoFocus value={v} placeholder="email@company.com"
+    <input className="si-edit" autoFocus value={v} placeholder={placeholder}
       onChange={(e) => setV(e.target.value)} onBlur={commit}
       onKeyDown={(e) => {
         if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-        if (e.key === 'Escape') { setV(lead.email || ''); setEditing(false); }
+        if (e.key === 'Escape') { setV(lead[field] || ''); setEditing(false); }
       }} />
   );
   return (
-    <span className="si-editable" title="Double-click to edit" onDoubleClick={() => { setV(lead.email || ''); setEditing(true); }}>
-      {lead.email || '—'}
-      {lead.email && <a className="mlink" href={`mailto:${lead.email}`} onClick={(e) => e.stopPropagation()} title="Write email"> ✉</a>}
+    <span className="si-editable" title="Double-click to edit" onDoubleClick={() => { setV(lead[field] || ''); setEditing(true); }}>
+      {lead[field] || '—'}
+      {mailtoIcon && lead.email && <a className="mlink" href={`mailto:${lead.email}`} onClick={(e) => e.stopPropagation()} title="Write email"> ✉</a>}
       {st === 'saving' && <span className="notes-state"> Saving…</span>}
       {st === 'saved' && <span className="notes-state saved"> ✓ Saved</span>}
     </span>
@@ -295,8 +296,8 @@ function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEd
     ['Opportunity', <span className="ld-opp" key="o"><span className="ld-opp-bar"><span style={{ width: `${Math.min(100, opp)}%` }} /></span> {opp}</span>],
     ['Temperature', <span className={`temp ${lead.leadTemperature}`} key="t">{lead.leadTemperature || '—'}</span>],
     ['Website', <span key="w">{lead.websiteStatus || '—'}{lead.website ? <> · <a href={lead.website} target="_blank" rel="noreferrer">{lead.website}</a></> : ''}</span>],
-    ['Phone', lead.phone ? <a href={`tel:${lead.phone}`} key="ph">{lead.phone}</a> : '—'],
-    ['Email', <InlineEmailEdit key={`em-${lead.dedupKey}`} lead={lead} />],
+    ['Phone', <InlineFieldEdit key={`ph-${lead.dedupKey}`} lead={lead} field="phone" placeholder="(555) 123-4567" />],
+    ['Email', <InlineFieldEdit key={`em-${lead.dedupKey}`} lead={lead} field="email" placeholder="email@company.com" mailtoIcon />],
     ['Address', lead.address || '—'],
     ['Sales status', lead.salesStatus || '—'],
     ['Tags', (lead.tags && lead.tags.length) ? lead.tags.join(', ') : '—'],
