@@ -981,3 +981,8 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 /* inline email edit in the Info field list */
 .si-editable { cursor: text; }
 .si-edit { width: 100%; box-sizing: border-box; border: 1px solid var(--accent, #6366f1); border-radius: 6px; padding: 3px 7px; font-size: 13px; font-family: inherit; color: inherit; background: #fff; outline: none; }
+
+/* SMS draft */
+.sms-body { min-height: 90px; }
+.sms-count { float: right; font-size: 11px; color: var(--muted); font-weight: 400; }
+.sms-count.over { color: #e11d48; font-weight: 700; }

@@ -5,9 +5,9 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
 
-// POST { project, dedupKey, context } → GPT writes a personalized cold-outreach
-// email for this business and saves it on the lead (regenerate/edit any time).
-// Uses the OPENAI env var (OpenAI API key).
+// POST { project, dedupKey, context, kind? } → GPT writes a personalized
+// cold-outreach EMAIL (default) or SMS (kind:'sms') for this business and
+// saves it on the lead (regenerate/edit any time). Uses the OPENAI env var.
 export async function POST(req: Request) {
   try {
     const key = process.env.OPENAI || '';
@@ -50,6 +50,12 @@ export async function POST(req: Request) {
       `Length: ${c.length || 'Medium'} (Short ≈ 60-80 words, Medium ≈ 100-140, Long ≈ 180-220)`,
     ].filter(Boolean).join('\n');
 
+    const isSms = b.kind === 'sms';
+    const factRule = 'The stated website situation is verified fact — never claim the business has no website unless that exact problem is listed, and never contradict the listed problems.';
+    const system = isSms
+      ? `You write short, casual, effective cold-outreach TEXT MESSAGES (SMS) for a digital agency. Reply ONLY with JSON: {"body": string}. Hard limit 320 characters. Plain text, no line breaks needed, no placeholders like [Name]. Personalize with ONE concrete detail about the business. ${factRule} Friendly, human, not salesy — like a quick text from a real person. Include the booking link and sign with the sender's first name.`
+      : `You write short, personal, effective cold-outreach emails for a digital agency. Reply ONLY with JSON: {"subject": string, "body": string}. Plain text body with normal line breaks, ready to send — no HTML, no markdown, no placeholders like [Name]. Personalize to the specific business (reference something concrete: their category, website situation, strong reviews…). ${factRule} One clear call to action: book the call via the booking link. Do not oversell; sound like a human.`;
+
     const r = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
@@ -58,11 +64,8 @@ export async function POST(req: Request) {
         temperature: 0.8,
         response_format: { type: 'json_object' },
         messages: [
-          {
-            role: 'system',
-            content: 'You write short, personal, effective cold-outreach emails for a digital agency. Reply ONLY with JSON: {"subject": string, "body": string}. Plain text body with normal line breaks, ready to send — no HTML, no markdown, no placeholders like [Name]. Personalize to the specific business (reference something concrete: their category, website situation, strong reviews…). The stated website situation is verified fact — never claim the business has no website unless that exact problem is listed, and never contradict the listed problems. One clear call to action: book the call via the booking link. Do not oversell; sound like a human.',
-          },
-          { role: 'user', content: `Write the email for this business:\n\n${biz}\n\n--- Our pitch ---\n${brief}` },
+          { role: 'system', content: system },
+          { role: 'user', content: `Write the ${isSms ? 'SMS' : 'email'} for this business:\n\n${biz}\n\n--- Our pitch ---\n${brief}` },
         ],
       }),
     });
@@ -73,11 +76,15 @@ export async function POST(req: Request) {
       const p = JSON.parse(data.choices?.[0]?.message?.content || '{}');
       subject = String(p.subject || '').trim(); body = String(p.body || '').trim();
     } catch { /* fall through */ }
-    if (!body) return json({ ok: false, error: 'OpenAI returned no email' }, { status: 502 });
+    if (!body) return json({ ok: false, error: 'OpenAI returned nothing' }, { status: 502 });
 
-    const emailAt = new Date().toISOString();
-    await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: { emailSubject: subject, emailBody: body, emailAt } });
-    return json({ ok: true, subject, body, emailAt });
+    const at = new Date().toISOString();
+    if (isSms) {
+      await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: { smsBody: body, smsAt: at } });
+      return json({ ok: true, body, smsAt: at });
+    }
+    await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: { emailSubject: subject, emailBody: body, emailAt: at } });
+    return json({ ok: true, subject, body, emailAt: at });
   } catch (e: any) {
     return json({ ok: false, error: e?.message || 'email generation failed' }, { status: 500 });
   }

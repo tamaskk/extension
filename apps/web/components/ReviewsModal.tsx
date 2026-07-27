@@ -408,6 +408,14 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
   const [sentTo, setSentTo] = useState(lead.emailSentTo || '');
   const [sendErr, setSendErr] = useState('');
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // SMS draft — same context, GPT writes a ≤320-char text message
+  const [sms, setSms] = useState(lead.smsBody || '');
+  const [smsAt, setSmsAt] = useState(lead.smsAt || '');
+  const [smsGen, setSmsGen] = useState(false);
+  const [smsErr, setSmsErr] = useState('');
+  const [smsState, setSmsState] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [smsCopied, setSmsCopied] = useState(false);
+  const smsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // context is remembered globally (same pitch for every lead)
   useEffect(() => { try { const s = JSON.parse(localStorage.getItem(EMAIL_CTX) || 'null'); if (s && typeof s === 'object') setCtx((c) => ({ ...c, ...s })); } catch { /* */ } }, []);
@@ -421,7 +429,32 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
   useEffect(() => {
     setSubject(lead.emailSubject || ''); setBody(lead.emailBody || ''); setEmailAt(lead.emailAt || ''); setDraftState('idle');
     setSentAt(lead.emailSentAt || ''); setSentTo(lead.emailSentTo || ''); setSendErr('');
+    setSms(lead.smsBody || ''); setSmsAt(lead.smsAt || ''); setSmsErr(''); setSmsState('idle');
   }, [lead.dedupKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const generateSms = async () => {
+    if (smsGen) return;
+    setSmsGen(true); setSmsErr('');
+    try {
+      const r = await api.generateSms(lead._project, lead._key, ctx);
+      if (!r.ok) { setSmsErr(r.error || 'Generation failed.'); return; }
+      setSms(r.body || ''); setSmsAt(r.smsAt || '');
+      lead.smsBody = r.body || ''; lead.smsAt = r.smsAt || '';
+      setSmsState('saved');
+    } catch (e: any) { setSmsErr(e?.message || 'Generation failed.'); }
+    finally { setSmsGen(false); }
+  };
+  const onSmsEdit = (v: string) => {
+    setSms(v); setSmsState('saving');
+    if (smsTimer.current) clearTimeout(smsTimer.current);
+    smsTimer.current = setTimeout(async () => {
+      try { await api.updateLeadField(lead._project, lead._key, 'smsBody', v); lead.smsBody = v; setSmsState('saved'); }
+      catch { setSmsState('idle'); }
+    }, 800);
+  };
+  const copySms = () => {
+    navigator.clipboard.writeText(sms).then(() => { setSmsCopied(true); setTimeout(() => setSmsCopied(false), 1500); }).catch(() => {});
+  };
 
   // one-click send of the saved draft (Resend, from Tom's address)
   const send = async () => {
@@ -547,6 +580,25 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
           {emailAt && <div className="ai-at">generated {new Date(emailAt).toLocaleString()}</div>}
         </div>
       )}
+      <div className="rvp-titlerow" style={{ margin: '16px 0 10px' }}>
+        <div className="rvp-seclabel" style={{ margin: 0 }}>📱 SMS</div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button className="btn primary" onClick={generateSms} disabled={smsGen}>{smsGen ? '⏳ Writing…' : sms ? '↻ Regenerate SMS' : '✨ Generate SMS'}</button>
+        {sms && <button className="btn" onClick={copySms}>{smsCopied ? '✓ Copied' : '⧉ Copy'}</button>}
+        <span className={`notes-state ${smsState}`}>{smsState === 'saving' ? 'Saving…' : smsState === 'saved' ? '✓ Saved' : ''}</span>
+      </div>
+      {smsErr && <p className="ai-err">⚠ {smsErr}</p>}
+      {sms && (
+        <div className="em-draft">
+          <div className="em-field">
+            <label>Text message <span className={`sms-count ${sms.length > 320 ? 'over' : ''}`}>{sms.length}/320</span></label>
+            <textarea className="sms-body" value={sms} onChange={(e) => onSmsEdit(e.target.value)} />
+          </div>
+          {smsAt && <div className="ai-at">generated {new Date(smsAt).toLocaleString()}</div>}
+        </div>
+      )}
+
       <p className="muted" style={{ fontSize: 11, marginTop: 12 }}>GPT writes a personalized draft from this business&apos;s data + your context. It is saved on the lead — edit freely (auto-saves) or regenerate any time.</p>
     </>
   );
