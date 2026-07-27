@@ -61,6 +61,8 @@ export const api = {
     jsend('/api/vapi', 'POST', b) as Promise<{ ok: boolean; callId?: string; status?: string; error?: string }>,
   vapiStatus: (id: string) =>
     jget(`/api/vapi?id=${encodeURIComponent(id)}`) as Promise<{ ok: boolean; status?: string; endedReason?: string; error?: string }>,
+  generateEmail: (project: string, dedupKey: string, context: Record<string, unknown>) =>
+    jsend('/api/email', 'POST', { project, dedupKey, context }) as Promise<{ ok: boolean; subject?: string; body?: string; emailAt?: string; error?: string }>,
   getNotes: (q: { search?: string; page?: number; pageSize?: number } = {}) => {
     const p = new URLSearchParams();
     if (q.search) p.set('search', q.search);

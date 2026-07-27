@@ -239,65 +239,160 @@ function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEd
   );
 }
 
-const EM_FIELDS: { key: string; label: string; ph: string; area?: boolean }[] = [
-  { key: 'who', label: 'Who are you & what you offer', ph: "I'm John and I build AI-powered 3D virtual tours for real-estate agencies", area: true },
-  { key: 'value', label: 'Value proposition', ph: 'Help your listings sell faster with immersive 3D tours' },
-  { key: 'proof', label: 'Social proof', ph: 'Working with 20+ agencies across the region' },
-  { key: 'offer', label: 'Offer / hook', ph: 'A free 3D tour of one of your listings' },
-  { key: 'objective', label: 'Email objective', ph: 'Book a quick call to show you examples' },
-  { key: 'sender', label: 'Sender', ph: 'John — CEO' },
-  { key: 'link', label: 'Conversion link (web, calendly…)', ph: 'Reply to get your free tour' },
+const EM_SERVICES = ['Website', 'AI Automation', 'Social media marketing'];
+const EM_AUTOMATIONS = [
+  'AI phone agent — answers missed calls & books appointments',
+  'Website chatbot — answers questions & takes bookings 24/7',
+  'Automatic review replies & reputation management',
+  'Instant lead follow-up (email/SMS) automation',
+  'Appointment reminders — fewer no-shows',
+  'Quote & invoice follow-up automation',
+  'AI content generation for socials & blog',
+  'Customer support inbox with AI-drafted replies',
 ];
+const EM_VALUES = [
+  'More customers find you online instead of your competitors',
+  'Turn missed calls into booked jobs automatically',
+  'A website that works like a 24/7 salesperson',
+  'Save 10+ hours a week by automating repetitive work',
+  'Never lose a lead again — every inquiry gets an instant reply',
+  'Look more professional than the biggest competitor in town',
+  'More 5-star reviews on autopilot',
+  'A full calendar without chasing clients',
+  'A modern online presence that builds instant trust',
+  'Get found on Google Maps by people ready to buy',
+];
+const EM_DEFAULTS = {
+  services: ['Website'] as string[],
+  automations: [] as string[],
+  value: EM_VALUES[0],
+  offer: "I've already put together a first version for you — if you're interested, I can show it on a quick 15-minute call and we can talk through everything.",
+  objective: 'Get them to book the 15-minute call to see what I built',
+  sender: 'Tom',
+  link: 'https://calendly.com/tom-itsblitzdeep/30min',
+  tone: 'Professional but friendly',
+  length: 'Medium',
+};
+type EmCtx = typeof EM_DEFAULTS;
 
 function EmailsTab({ lead }: { lead: LeadRow }) {
-  const [ctx, setCtx] = useState<Record<string, string>>({ tone: 'Professional but friendly', length: 'Medium', language: 'English' });
-  const [out, setOut] = useState('');
+  const [ctx, setCtx] = useState<EmCtx>(EM_DEFAULTS);
+  const [gen, setGen] = useState(false);
+  const [genErr, setGenErr] = useState('');
+  const [subject, setSubject] = useState(lead.emailSubject || '');
+  const [body, setBody] = useState(lead.emailBody || '');
+  const [emailAt, setEmailAt] = useState(lead.emailAt || '');
+  const [draftState, setDraftState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [copied, setCopied] = useState(false);
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { try { const s = JSON.parse(localStorage.getItem(EMAIL_CTX) || 'null'); if (s) setCtx((c) => ({ ...c, ...s })); } catch { /* */ } }, []);
-  const save = () => { try { localStorage.setItem(EMAIL_CTX, JSON.stringify(ctx)); } catch { /* */ } };
-  const set = (k: string, v: string) => setCtx((c) => ({ ...c, [k]: v }));
+  // context is remembered globally (same pitch for every lead)
+  useEffect(() => { try { const s = JSON.parse(localStorage.getItem(EMAIL_CTX) || 'null'); if (s && typeof s === 'object') setCtx((c) => ({ ...c, ...s })); } catch { /* */ } }, []);
+  const set = <K extends keyof EmCtx>(k: K, v: EmCtx[K]) => setCtx((c) => {
+    const next = { ...c, [k]: v };
+    try { localStorage.setItem(EMAIL_CTX, JSON.stringify(next)); } catch { /* */ }
+    return next;
+  });
+  const toggle = (k: 'services' | 'automations', v: string) => set(k, ctx[k].includes(v) ? ctx[k].filter((x) => x !== v) : [...ctx[k], v]);
 
-  const generate = () => {
-    const g = (k: string) => (ctx[k] || '').trim();
-    const greet = `Hi ${lead.name} team,`;
-    const intro = g('who');
-    const body = [g('value'), g('proof')].filter(Boolean).join(' ');
-    const hook = g('offer') ? `${g('offer')}.` : '';
-    const cta = g('objective') ? `${g('objective')}.` : '';
-    const sign = [g('sender'), g('link')].filter(Boolean).join('\n');
-    const subject = g('offer') ? `Subject: ${g('offer')} — ${lead.name}` : `Subject: Quick idea for ${lead.name}`;
-    setOut([subject, '', greet, '', intro, body, hook, '', cta, '', sign].filter((l, i) => l !== '' || i).join('\n').replace(/\n{3,}/g, '\n\n').trim());
-    setCopied(false);
+  useEffect(() => {
+    setSubject(lead.emailSubject || ''); setBody(lead.emailBody || ''); setEmailAt(lead.emailAt || ''); setDraftState('idle');
+  }, [lead.dedupKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const generate = async () => {
+    if (gen) return;
+    setGen(true); setGenErr('');
+    try {
+      const r = await api.generateEmail(lead._project, lead._key, ctx);
+      if (!r.ok) { setGenErr(r.error || 'Generation failed.'); return; }
+      setSubject(r.subject || ''); setBody(r.body || ''); setEmailAt(r.emailAt || '');
+      lead.emailSubject = r.subject || ''; lead.emailBody = r.body || ''; lead.emailAt = r.emailAt || '';
+      setDraftState('saved');
+    } catch (e: any) { setGenErr(e?.message || 'Generation failed.'); }
+    finally { setGen(false); }
   };
-  const copy = () => { navigator.clipboard.writeText(out).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {}); };
+
+  // manual edits auto-save (debounced), like the notes box
+  const onDraftEdit = (s: string, b2: string) => {
+    setSubject(s); setBody(b2); setDraftState('saving');
+    if (draftTimer.current) clearTimeout(draftTimer.current);
+    draftTimer.current = setTimeout(async () => {
+      try {
+        await api.updateLeadField(lead._project, lead._key, 'emailSubject', s);
+        await api.updateLeadField(lead._project, lead._key, 'emailBody', b2);
+        lead.emailSubject = s; lead.emailBody = b2;
+        setDraftState('saved');
+      } catch { setDraftState('idle'); }
+    }, 800);
+  };
+
+  const copy = () => {
+    navigator.clipboard.writeText((subject ? `Subject: ${subject}\n\n` : '') + body)
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {});
+  };
 
   return (
     <>
       <div className="rvp-titlerow" style={{ marginBottom: 10 }}>
         <div className="rvp-seclabel" style={{ margin: 0 }}>✉️ Email context</div>
-        <button className="rvp-x" onClick={save} title="Remember this context" style={{ color: 'var(--ink)', fontWeight: 700, fontSize: 12 }}>Save</button>
       </div>
-      {EM_FIELDS.map((f) => (
-        <div className="em-field" key={f.key}>
-          <label>{f.label}</label>
-          {f.area
-            ? <textarea value={ctx[f.key] || ''} placeholder={f.ph} onChange={(e) => set(f.key, e.target.value)} />
-            : <input value={ctx[f.key] || ''} placeholder={f.ph} onChange={(e) => set(f.key, e.target.value)} />}
+
+      <div className="em-field">
+        <label>What you offer</label>
+        <div className="em-checks">
+          {EM_SERVICES.map((s) => (
+            <label key={s} className="em-check"><input type="checkbox" checked={ctx.services.includes(s)} onChange={() => toggle('services', s)} /> {s}</label>
+          ))}
         </div>
-      ))}
+        {ctx.services.includes('AI Automation') && (
+          <div className="em-sub">
+            {EM_AUTOMATIONS.map((a) => (
+              <label key={a} className="em-check sub"><input type="checkbox" checked={ctx.automations.includes(a)} onChange={() => toggle('automations', a)} /> {a}</label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="em-field">
+        <label>Value proposition</label>
+        <select value={ctx.value} onChange={(e) => set('value', e.target.value)}>
+          {EM_VALUES.map((v) => <option key={v} value={v}>{v}</option>)}
+        </select>
+      </div>
+
+      <div className="em-field">
+        <label>Offer / hook</label>
+        <textarea value={ctx.offer} onChange={(e) => set('offer', e.target.value)} />
+      </div>
+
+      <div className="em-field"><label>Email objective</label><input value={ctx.objective} onChange={(e) => set('objective', e.target.value)} /></div>
       <div className="em-2">
-        <div className="em-field"><label>Tone</label><input value={ctx.tone || ''} onChange={(e) => set('tone', e.target.value)} /></div>
+        <div className="em-field"><label>Sender</label><input value={ctx.sender} onChange={(e) => set('sender', e.target.value)} /></div>
+        <div className="em-field"><label>Booking link (Calendly)</label><input value={ctx.link} onChange={(e) => set('link', e.target.value)} /></div>
+      </div>
+      <div className="em-2">
+        <div className="em-field"><label>Tone</label><input value={ctx.tone} onChange={(e) => set('tone', e.target.value)} /></div>
         <div className="em-field"><label>Length</label>
-          <select value={ctx.length || 'Medium'} onChange={(e) => set('length', e.target.value)}><option>Short</option><option>Medium</option><option>Long</option></select>
+          <select value={ctx.length} onChange={(e) => set('length', e.target.value)}><option>Short</option><option>Medium</option><option>Long</option></select>
         </div>
       </div>
+
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6 }}>
-        <button className="btn primary" onClick={generate}>✨ Generate email</button>
-        {out && <button className="btn" onClick={copy}>{copied ? '✓ Copied' : '⧉ Copy'}</button>}
+        <button className="btn primary" onClick={generate} disabled={gen}>{gen ? '⏳ Writing…' : body ? '↻ Regenerate' : '✨ Generate email'}</button>
+        {body && <button className="btn" onClick={copy}>{copied ? '✓ Copied' : '⧉ Copy'}</button>}
+        <span className={`notes-state ${draftState}`}>{draftState === 'saving' ? 'Saving…' : draftState === 'saved' ? '✓ Saved' : ''}</span>
       </div>
-      {out && <div className="em-out">{out}</div>}
-      <p className="muted" style={{ fontSize: 11, marginTop: 12 }}>Template-based compose (uses this business + your context). AI-written variants can be wired to the Claude API on request.</p>
+      {genErr && <p className="ai-err">⚠ {genErr}</p>}
+      {gen && <p className="ai-empty">Asking GPT… (~5s)</p>}
+
+      {(subject || body) && (
+        <div className="em-draft">
+          <div className="em-field"><label>Subject</label><input value={subject} onChange={(e) => onDraftEdit(e.target.value, body)} /></div>
+          <div className="em-field"><label>Email</label><textarea className="em-draft-body" value={body} onChange={(e) => onDraftEdit(subject, e.target.value)} /></div>
+          {emailAt && <div className="ai-at">generated {new Date(emailAt).toLocaleString()}</div>}
+        </div>
+      )}
+      <p className="muted" style={{ fontSize: 11, marginTop: 12 }}>GPT writes a personalized draft from this business&apos;s data + your context. It is saved on the lead — edit freely (auto-saves) or regenerate any time.</p>
     </>
   );
 }

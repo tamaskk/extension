@@ -48,6 +48,9 @@ const LeadSchema = new Schema({
   salesStatus: { type: String, default: '' }, // sales pipeline stage
   salesDate: { type: String, default: '' },   // date for callback / follow-up / meeting stages
   notes: { type: String, default: '' },       // free-form notes (auto-saved from the detail panel)
+  emailSubject: { type: String, default: '' }, // GPT-generated outreach draft (editable, regenerable)
+  emailBody: { type: String, default: '' },
+  emailAt: { type: String, default: '' },      // ISO of last generate/edit
   notesAt: { type: String, default: '' },     // ISO of the last notes edit; '' = no notes (Notes view filter+sort)
 
   // ── review scraping (separate Review collection holds the texts) ──────────

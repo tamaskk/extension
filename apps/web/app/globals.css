@@ -958,3 +958,12 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .note-card-date { font-size: 11px; flex-shrink: 0; }
 .note-card-meta { font-size: 12px; margin: 2px 0 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .note-card-text { font-size: 13px; white-space: pre-wrap; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Email tab: service checkboxes + GPT draft */
+.em-checks { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.em-check { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.em-check input { accent-color: var(--accent, #6366f1); }
+.em-sub { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 8px; }
+.em-check.sub { font-size: 12px; }
+.em-draft { margin-top: 10px; }
+.em-draft-body { min-height: 220px; }
