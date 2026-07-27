@@ -39,6 +39,7 @@ export interface Lead {
   emailSentTo?: string;
   smsBody?: string;      // GPT outreach SMS draft
   smsAt?: string;
+  emailSearchAt?: string; // last automated contact search
   hasBookingHint?: boolean | null;
   scrapedAt?: string;
   reviewsCount?: number | null; // how many reviews we scraped & stored

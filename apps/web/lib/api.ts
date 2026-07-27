@@ -55,6 +55,15 @@ export const api = {
     jsend('/api/groups', 'PATCH', { id, add: opts.keys || [], fromChecked: !!opts.fromChecked }) as Promise<{ ok: boolean; added?: number; error?: string }>,
   removeFromGroup: (id: string, keys: string[]) => jsend('/api/groups', 'PATCH', { id, remove: keys }),
   deleteGroup: (id: string) => jsend('/api/groups', 'DELETE', { id }),
+  getLeadSearchQueue: (scope: { project?: string | null; folder?: string | null; retry?: boolean }) => {
+    const p = new URLSearchParams();
+    if (scope.project) p.set('project', scope.project);
+    if (scope.folder) p.set('folder', scope.folder);
+    if (scope.retry) p.set('retry', '1');
+    return jget('/api/lead-search?' + p.toString()) as Promise<{ ok: boolean; rows: { project: string; dedupKey: string; name: string; address: string; phone: string; category: string; websiteStatus: string }[]; capped?: boolean; error?: string }>;
+  },
+  leadSearchOne: (project: string, dedupKey: string) =>
+    jsend('/api/lead-search', 'POST', { project, dedupKey }) as Promise<{ ok: boolean; found?: boolean; skipped?: boolean; email?: string; owner?: string; source?: string; error?: string }>,
   getVapiQueue: (group: string) =>
     jget(`/api/vapi?group=${encodeURIComponent(group)}`) as Promise<{ ok: boolean; name?: string; rows: { dedupKey: string; name: string; phone: string; address: string; e164: string | null }[]; envError?: string | null; error?: string }>,
   vapiCall: (b: { phone: string; name?: string; address?: string; dedupKey?: string }) =>

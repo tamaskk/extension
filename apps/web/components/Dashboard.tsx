@@ -25,6 +25,7 @@ import GroupsView from './GroupsView';
 import VapiCallModal from './VapiCallModal';
 import CategoriesView from './CategoriesView';
 import NotesView from './NotesView';
+import LeadSearchModal from './LeadSearchModal';
 import OrganizeModal from './OrganizeModal';
 
 // folder names look like "<City...> Restaurants" — drop the last word for the city
@@ -249,6 +250,7 @@ export default function Dashboard() {
   // when set, the main leads table is scoped to this saved group's members
   const [activeGroup, setActiveGroup] = useState<{ groupId: string; name: string; count: number } | null>(null);
   const [vapiGroup, setVapiGroup] = useState<{ groupId: string; name: string } | null>(null); // Vapi calling modal target
+  const [leadSearch, setLeadSearch] = useState<{ project?: string | null; folder?: string | null; label: string } | null>(null); // automated email research target
   const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email' | 'hasreviews' | 'hasai'>('all');
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [selTypes, setSelTypes] = useState<string[]>([]);
@@ -1097,6 +1099,13 @@ export default function Dashboard() {
           <button className="btn" onClick={runRecalc} disabled={!!recalc?.running} title="Recompute opportunity scores for all leads with the new ranking">
             {recalc?.running ? `⏳ ${recalc.total ? Math.round((recalc.done / recalc.total) * 100) : 0}%` : '★ Recalc'}
           </button>
+          {(activeProject || activeFolder) && (
+            <button className="btn" title="Research a public email for every email-less lead in this project/folder (OpenAI web search, stoppable)"
+              onClick={() => setLeadSearch({
+                project: activeProject, folder: activeFolder,
+                label: activeFolder ? (folders[activeFolder]?.name || 'folder') : (summaries[activeProject!]?.name || activeProject || ''),
+              })}>🔎 Lead search</button>
+          )}
           {checkedCount > 0 && <GroupPickBtn label={`🗂 Group ${checkedCount.toLocaleString()}`} className="btn" alignRight fromChecked />}
           {checkedCount > 0 && <button className="btn" onClick={uncheckAllLeads} title="Clear the Checked status on all checked leads">☐ Uncheck {checkedCount.toLocaleString()}</button>}
           {checkedCount > 0 && <button className="btn danger" onClick={deleteAllChecked} title="Permanently delete every checked lead from the database">🗑 Delete {checkedCount.toLocaleString()}</button>}
@@ -1257,6 +1266,9 @@ export default function Dashboard() {
       {organizeOpen && <OrganizeModal onClose={() => setOrganizeOpen(false)} onDone={() => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); }} />}
 
       {vapiGroup && <VapiCallModal group={vapiGroup} onClose={() => setVapiGroup(null)} />}
+
+      {leadSearch && <LeadSearchModal scope={leadSearch} onClose={() => setLeadSearch(null)}
+        onUpdated={() => { setReloadKey((k) => k + 1); actions.refresh().catch(() => {}); }} />}
 
       {callsOpen && <CallsModal onClose={() => setCallsOpen(false)} onToggleCall={(r, call) => {
         setPageRows((rows) => rows.map((x) => (x._project === r._project && x._key === r._key ? { ...x, call } : x)));

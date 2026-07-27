@@ -55,6 +55,7 @@ const LeadSchema = new Schema({
   emailSentTo: { type: String, default: '' },  // recipient it went to
   smsBody: { type: String, default: '' },      // GPT-generated outreach SMS (editable, regenerable)
   smsAt: { type: String, default: '' },
+  emailSearchAt: { type: String, default: '' }, // ISO of the last automated contact search ('' = never tried)
   notesAt: { type: String, default: '' },     // ISO of the last notes edit; '' = no notes (Notes view filter+sort)
 
   // ── review scraping (separate Review collection holds the texts) ──────────
