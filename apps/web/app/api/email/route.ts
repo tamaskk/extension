@@ -19,8 +19,9 @@ export async function POST(req: Request) {
 
     const c = b.context || {};
     const services: string[] = Array.isArray(c.services) ? c.services : [];
-    const automations: string[] = Array.isArray(c.automations) ? c.automations : [];
-    const websites: string[] = Array.isArray(c.websites) ? c.websites : [];
+    // sub-options only count while their parent service is selected
+    const automations: string[] = services.includes('AI Automation') && Array.isArray(c.automations) ? c.automations : [];
+    const websites: string[] = services.includes('Website') && Array.isArray(c.websites) ? c.websites : [];
 
     // The operator's checked website problems are GROUND TRUTH — they override
     // whatever the scraper stored (e.g. DB says NO_WEBSITE but the operator

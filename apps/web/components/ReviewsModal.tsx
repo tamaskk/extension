@@ -424,7 +424,18 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
     try { localStorage.setItem(EMAIL_CTX, JSON.stringify(next)); } catch { /* */ }
     return next;
   });
-  const toggle = (k: 'services' | 'automations' | 'websites', v: string) => set(k, ctx[k].includes(v) ? ctx[k].filter((x) => x !== v) : [...ctx[k], v]);
+  const toggle = (k: 'services' | 'automations' | 'websites', v: string) => {
+    setCtx((c) => {
+      const removing = c[k].includes(v);
+      const next: EmCtx = { ...c, [k]: removing ? c[k].filter((x) => x !== v) : [...c[k], v] };
+      // unchecking a service drops its sub-options too — otherwise stale picks
+      // (e.g. "no website") kept leaking into the prompt after the uncheck
+      if (k === 'services' && removing && v === 'Website') next.websites = [];
+      if (k === 'services' && removing && v === 'AI Automation') next.automations = [];
+      try { localStorage.setItem(EMAIL_CTX, JSON.stringify(next)); } catch { /* */ }
+      return next;
+    });
+  };
 
   useEffect(() => {
     setSubject(lead.emailSubject || ''); setBody(lead.emailBody || ''); setEmailAt(lead.emailAt || ''); setDraftState('idle');
