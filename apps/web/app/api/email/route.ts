@@ -22,18 +22,24 @@ export async function POST(req: Request) {
     const automations: string[] = Array.isArray(c.automations) ? c.automations : [];
     const websites: string[] = Array.isArray(c.websites) ? c.websites : [];
 
+    // The operator's checked website problems are GROUND TRUTH — they override
+    // whatever the scraper stored (e.g. DB says NO_WEBSITE but the operator
+    // verified the site exists and is just outdated). Sending both confused the
+    // model into "you don't have a website" emails for businesses that do.
+    const websiteLine = websites.length
+      ? `Website situation (verified by the sender — treat as fact, ignore anything that contradicts it): ${websites.join('; ')}${lead.website ? ` — current site: ${lead.website}` : ''}`
+      : `Website status: ${lead.websiteStatus || 'unknown'}${lead.website ? ` (${lead.website})` : ''}`;
     const biz = [
       `Name: ${lead.name || ''}`,
       `Category: ${lead.category || ''}`,
       `Address: ${lead.address || ''}`,
       `Rating: ${lead.rating ?? 'n/a'} (${lead.reviewCount ?? 0} reviews)`,
-      `Website status: ${lead.websiteStatus || 'unknown'}${lead.website ? ` (${lead.website})` : ''}`,
+      websiteLine,
       lead.aiSummary ? `About (from reviews): ${lead.aiSummary}` : '',
     ].filter(Boolean).join('\n');
 
     const brief = [
       `Services we sell: ${services.join(', ') || 'digital services'}`,
-      websites.length ? `Website problems to address: ${websites.join('; ')}` : '',
       automations.length ? `AI automations to highlight: ${automations.join('; ')}` : '',
       c.value ? `Core value proposition: ${c.value}` : '',
       c.offer ? `Offer / hook (use this idea): ${c.offer}` : '',
@@ -54,7 +60,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: 'system',
-            content: 'You write short, personal, effective cold-outreach emails for a digital agency. Reply ONLY with JSON: {"subject": string, "body": string}. Plain text body with normal line breaks, ready to send — no HTML, no markdown, no placeholders like [Name]. Personalize to the specific business (reference something concrete: their category, missing/broken website, strong reviews…). One clear call to action: book the call via the booking link. Do not oversell; sound like a human.',
+            content: 'You write short, personal, effective cold-outreach emails for a digital agency. Reply ONLY with JSON: {"subject": string, "body": string}. Plain text body with normal line breaks, ready to send — no HTML, no markdown, no placeholders like [Name]. Personalize to the specific business (reference something concrete: their category, website situation, strong reviews…). The stated website situation is verified fact — never claim the business has no website unless that exact problem is listed, and never contradict the listed problems. One clear call to action: book the call via the booking link. Do not oversell; sound like a human.',
           },
           { role: 'user', content: `Write the email for this business:\n\n${biz}\n\n--- Our pitch ---\n${brief}` },
         ],
