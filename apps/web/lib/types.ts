@@ -35,6 +35,8 @@ export interface Lead {
   emailSubject?: string; // GPT outreach draft
   emailBody?: string;
   emailAt?: string;
+  emailSentAt?: string;  // when the draft was sent via Resend
+  emailSentTo?: string;
   hasBookingHint?: boolean | null;
   scrapedAt?: string;
   reviewsCount?: number | null; // how many reviews we scraped & stored

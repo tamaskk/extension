@@ -337,6 +337,10 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
   const [emailAt, setEmailAt] = useState(lead.emailAt || '');
   const [draftState, setDraftState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sentAt, setSentAt] = useState(lead.emailSentAt || '');
+  const [sentTo, setSentTo] = useState(lead.emailSentTo || '');
+  const [sendErr, setSendErr] = useState('');
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // context is remembered globally (same pitch for every lead)
@@ -350,7 +354,24 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
 
   useEffect(() => {
     setSubject(lead.emailSubject || ''); setBody(lead.emailBody || ''); setEmailAt(lead.emailAt || ''); setDraftState('idle');
+    setSentAt(lead.emailSentAt || ''); setSentTo(lead.emailSentTo || ''); setSendErr('');
   }, [lead.dedupKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // one-click send of the saved draft (Resend, from Tom's address)
+  const send = async () => {
+    if (sending) return;
+    if (!lead.email) { setSendErr('This lead has no email address.'); return; }
+    if (draftState === 'saving') return; // let the auto-save land first
+    if (!confirm(`Send this email to ${lead.email}?`)) return;
+    setSending(true); setSendErr('');
+    try {
+      const r = await api.sendEmail(lead._project, lead._key);
+      if (!r.ok) { setSendErr(r.error || 'Sending failed.'); return; }
+      setSentAt(r.emailSentAt || new Date().toISOString()); setSentTo(r.to || lead.email || '');
+      lead.emailSentAt = r.emailSentAt || ''; lead.emailSentTo = r.to || '';
+    } catch (e: any) { setSendErr(e?.message || 'Sending failed.'); }
+    finally { setSending(false); }
+  };
 
   const generate = async () => {
     if (gen) return;
@@ -437,11 +458,19 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6, flexWrap: 'wrap' }}>
         <button className="btn primary" onClick={generate} disabled={gen}>{gen ? '⏳ Writing…' : body ? '↻ Regenerate' : '✨ Generate email'}</button>
         {body && <button className="btn" onClick={copy}>{copied ? '✓ Copied' : '⧉ Copy'}</button>}
+        {body && (
+          <button className="btn primary" onClick={send} disabled={sending || !lead.email}
+            title={lead.email ? `Send to ${lead.email} from tom@itsblitzdeep.com` : 'This lead has no email address'}>
+            {sending ? '⏳ Sending…' : sentAt ? '📤 Send again' : '📤 Send'}
+          </button>
+        )}
         <span className={`notes-state ${draftState}`}>{draftState === 'saving' ? 'Saving…' : draftState === 'saved' ? '✓ Saved' : ''}</span>
       </div>
+      {sentAt && <p className="em-sent">✓ Sent to {sentTo} · {new Date(sentAt).toLocaleString()}</p>}
+      {sendErr && <p className="ai-err">⚠ {sendErr}</p>}
       {genErr && <p className="ai-err">⚠ {genErr}</p>}
       {gen && <p className="ai-empty">Asking GPT… (~5s)</p>}
 

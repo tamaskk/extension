@@ -967,3 +967,5 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .em-check.sub { font-size: 12px; }
 .em-draft { margin-top: 10px; }
 .em-draft-body { min-height: 220px; }
+
+.em-sent { color: #16a34a; font-size: 12px; font-weight: 600; margin: 6px 0 0; }
