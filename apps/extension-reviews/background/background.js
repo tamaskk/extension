@@ -461,8 +461,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case 'glrScrapeOne': { // from the dashboard bridge — scrape ONE business now
           const biz = msg.business || {};
           if (!biz.dedupKey || !(biz.cid || biz.mapsUrl)) { sendResponse({ ok: false, error: 'business is not openable (no cid / maps url)' }); break; }
-          try { await startSingle(biz, tid); sendResponse({ ok: true }); }
-          catch (e) { sendResponse({ ok: false, error: (e && e.message) || String(e) }); }
+          sendResponse({ ok: true }); // ack immediately — opening the window can be slow
+          try { await startSingle(biz, tid); }
+          catch (e) {
+            if (tid != null) { try { await chrome.tabs.sendMessage(tid, { type: 'glrOneDone', dedupKey: biz.dedupKey, count: 0, error: (e && e.message) || String(e) }); } catch {} }
+          }
           break;
         }
         case 'reviewStart': { // AUTO: open up to N windows ourselves
