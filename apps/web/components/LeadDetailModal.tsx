@@ -200,8 +200,7 @@ export default function LeadDetailModal({ row, registry, tagNames, onSaved, onCr
       if (cancelled || !r.ok) return;
       const lines = (r.rows || [])
         .filter((x) => (x.text || '').trim())
-        .slice(0, 8)
-        .map((x) => `- ★${x.rating ?? '?'} ${x.author || 'Guest'}: "${(x.text || '').replace(/\s+/g, ' ').trim().slice(0, 220)}"`);
+        .map((x) => `- ★${x.rating ?? '?'} ${x.author || 'Guest'}: "${(x.text || '').replace(/\s+/g, ' ').trim()}"`);
       if (!lines.length) return;
       const block = `\n\nGUEST REVIEWS (real Google reviews of this business — use them for the testimonials section, tone of voice and USP research):\n${lines.join('\n')}`;
       setWpData((prev) => (prev.includes('GUEST REVIEWS') ? prev : prev + block));
