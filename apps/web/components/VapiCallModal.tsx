@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 
 type QueueRow = {
-  dedupKey: string; name: string; phone: string; address: string; e164: string | null;
+  project: string; dedupKey: string; name: string; phone: string; address: string; e164: string | null;
   status: 'pending' | 'calling' | 'ended' | 'failed' | 'nophone';
   callStatus?: string; endedReason?: string; error?: string;
   callId?: string; recordingUrl?: string; transcript?: string; summary?: string; showTranscript?: boolean;
@@ -76,6 +76,7 @@ export default function VapiCallModal({ group, onClose }:
           upd(i, { callStatus: st.status });
           if (st.status === 'ended') {
             upd(i, { status: 'ended', endedReason: st.endedReason || '', recordingUrl: st.recordingUrl || '', transcript: st.transcript || '', summary: st.summary || '' });
+            api.logCall(rows[i].project, rows[i].dedupKey, { id: callId, at: new Date().toISOString(), endedReason: st.endedReason || '' }).catch(() => {}); // lead's Call tab history
             fetchArtifacts(i, callId); // the recording/transcript can lag the call end by a few seconds
             break;
           }

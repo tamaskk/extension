@@ -19,8 +19,8 @@ function Stars({ n, big }: { n: number; big?: boolean }) {
 const DIST_COLOR: Record<number, string> = { 5: '#22c55e', 4: '#4ade80', 3: '#f59e0b', 2: '#fb7185', 1: '#f43f5e' };
 
 export default function ReviewsModal({ lead, onClose, initialTab, onEditAll, onResizeStart }:
-  { lead: LeadRow; onClose: () => void; initialTab?: 'info' | 'reviews' | 'emails'; onEditAll?: (lead: LeadRow) => void; onResizeStart?: () => void }) {
-  const [tab, setTab] = useState<'info' | 'reviews' | 'emails'>(initialTab || 'info');
+  { lead: LeadRow; onClose: () => void; initialTab?: 'info' | 'reviews' | 'emails' | 'call'; onEditAll?: (lead: LeadRow) => void; onResizeStart?: () => void }) {
+  const [tab, setTab] = useState<'info' | 'reviews' | 'emails' | 'call'>(initialTab || 'info');
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +93,7 @@ export default function ReviewsModal({ lead, onClose, initialTab, onEditAll, onR
             <button className={`rvp-tab ${tab === 'info' ? 'active' : ''}`} onClick={() => setTab('info')}>Info</button>
             <button className={`rvp-tab ${tab === 'reviews' ? 'active' : ''}`} onClick={() => setTab('reviews')}>Reviews</button>
             <button className={`rvp-tab ${tab === 'emails' ? 'active' : ''}`} onClick={() => setTab('emails')}>Email</button>
+            <button className={`rvp-tab ${tab === 'call' ? 'active' : ''}`} onClick={() => setTab('call')}>Call{(lead.vapiCalls?.length || 0) > 0 ? ` (${lead.vapiCalls!.length})` : ''}</button>
           </div>
         </div>
 
@@ -100,12 +101,58 @@ export default function ReviewsModal({ lead, onClose, initialTab, onEditAll, onR
           {tab === 'info' && <InfoTab lead={lead} stats={stats} onEditAll={onEditAll} />}
           {tab === 'reviews' && <ReviewsTab lead={lead} rows={rows} stats={stats} loading={loading} error={error} onScraped={() => setRvKey((k) => k + 1)} />}
           {tab === 'emails' && <EmailsTab lead={lead} />}
+          {tab === 'call' && <CallTab lead={lead} />}
         </div>
     </aside>
   );
 }
 
 type Stats = { avg: number; dist: Record<number, number>; positive: number; respRate: number; count: number };
+
+// Call tab: the lead's Vapi call history — playback + transcript per call.
+type CallDetail = { loading: boolean; recordingUrl?: string; transcript?: string; summary?: string; endedReason?: string; error?: string };
+function CallTab({ lead }: { lead: LeadRow }) {
+  const calls = [...(lead.vapiCalls || [])].reverse(); // newest first
+  const [details, setDetails] = useState<Record<string, CallDetail>>({});
+  useEffect(() => {
+    let cancelled = false;
+    (lead.vapiCalls || []).forEach((c) => {
+      setDetails((d) => (d[c.id] ? d : { ...d, [c.id]: { loading: true } }));
+      api.vapiStatus(c.id).then((r) => {
+        if (cancelled) return;
+        setDetails((d) => ({ ...d, [c.id]: { loading: false, recordingUrl: r.recordingUrl || '', transcript: r.transcript || '', summary: r.summary || '', endedReason: r.endedReason || '', error: r.ok ? '' : (r.error || 'failed to load') } }));
+      }).catch(() => { if (!cancelled) setDetails((d) => ({ ...d, [c.id]: { loading: false, error: 'failed to load' } })); });
+    });
+    return () => { cancelled = true; };
+  }, [lead.dedupKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!calls.length) return (
+    <div className="empty" style={{ padding: 24 }}>
+      No calls yet. Call this lead from a group: Groups → open a group → <b>📞 Call group</b>.
+    </div>
+  );
+  return (
+    <>
+      {calls.map((c) => {
+        const d = details[c.id] || { loading: true };
+        return (
+          <div className="rvp-card call-card" key={c.id}>
+            <div className="call-card-head">
+              <span className="call-card-date">📞 {c.at ? new Date(c.at).toLocaleString() : ''}</span>
+              <span className="chip gray">{d.endedReason || c.endedReason || '—'}</span>
+            </div>
+            {d.loading && <p className="muted" style={{ fontSize: 12 }}>Loading recording…</p>}
+            {d.error && <p className="ai-err">⚠ {d.error}</p>}
+            {d.recordingUrl && <audio controls preload="none" src={d.recordingUrl} className="vapi-audio" />}
+            {d.summary && <p className="vapi-summary">📝 {d.summary}</p>}
+            {d.transcript && <div className="vapi-transcript"><pre>{d.transcript}</pre></div>}
+            {!d.loading && !d.error && !d.recordingUrl && !d.transcript && <p className="muted" style={{ fontSize: 12 }}>No recording/transcript available for this call.</p>}
+          </div>
+        );
+      })}
+    </>
+  );
+}
 
 // "Scrape reviews now" — asks the installed Review Scraper extension (via a
 // window.postMessage bridge) to open ONE Maps window for this business, scrape,

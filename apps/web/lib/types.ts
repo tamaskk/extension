@@ -40,6 +40,7 @@ export interface Lead {
   smsBody?: string;      // GPT outreach SMS draft
   smsAt?: string;
   emailSearchAt?: string; // last automated contact search
+  vapiCalls?: { id: string; at: string; endedReason?: string }[]; // Vapi call history
   hasBookingHint?: boolean | null;
   scrapedAt?: string;
   reviewsCount?: number | null; // how many reviews we scraped & stored

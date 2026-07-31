@@ -993,3 +993,7 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .vapi-transcript { max-height: 260px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 6px 0; }
 .vapi-transcript pre { white-space: pre-wrap; word-break: break-word; font-size: 12px; margin: 0; font-family: inherit; }
 .vapi-summary { font-size: 12px; font-weight: 600; margin: 0 0 6px; }
+
+/* Call tab cards */
+.call-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.call-card-date { font-weight: 700; font-size: 13px; }

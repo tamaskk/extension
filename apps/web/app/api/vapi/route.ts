@@ -56,10 +56,10 @@ export async function GET(req: Request) {
     const g = await LeadGroup.findOne({ groupId: group }).select('name keys -_id').lean() as { name?: string; keys?: string[] } | null;
     if (!g) return json({ ok: false, error: 'group not found' }, { status: 404 });
     const keys = g.keys || [];
-    const docs = await Lead.find({ dedupKey: { $in: keys } }).select('dedupKey name phone address -_id').lean();
+    const docs = await Lead.find({ dedupKey: { $in: keys } }).select('project dedupKey name phone address -_id').lean();
     const byKey = new Map((docs as any[]).map((r) => [r.dedupKey, r]));
     const rows = keys.map((k) => byKey.get(k)).filter(Boolean).map((r: any) => ({
-      dedupKey: r.dedupKey, name: r.name || '', phone: r.phone || '', address: r.address || '', e164: toE164(r.phone),
+      project: r.project, dedupKey: r.dedupKey, name: r.name || '', phone: r.phone || '', address: r.address || '', e164: toE164(r.phone),
     }));
     return json({ ok: true, name: g.name, rows, envError: envError() });
   } catch (e: any) {

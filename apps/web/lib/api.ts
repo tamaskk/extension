@@ -65,9 +65,11 @@ export const api = {
   leadSearchOne: (project: string, dedupKey: string) =>
     jsend('/api/lead-search', 'POST', { project, dedupKey }) as Promise<{ ok: boolean; found?: boolean; skipped?: boolean; email?: string; owner?: string; source?: string; error?: string }>,
   getVapiQueue: (group: string) =>
-    jget(`/api/vapi?group=${encodeURIComponent(group)}`) as Promise<{ ok: boolean; name?: string; rows: { dedupKey: string; name: string; phone: string; address: string; e164: string | null }[]; envError?: string | null; error?: string }>,
+    jget(`/api/vapi?group=${encodeURIComponent(group)}`) as Promise<{ ok: boolean; name?: string; rows: { project: string; dedupKey: string; name: string; phone: string; address: string; e164: string | null }[]; envError?: string | null; error?: string }>,
   vapiCall: (b: { phone: string; name?: string; address?: string; dedupKey?: string }) =>
     jsend('/api/vapi', 'POST', b) as Promise<{ ok: boolean; callId?: string; status?: string; error?: string }>,
+  logCall: (project: string, dedupKey: string, call: { id: string; at: string; endedReason?: string }) =>
+    jsend('/api/leads', 'PATCH', { project, dedupKey, addCall: call }),
   vapiStatus: (id: string) =>
     jget(`/api/vapi?id=${encodeURIComponent(id)}`) as Promise<{ ok: boolean; status?: string; endedReason?: string; recordingUrl?: string; transcript?: string; summary?: string; error?: string }>,
   generateEmail: (project: string, dedupKey: string, context: Record<string, unknown>) =>

@@ -91,6 +91,12 @@ export async function PATCH(req: Request) {
   await dbConnect();
   const b = await req.json();
   if (b.uncheckAll) { const r = await Lead.updateMany({ checked: true }, { $set: { checked: false } }); return json({ ok: true, updated: r.modifiedCount || 0 }); }
+  if (b.addCall && b.addCall.id) { // append a Vapi call to the lead's history (Call tab)
+    await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, {
+      $push: { vapiCalls: { id: String(b.addCall.id), at: String(b.addCall.at || new Date().toISOString()), endedReason: String(b.addCall.endedReason || '') } },
+    });
+    return json({ ok: true });
+  }
   const set: Record<string, unknown> = {};
   if ('checked' in b) set.checked = !!b.checked;
   if ('call' in b) set.call = !!b.call;
