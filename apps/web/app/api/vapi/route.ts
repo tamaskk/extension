@@ -43,7 +43,12 @@ export async function GET(req: Request) {
       const r = await fetch(`${VAPI}/call/${encodeURIComponent(id)}`, { headers: vapiHeaders(), cache: 'no-store' });
       const b = await r.json().catch(() => ({}));
       if (!r.ok) return json({ ok: false, error: b?.message || `Vapi ${r.status}` }, { status: 502 });
-      return json({ ok: true, status: b.status || '', endedReason: b.endedReason || '', startedAt: b.startedAt || '', endedAt: b.endedAt || '' });
+      return json({
+        ok: true, status: b.status || '', endedReason: b.endedReason || '', startedAt: b.startedAt || '', endedAt: b.endedAt || '',
+        recordingUrl: b.recordingUrl || b?.artifact?.recordingUrl || '',
+        transcript: b.transcript || b?.artifact?.transcript || '',
+        summary: b.summary || '',
+      });
     }
     const group = u.get('group') || '';
     if (!group) return json({ ok: false, error: 'group or id required' }, { status: 400 });

@@ -986,3 +986,10 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 .sms-body { min-height: 90px; }
 .sms-count { float: right; font-size: 11px; color: var(--muted); font-weight: 400; }
 .sms-count.over { color: #e11d48; font-weight: 700; }
+
+/* call recording + transcript in the Vapi modal */
+.vapi-artifacts td { background: var(--panel); }
+.vapi-audio { width: 100%; max-width: 420px; height: 34px; display: block; margin: 6px 0; }
+.vapi-transcript { max-height: 260px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 6px 0; }
+.vapi-transcript pre { white-space: pre-wrap; word-break: break-word; font-size: 12px; margin: 0; font-family: inherit; }
+.vapi-summary { font-size: 12px; font-weight: 600; margin: 0 0 6px; }

@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 
 type QueueRow = {
   dedupKey: string; name: string; phone: string; address: string; e164: string | null;
   status: 'pending' | 'calling' | 'ended' | 'failed' | 'nophone';
   callStatus?: string; endedReason?: string; error?: string;
+  callId?: string; recordingUrl?: string; transcript?: string; summary?: string; showTranscript?: boolean;
 };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -41,6 +42,19 @@ export default function VapiCallModal({ group, onClose }:
   const upd = (i: number, patch: Partial<QueueRow>) =>
     setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
 
+  // Vapi uploads the recording/transcript shortly AFTER the call ends — retry a
+  // few times until they show up.
+  const fetchArtifacts = async (i: number, callId: string) => {
+    for (let t = 0; t < 6; t++) {
+      await sleep(5000);
+      const st = await api.vapiStatus(callId).catch(() => null);
+      if (st?.ok && (st.recordingUrl || st.transcript)) {
+        upd(i, { recordingUrl: st.recordingUrl || '', transcript: st.transcript || '', summary: st.summary || '' });
+        return;
+      }
+    }
+  };
+
   const start = async () => {
     if (runRef.current) return;
     runRef.current = true; setRunning(true);
@@ -54,13 +68,17 @@ export default function VapiCallModal({ group, onClose }:
       const res = await api.vapiCall({ phone: list[i].e164!, name: list[i].name, address: list[i].address, dedupKey: list[i].dedupKey }).catch(() => null);
       if (!res?.ok || !res.callId) { upd(i, { status: 'failed', error: res?.error || 'Starting the call failed' }); continue; }
       const callId = res.callId;
-      upd(i, { callStatus: res.status || 'queued' });
+      upd(i, { callStatus: res.status || 'queued', callId });
       for (;;) { // poll until the call ends (or the user stops the run)
         await sleep(4000);
         const st = await api.vapiStatus(callId).catch(() => null);
         if (st?.ok) {
           upd(i, { callStatus: st.status });
-          if (st.status === 'ended') { upd(i, { status: 'ended', endedReason: st.endedReason || '' }); break; }
+          if (st.status === 'ended') {
+            upd(i, { status: 'ended', endedReason: st.endedReason || '', recordingUrl: st.recordingUrl || '', transcript: st.transcript || '', summary: st.summary || '' });
+            fetchArtifacts(i, callId); // the recording/transcript can lag the call end by a few seconds
+            break;
+          }
         }
         if (!runRef.current) { upd(i, { status: 'ended', endedReason: 'stopped watching (call may still be live)' }); break; }
       }
@@ -105,14 +123,37 @@ export default function VapiCallModal({ group, onClose }:
                 {rows.map((r, i) => {
                   const [cls, label] = STATUS_CHIP[r.status];
                   return (
-                    <tr key={r.dedupKey} className={r.status === 'calling' ? 'vapi-live' : ''}>
-                      <td className="muted">{i + 1}</td>
-                      <td className="bizname" title={r.name}>{r.name}</td>
-                      <td>{r.phone || <span className="muted">—</span>}</td>
-                      <td>{r.e164 || <span className="muted">not dialable</span>}</td>
-                      <td><span className={`chip ${cls}`}>{label}{r.status === 'calling' && r.callStatus ? ` · ${r.callStatus}` : ''}</span></td>
-                      <td className="muted">{r.error || r.endedReason || ''}</td>
-                    </tr>
+                    <React.Fragment key={r.dedupKey}>
+                      <tr className={r.status === 'calling' ? 'vapi-live' : ''}>
+                        <td className="muted">{i + 1}</td>
+                        <td className="bizname" title={r.name}>{r.name}</td>
+                        <td>{r.phone || <span className="muted">—</span>}</td>
+                        <td>{r.e164 || <span className="muted">not dialable</span>}</td>
+                        <td><span className={`chip ${cls}`}>{label}{r.status === 'calling' && r.callStatus ? ` · ${r.callStatus}` : ''}</span></td>
+                        <td className="muted">
+                          {r.error || r.endedReason || ''}
+                          {r.transcript && (
+                            <button className="mini" style={{ marginLeft: 8 }} onClick={() => upd(i, { showTranscript: !r.showTranscript })}>
+                              {r.showTranscript ? 'hide transcript' : '📄 transcript'}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                      {(r.recordingUrl || (r.showTranscript && r.transcript)) && (
+                        <tr className="vapi-artifacts">
+                          <td />
+                          <td colSpan={5}>
+                            {r.recordingUrl && <audio controls preload="none" src={r.recordingUrl} className="vapi-audio" />}
+                            {r.showTranscript && r.transcript && (
+                              <div className="vapi-transcript">
+                                {r.summary && <p className="vapi-summary">📝 {r.summary}</p>}
+                                <pre>{r.transcript}</pre>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>

@@ -69,7 +69,7 @@ export const api = {
   vapiCall: (b: { phone: string; name?: string; address?: string; dedupKey?: string }) =>
     jsend('/api/vapi', 'POST', b) as Promise<{ ok: boolean; callId?: string; status?: string; error?: string }>,
   vapiStatus: (id: string) =>
-    jget(`/api/vapi?id=${encodeURIComponent(id)}`) as Promise<{ ok: boolean; status?: string; endedReason?: string; error?: string }>,
+    jget(`/api/vapi?id=${encodeURIComponent(id)}`) as Promise<{ ok: boolean; status?: string; endedReason?: string; recordingUrl?: string; transcript?: string; summary?: string; error?: string }>,
   generateEmail: (project: string, dedupKey: string, context: Record<string, unknown>) =>
     jsend('/api/email', 'POST', { project, dedupKey, context }) as Promise<{ ok: boolean; subject?: string; body?: string; emailAt?: string; error?: string }>,
   generateSms: (project: string, dedupKey: string, context: Record<string, unknown>) =>
