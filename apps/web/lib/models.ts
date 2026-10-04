@@ -56,6 +56,12 @@ const LeadSchema = new Schema({
   smsBody: { type: String, default: '' },      // GPT-generated outreach SMS (editable, regenerable)
   smsAt: { type: String, default: '' },
   emailSearchAt: { type: String, default: '' }, // ISO of the last automated contact search ('' = never tried)
+  // ── website email lookup (done by the extension — scrape-time + Email audit) ──
+  emails: { type: [String], default: undefined }, // every usable address found on the site, best first
+  emailSource: { type: String, default: '' },     // page URL the address was read from
+  emailStatus: { type: String, default: '' },     // found | none | error | social | no_site
+  emailCheckedAt: { type: String, default: '' },  // ISO of the last website lookup ('' = never checked)
+  emailError: { type: String, default: '' },      // why the site could not be read (HTTP 403, timeout…)
   vapiCalls: { type: [Schema.Types.Mixed], default: [] }, // [{ id, at, endedReason }] — Vapi call history (Call tab)
   notesAt: { type: String, default: '' },     // ISO of the last notes edit; '' = no notes (Notes view filter+sort)
 
@@ -104,6 +110,7 @@ const ProjectStatSchema = new Schema({
   reviews: { type: Number, default: 0 },      // leads with ≥1 scraped review
   reviewsSum: { type: Number, default: 0 },   // total scraped review rows
   ai: { type: Number, default: 0 },           // leads with AI analysis
+  emailTodo: { type: Number, default: null },  // has a real website, no email, never checked (null = not counted yet)
   oppSum: { type: Number, default: 0 },       // sum of opportunityScore (avg = oppSum/total)
   updatedAt: String,
 }, { versionKey: false });

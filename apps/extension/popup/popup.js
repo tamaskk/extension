@@ -247,6 +247,15 @@ async function init() {
     refreshQueue();
   });
 
+  $('openAudit').addEventListener('click', () => chrome.tabs.create({ url: chrome.runtime.getURL('audit/audit.html') }));
+  $('openLog').addEventListener('click', () => chrome.tabs.create({ url: chrome.runtime.getURL('changelog/changelog.html') }));
+  // Email lookup switch (persisted in the background; default on).
+  const emailHint = (r) => { $('autoEmailHint').textContent = !r ? '' : !r.on ? 'Off — the Email column stays empty until you run the Email audit' : (r.queued + r.running) ? `On — ${r.queued + r.running} website(s) in the queue` : 'On — reads each business website for its email'; };
+  const refreshEmail = () => bg({ type: 'getAutoEmail' }).then((r) => { if (r) { $('autoEmail').checked = !!r.on; emailHint(r); } });
+  refreshEmail();
+  setInterval(refreshEmail, 2000);
+  $('autoEmail').addEventListener('change', async () => { await bg({ type: 'setAutoEmail', on: $('autoEmail').checked }); refreshEmail(); });
+
   // Batch mode switch: stream-to-DB vs keep-in-browser (persisted in the background).
   const applyModeHint = (on) => { $('bModeHint').textContent = on ? 'On — upload each finished search to DB, free browser storage' : 'Off — keep everything in the browser'; };
   bg({ type: 'getBatchMode' }).then((r) => { const on = r && r.mode === 'stream'; $('bMode').checked = on; applyModeHint(on); }).catch(() => {});

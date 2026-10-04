@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../dashboard/dashboard.css" />
+  <link rel="stylesheet" href="../lib/pages.css" />
+  <title>GridLeads — Email audit</title>
+</head>
+<body>
+  <div class="page">
+    <header class="pg-top">
+      <div class="pg-brand">◧ GridLeads <span>· Email audit</span></div>
+      <nav class="pg-nav">
+        <a href="../dashboard/dashboard.html">▦ Dashboard</a>
+        <a href="audit.html" class="on">✉ Email audit</a>
+        <a href="../changelog/changelog.html">🕘 Changelog</a>
+      </nav>
+    </header>
+
+    <div class="pg-body">
+      <p class="pg-note">
+        Re-checks the businesses you already scraped: shows <b>what is missing, how much and in which project</b>, then
+        opens each business's own website (home + contact / about / imprint pages) and saves the email it finds.
+        Google Maps itself never returns an email, so a lead <b>without a website</b> cannot be filled in here —
+        for those use the web app's AI lead search. Keep this tab open while it runs.
+      </p>
+
+      <div class="pg-row">
+        <div class="seg" id="src">
+          <button class="seg-btn active" data-src="db" type="button">☁ Database</button>
+          <button class="seg-btn" data-src="local" type="button">💻 This browser</button>
+        </div>
+        <input id="q" class="search" type="search" placeholder="Filter projects — e.g. plumbers texas" />
+        <button id="rescan" class="btn">⟳ Rescan</button>
+      </div>
+
+      <div id="warn" class="pg-warn hidden"></div>
+      <section class="tiles" id="tiles"></section>
+
+      <section class="runbox">
+        <div class="pg-row">
+          <button id="start" class="btn primary">▶ Start</button>
+          <button id="stop" class="btn danger" disabled>■ Stop</button>
+          <label class="muted">Parallel sites
+            <select id="conc" class="select"><option>4</option><option selected>8</option><option>12</option><option>16</option></select>
+          </label>
+          <label class="muted" title="Also re-open the websites a previous run already checked without finding an email."><input type="checkbox" id="retry" /> Re-check already checked leads</label>
+          <span id="startHint" class="muted"></span>
+        </div>
+        <div class="pbar"><div id="pfill"></div></div>
+        <div id="status" class="run-status">Idle. Tick the projects to check (or none = all, top to bottom), or press ▶ on a row to start from that project.</div>
+        <div id="feed" class="feed hidden"></div>
+      </section>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="cb"><input type="checkbox" id="selall" /></th>
+            <th>Project</th>
+            <th class="num">Leads</th>
+            <th class="num" title="Leads that already have an email">Email ✓</th>
+            <th class="num" title="Has a website, no email yet, never checked — this is what a run works on">To check</th>
+            <th class="num" title="Website was read, no usable email on it">Checked · none</th>
+            <th class="num" title="Website could not be read (blocked, down, timeout)">Site failed</th>
+            <th class="num" title="No email and no own website (or only a Facebook/Instagram page) — nothing to crawl">No website</th>
+            <th class="num">No phone</th>
+            <th title="Other empty fields: address / category / rating">Other gaps</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div id="empty" class="empty hidden"></div>
+      <div class="pg-row" style="margin-top:14px"><button id="more" class="btn hidden">Load more projects</button><span id="count" class="muted"></span></div>
+    </div>
+  </div>
+  <script src="../lib/activityLog.js"></script>
+  <script src="audit.js"></script>
+</body>
+</html>

@@ -25,6 +25,7 @@ import GroupsView from './GroupsView';
 import VapiCallModal from './VapiCallModal';
 import CategoriesView from './CategoriesView';
 import NotesView from './NotesView';
+import ChangelogView from './ChangelogView';
 import LeadSearchModal from './LeadSearchModal';
 import OrganizeModal from './OrganizeModal';
 
@@ -272,7 +273,7 @@ export default function Dashboard() {
   const [dupesOpen, setDupesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [view, setView] = useState<'leads' | 'map' | 'stats' | 'reviews' | 'groups' | 'cats' | 'notes'>('leads');
+  const [view, setView] = useState<'leads' | 'map' | 'stats' | 'reviews' | 'groups' | 'cats' | 'notes' | 'log'>('leads');
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; regions: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [reviewRow, setReviewRow] = useState<LeadRow | null>(null);
@@ -951,6 +952,7 @@ export default function Dashboard() {
             <button className={`crail-i ${view === 'groups' ? 'active' : ''}`} title="Groups" onClick={() => setView('groups')}>🗂</button>
             <button className={`crail-i ${view === 'cats' ? 'active' : ''}`} title="Categories" onClick={() => setView('cats')}>🏷</button>
             <button className={`crail-i ${view === 'notes' ? 'active' : ''}`} title="Notes" onClick={() => setView('notes')}>📝</button>
+            <button className={`crail-i ${view === 'log' ? 'active' : ''}`} title="Changelog" onClick={() => setView('log')}>🕘</button>
             <button className="crail-i" title="Calls" onClick={() => setCallsOpen(true)}>📞</button>
             <button className="crail-i" title="Duplicates" onClick={() => setDupesOpen(true)}>⧉</button>
             <button className="crail-i" title="Organize" onClick={() => setOrganizeOpen(true)}>🗂️</button>
@@ -980,6 +982,7 @@ export default function Dashboard() {
           <button className={`navrail-item ${view === 'groups' ? 'active' : ''}`} onClick={() => { setView('groups'); setSidebarOpen(false); }}><span className="ic">🗂</span> Groups</button>
           <button className={`navrail-item ${view === 'cats' ? 'active' : ''}`} onClick={() => { setView('cats'); setSidebarOpen(false); }}><span className="ic">🏷</span> Categories</button>
           <button className={`navrail-item ${view === 'notes' ? 'active' : ''}`} onClick={() => { setView('notes'); setSidebarOpen(false); }}><span className="ic">📝</span> Notes</button>
+          <button className={`navrail-item ${view === 'log' ? 'active' : ''}`} onClick={() => { setView('log'); setSidebarOpen(false); }}><span className="ic">🕘</span> Changelog</button>
           <button className="navrail-item" onClick={() => setCallsOpen(true)}><span className="ic">📞</span> Calls{callCount > 0 && <span className="nb">{callCount.toLocaleString()}</span>}</button>
           <button className="navrail-item" onClick={() => setDupesOpen(true)}><span className="ic">⧉</span> Duplicates</button>
           <button className="navrail-item" onClick={() => setOrganizeOpen(true)}><span className="ic">🗂️</span> Organize</button>
@@ -1136,6 +1139,8 @@ export default function Dashboard() {
         {view === 'cats' && <CategoriesView />}
 
         {view === 'notes' && <NotesView />}
+
+        {view === 'log' && <ChangelogView onOpenProject={(q) => { setActiveGroup(null); setActiveFolder(null); setActiveProject(q); setView('leads'); }} />}
 
         {view === 'leads' && <>
         {activeGroup && (

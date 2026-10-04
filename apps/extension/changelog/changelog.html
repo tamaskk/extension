@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../dashboard/dashboard.css" />
+  <link rel="stylesheet" href="../lib/pages.css" />
+  <title>GridLeads — Changelog</title>
+</head>
+<body>
+  <div class="page">
+    <header class="pg-top">
+      <div class="pg-brand">◧ GridLeads <span>· Changelog</span></div>
+      <nav class="pg-nav">
+        <a href="../dashboard/dashboard.html">▦ Dashboard</a>
+        <a href="../audit/audit.html">✉ Email audit</a>
+        <a href="changelog.html" class="on">🕘 Changelog</a>
+      </nav>
+    </header>
+
+    <div class="pg-body">
+      <p class="pg-note">
+        Everything the extension did, newest first: <b>which leads came in and when</b>, what <b>changed</b> on a re-scrape (old → new),
+        every <b>email</b> found and the page it was read from, audit runs, database syncs, project and batch actions.
+        Click a row for the details. Recording started when this version was installed — earlier activity was never logged.
+      </p>
+
+      <div class="pg-row">
+        <div class="seg" id="range">
+          <button class="seg-btn active" data-range="today" type="button">Today</button>
+          <button class="seg-btn" data-range="7" type="button">7 days</button>
+          <button class="seg-btn" data-range="30" type="button">30 days</button>
+          <button class="seg-btn" data-range="all" type="button">All</button>
+        </div>
+        <input id="from" class="select" type="date" title="From" />
+        <input id="to" class="select" type="date" title="To" />
+        <span id="logsize" class="muted"></span>
+      </div>
+      <section class="tiles" id="tiles"></section>
+
+      <div class="pg-row">
+        <button class="chipbtn active" data-group="">All</button>
+        <button class="chipbtn" data-group="leads">Leads in / changed</button>
+        <button class="chipbtn" data-group="email">Emails</button>
+        <button class="chipbtn" data-group="audit">Audit runs</button>
+        <button class="chipbtn" data-group="sync">Database sync</button>
+        <button class="chipbtn" data-group="project">Projects</button>
+        <button class="chipbtn" data-group="batch">Batches</button>
+      </div>
+      <div class="pg-row">
+        <input id="text" class="search" type="search" placeholder="Search anything — business, email, domain, field…" />
+        <input id="project" class="search" type="search" placeholder="Project contains…" />
+        <label class="muted" title="Hide the rows for websites that were checked without finding an email (there are a lot of them)."><input type="checkbox" id="hideMiss" checked /> Hide “no email” rows</label>
+        <label class="muted"><input type="checkbox" id="live" checked /> Live</label>
+        <button id="exportBtn" class="btn">⤓ Export</button>
+        <button id="clearBtn" class="btn danger">Clear log</button>
+      </div>
+
+      <div id="list"></div>
+      <div id="empty" class="empty hidden">Nothing logged for this filter yet.</div>
+      <div class="pg-row" style="margin-top:14px"><button id="more" class="btn hidden">Load older</button><span id="count" class="muted"></span></div>
+
+      <details class="rel">
+        <summary>Extension versions</summary>
+        <h4>0.3.0</h4>
+        <ul>
+          <li><b>Emails are now actually collected.</b> Until now the Email column was always empty: Google Maps never returns an email and nothing else looked for one. The extension now opens each business's own website (home, then contact / about / imprint pages) and saves the address it finds, with the page it came from.</li>
+          <li><b>Find emails while scraping</b> (popup switch, on by default) — runs in the background next to the scrape; in “Stream to DB” mode a finished search waits for its lookups before it is uploaded.</li>
+          <li><b>Email audit page</b> — per project: what is missing, how much and where; pick the project to start from; works on the database or on this browser's projects.</li>
+          <li><b>Changelog page</b> (this one).</li>
+          <li>Fixed: re-scraping or re-syncing a project blanked an email that had already been found.</li>
+        </ul>
+        <h4>0.2.0</h4>
+        <ul><li>Reads Google Maps' search responses instead of the page (reliable website / phone), multi-window batch engine, stream-to-database mode.</li></ul>
+      </details>
+    </div>
+  </div>
+  <script src="../lib/activityLog.js"></script>
+  <script src="changelog.js"></script>
+</body>
+</html>

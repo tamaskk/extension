@@ -261,3 +261,6 @@ a.mlink:hover { text-decoration: underline; }
 .conc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 12px; }
 .conc-input { width: 60px; background: var(--panel, #141822); border: 1px solid var(--line, #232838); color: var(--text, #e6e8ee); border-radius: 8px; padding: 8px; font-size: 15px; font-weight: 700; text-align: center; }
 .conc-input:focus { outline: none; border-color: var(--accent, #6366f1); }
+
+/* topbar links styled as buttons (Email audit, Changelog) */
+a.linkbtn { text-decoration: none; white-space: nowrap; }

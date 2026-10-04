@@ -34,6 +34,35 @@ The CSV includes: Business, Category, Rating, Reviews, Phone, Website, **Website
 Status**, **Lead Score**, **Temperature**, **Opportunity Score**, **Top Pitch**,
 Address, coordinates, and Maps URL — sorted by Opportunity Score (best first).
 
+## Emails (v0.3)
+
+Google Maps never returns an email address, so the extension reads it off the
+business's **own website**: the homepage first, then — only if that has none —
+up to three contact / about / imprint pages. It understands `mailto:` links,
+plain text, Cloudflare-protected addresses and `name [at] domain [dot] com`,
+and drops asset names, tracking IDs, template placeholders, role addresses that
+never buy (press@, careers@, privacy@…) and the web designer's address. Each
+lead keeps the address, the page it came from (`emailSource`) and when it was
+checked (`emailCheckedAt` / `emailStatus`), so nothing is looked up twice. See
+[`lib/emailFinder.js`](lib/emailFinder.js).
+
+- **While scraping** — popup switch *Find emails while scraping* (on by
+  default). In *Stream to DB* mode a finished search waits (max 90 s) for its
+  lookups before it is uploaded.
+- **Email audit** ([`audit/`](audit/audit.html)) — for the leads you already
+  have. Lists every project with what is missing (email / phone / address /
+  category / rating) and how much; tick projects or press **▶ from here** to
+  choose where to start. Source is either the web app's database (needs you to
+  be logged in to the web app in the same browser) or this browser's projects.
+- **Changelog** ([`changelog/`](changelog/changelog.html)) — every lead that
+  came in, every field that changed on a re-scrape (old → new), every email and
+  where it was read, audit runs, syncs, project and batch actions. Stored in
+  IndexedDB ([`lib/activityLog.js`](lib/activityLog.js)), newest 150,000 events.
+
+A lead **without a website** (or with only a Facebook/Instagram page) cannot be
+filled in this way — there is nothing to read. Use the web app's AI lead search
+for those.
+
 ## How it works (v0.2)
 
 Instead of scraping the DOM (where the **website** link is usually missing), the

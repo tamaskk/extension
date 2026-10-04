@@ -1,6 +1,7 @@
 import { dbConnect } from '@/lib/db';
 import { Folder, Project, CORS, json } from '@/lib/models';
 import { invalidateProjectsCache } from '@/lib/projectStats';
+import { logActivity } from '@/lib/activity';
 
 export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
@@ -17,6 +18,7 @@ export async function POST(req: Request) {
   const id = b.id || ('f_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7));
   const order = await Folder.countDocuments(); // new folders go to the end
   await Folder.updateOne({ folderId: id }, { $set: { folderId: id, name: (b.name || 'New folder').trim(), createdAt: b.createdAt || new Date().toISOString(), collapsed: b.collapsed ?? true, order, parentId: b.parentId || null } }, { upsert: true });
+  await logActivity({ type: 'folder.create', n: 1, title: `Folder created: ${(b.name || 'New folder').trim()}`, data: { id, parentId: b.parentId || null } });
   return json({ ok: true, id });
 }
 
@@ -33,7 +35,14 @@ export async function PATCH(req: Request) {
     const bset: Record<string, unknown> = {};
     if (Object.prototype.hasOwnProperty.call(b, 'parentId')) bset.parentId = b.parentId || null;
     if (typeof b.icon === 'string') bset.icon = b.icon;
-    if (Object.keys(bset).length) await Folder.updateMany({ folderId: { $in: b.ids } }, { $set: bset });
+    if (Object.keys(bset).length) {
+      const prev = await Folder.find({ folderId: { $in: [...b.ids, bset.parentId].filter(Boolean) } }).select('folderId name parentId icon -_id').lean() as { folderId: string; name: string }[];
+      await Folder.updateMany({ folderId: { $in: b.ids } }, { $set: bset });
+      const nm = (id: unknown) => prev.find((f) => f.folderId === id)?.name || String(id);
+      await logActivity({ type: 'folder.edit', n: b.ids.length,
+        title: `${b.ids.length} folder(s): ${'parentId' in bset ? `moved to ${bset.parentId ? '📁 ' + nm(bset.parentId) : 'root'}` : ''}${'parentId' in bset && 'icon' in bset ? ', ' : ''}${'icon' in bset ? `icon → ${bset.icon || 'none'}` : ''}`,
+        data: { folders: b.ids.map(nm), ...bset } });
+    }
     return json({ ok: true });
   }
   const set: Record<string, unknown> = {};
@@ -41,7 +50,20 @@ export async function PATCH(req: Request) {
   if (typeof b.collapsed === 'boolean') set.collapsed = b.collapsed;
   if (Object.prototype.hasOwnProperty.call(b, 'parentId')) set.parentId = b.parentId || null;
   if (typeof b.icon === 'string') set.icon = b.icon;
-  if (Object.keys(set).length) await Folder.updateOne({ folderId: b.id }, { $set: set });
+  if (Object.keys(set).length) {
+    const prev = await Folder.findOne({ folderId: b.id }).select('name parentId icon -_id').lean() as Record<string, unknown> | null;
+    await Folder.updateOne({ folderId: b.id }, { $set: set });
+    // open/close is view state, not a change worth recording
+    const fields = Object.keys(set).filter((f) => f !== 'collapsed' && prev && JSON.stringify(prev[f] ?? null) !== JSON.stringify(set[f] ?? null));
+    if (prev && fields.length) {
+      const parentName = async (id: unknown) => (id ? ((await Folder.findOne({ folderId: id }).select('name -_id').lean()) as { name?: string } | null)?.name || String(id) : 'root');
+      const parts: string[] = [];
+      if (fields.includes('name')) parts.push(`renamed “${prev.name}” → “${set.name}”`);
+      if (fields.includes('parentId')) parts.push(`moved ${await parentName(prev.parentId)} → ${await parentName(set.parentId)}`);
+      if (fields.includes('icon')) parts.push(`icon ${prev.icon || 'none'} → ${set.icon || 'none'}`);
+      await logActivity({ type: 'folder.edit', n: 1, title: `Folder ${prev.name}: ${parts.join(', ')}`, data: { id: b.id, diff: Object.fromEntries(fields.map((f) => [f, [prev[f] ?? '', set[f] ?? '']])) } });
+    }
+  }
   return json({ ok: true });
 }
 
@@ -49,11 +71,12 @@ export async function DELETE(req: Request) {
   await dbConnect();
   const b = await req.json();
   // move this folder's sub-folders up to its parent, and its projects to ungrouped
-  const folder = await Folder.findOne({ folderId: b.id }).select('parentId').lean() as { parentId?: string | null } | null;
+  const folder = await Folder.findOne({ folderId: b.id }).select('parentId name').lean() as { parentId?: string | null; name?: string } | null;
   const newParent = folder?.parentId || null;
   await Folder.updateMany({ parentId: b.id }, { $set: { parentId: newParent } });
   await Folder.deleteOne({ folderId: b.id });
-  await Project.updateMany({ folderId: b.id }, { $set: { folderId: null } });
+  const moved = await Project.updateMany({ folderId: b.id }, { $set: { folderId: null } });
+  if (folder) await logActivity({ type: 'folder.delete', n: 1, title: `Folder deleted: ${folder.name || b.id} (${moved.modifiedCount || 0} project(s) moved to root, leads kept)`, data: { id: b.id, projectsUngrouped: moved.modifiedCount || 0 } });
   await invalidateProjectsCache(); // projects moved to root → sidebar payload changed
   return json({ ok: true });
 }

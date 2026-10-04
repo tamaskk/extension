@@ -52,6 +52,8 @@
         <button id="refresh" class="btn">⟳ Refresh</button>
         <button id="batchBtn" class="btn">⚡ Batch</button>
         <button id="dupes" class="btn">⧉ Duplicates</button>
+        <a href="../audit/audit.html" class="btn linkbtn" title="What is missing, how much, where — and fill in the emails">✉ Email audit</a>
+        <a href="../changelog/changelog.html" class="btn linkbtn" title="What came in when, what changed when">🕘 Changelog</a>
         <button id="exportJson" class="btn">⤓ Export JSON</button>
         <button id="export" class="btn primary">⤓ Export CSV</button>
       </header>
@@ -62,6 +64,7 @@
         <button class="chipbtn" data-filter="haswebsite">Has website</button>
         <button class="chipbtn" data-filter="hot">🔥 Hot</button>
         <button class="chipbtn" data-filter="email">Email found</button>
+        <button class="chipbtn" data-filter="noemail">No email</button>
         <div class="spacer"></div>
         <span id="title" class="title">All leads</span>
       </div>
@@ -184,6 +187,7 @@
     </div>
   </div>
 
+  <script src="../lib/activityLog.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>

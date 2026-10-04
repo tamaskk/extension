@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Tag, Lead, CORS, json } from '@/lib/models';
+import { logActivity } from '@/lib/activity';
 
 export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
@@ -22,7 +23,8 @@ export async function POST(req: Request) {
   const name = String(b.name || '').trim();
   if (!name) return json({ ok: false, error: 'name required' }, { status: 400 });
   const color = String(b.color || '#6366f1');
-  await Tag.updateOne({ name }, { $set: { name, color } }, { upsert: true });
+  const res = await Tag.updateOne({ name }, { $set: { name, color } }, { upsert: true });
+  if (res.upsertedCount || res.modifiedCount) await logActivity({ type: 'tag.edit', n: 1, title: res.upsertedCount ? `Tag created: ${name}` : `Tag recolored: ${name}`, data: { name, color } });
   return json({ ok: true, name, color });
 }
 
@@ -33,7 +35,8 @@ export async function DELETE(req: Request) {
   const name = String(b.name || '').trim();
   if (name) {
     await Tag.deleteOne({ name });
-    await Lead.updateMany({ tags: name }, { $pull: { tags: name } });
+    const r = await Lead.updateMany({ tags: name }, { $pull: { tags: name } });
+    await logActivity({ type: 'tag.delete', n: 1, title: `Tag deleted: ${name} (removed from ${r.modifiedCount || 0} lead(s))`, data: { name, leads: r.modifiedCount || 0 } });
   }
   return json({ ok: true });
 }

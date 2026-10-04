@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, CORS, json } from '@/lib/models';
+import { logActivity } from '@/lib/activity';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -34,10 +35,15 @@ export async function POST(req: Request) {
       }),
     });
     const data = await r.json().catch(() => ({}));
-    if (!r.ok) return json({ ok: false, error: data?.message || data?.error?.message || `Resend HTTP ${r.status}` }, { status: 502 });
+    if (!r.ok) {
+      const error = data?.message || data?.error?.message || `Resend HTTP ${r.status}`;
+      await logActivity({ type: 'outreach.error', project: b.project, keys: [b.dedupKey], title: `${lead.name || b.dedupKey}: email to ${to} FAILED — ${error}`, data: { name: lead.name, to, error } });
+      return json({ ok: false, error }, { status: 502 });
+    }
 
     const emailSentAt = new Date().toISOString();
     await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: { emailSentAt, emailSentTo: to } });
+    await logActivity({ type: 'outreach.sent', project: b.project, keys: [b.dedupKey], n: 1, title: `${lead.name || b.dedupKey}: email sent to ${to}`, data: { name: lead.name, to, subject: lead.emailSubject, body: lead.emailBody, resendId: data?.id || '' } });
     return json({ ok: true, id: data?.id || '', to, emailSentAt });
   } catch (e: any) {
     return json({ ok: false, error: e?.message || 'send failed' }, { status: 500 });

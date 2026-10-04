@@ -4,6 +4,8 @@ import { promisify } from 'util';
 import { dbConnect } from '@/lib/db';
 import { Project, Lead, ProjectStat, CORS, json } from '@/lib/models';
 import { invalidateProjectsCache, recomputeAllProjectStats } from '@/lib/projectStats';
+import { logActivity, type ActivityInput } from '@/lib/activity';
+import { Folder } from '@/lib/models';
 
 const gzip = promisify(gzipCb);
 
@@ -100,7 +102,24 @@ export async function PATCH(req: Request) {
   const set: Record<string, unknown> = {};
   if (typeof b.name === 'string') set.name = b.name;
   if (b.folderId !== undefined) set.folderId = b.folderId || null;
-  if (queries.length && Object.keys(set).length) await Project.updateMany({ query: { $in: queries } }, { $set: set });
+  if (queries.length && Object.keys(set).length) {
+    const prev = await Project.find({ query: { $in: queries } }).select('query name folderId -_id').lean() as { query: string; name?: string; folderId?: string | null }[];
+    await Project.updateMany({ query: { $in: queries } }, { $set: set });
+    const events: ActivityInput[] = [];
+    const one = queries.length === 1 ? queries[0] : undefined;
+    if ('name' in set) events.push({ type: 'project.rename', project: one, n: queries.length,
+      title: one ? `Project renamed: “${prev[0]?.name || one}” → “${set.name}”` : `${queries.length} projects renamed to “${set.name}”`,
+      data: { to: set.name, projects: prev.map((p) => ({ query: p.query, from: p.name })) } });
+    if ('folderId' in set) {
+      const ids = [...new Set([set.folderId, ...prev.map((p) => p.folderId)].filter(Boolean))] as string[];
+      const names = new Map((await Folder.find({ folderId: { $in: ids } }).select('folderId name -_id').lean() as { folderId: string; name: string }[]).map((f) => [f.folderId, f.name]));
+      const dest = set.folderId ? `📁 ${names.get(set.folderId as string) || set.folderId}` : 'root (no folder)';
+      events.push({ type: 'project.move', project: one, n: queries.length,
+        title: `${queries.length} project${queries.length === 1 ? '' : 's'} moved to ${dest}`,
+        data: { to: dest, projects: prev.map((p) => ({ query: p.query, from: p.folderId ? names.get(p.folderId) || p.folderId : 'root' })) } });
+    }
+    await logActivity(events);
+  }
   await invalidateProjectsCache(); // rename/move must show immediately in the sidebar
   return json({ ok: true });
 }
@@ -111,8 +130,12 @@ export async function DELETE(req: Request) {
   const b = await req.json();
   const queries: string[] = b.queries || (b.query ? [b.query] : []);
   if (queries.length) {
+    const counts = await ProjectStat.find({ project: { $in: queries } }).select('project total email -_id').lean() as { project: string; total: number; email: number }[];
     await Project.deleteMany({ query: { $in: queries } });
-    await Lead.deleteMany({ project: { $in: queries } });
+    const r = await Lead.deleteMany({ project: { $in: queries } });
+    await logActivity({ type: 'project.delete', project: queries.length === 1 ? queries[0] : undefined, n: queries.length,
+      title: `${queries.length} project${queries.length === 1 ? '' : 's'} deleted with ${r.deletedCount || 0} lead(s)`,
+      data: { leadsDeleted: r.deletedCount || 0, projects: queries.map((q) => { const c = counts.find((x) => x.project === q); return { query: q, leads: c?.total ?? null, emails: c?.email ?? null }; }) } });
     await ProjectStat.deleteMany({ project: { $in: queries } });
     await invalidateProjectsCache();
   }

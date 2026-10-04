@@ -31,6 +31,9 @@ export interface ReviewListRow {
   relativeTime: string; ownerResponse: string; scrapedAt: string;
 }
 
+// one Changelog event (see lib/activity.ts)
+export interface ActivityRow { id: string; at: string; type: string; title: string; project?: string; keys?: string[]; n?: number; source?: string; data?: Record<string, unknown>; }
+
 export interface OrganizeMove { query: string; from: string; createdAt: string; }
 export interface OrganizeSub { name: string; status: 'created' | 'reparented' | 'existing'; fromParent?: string; movedCount: number; alreadyHere: number; moved: OrganizeMove[]; }
 export interface OrganizeRoot { name: string; icon: string; created: boolean; movedCount: number; subs: OrganizeSub[]; }
@@ -84,6 +87,17 @@ export const api = {
     if (q.page) p.set('page', String(q.page));
     if (q.pageSize) p.set('pageSize', String(q.pageSize));
     return jget('/api/notes?' + p.toString()) as Promise<{ ok: boolean; rows: LeadRow[]; total: number; error?: string }>;
+  },
+  getActivity: (q: { groups?: string; q?: string; project?: string; from?: string; to?: string; page?: number; pageSize?: number } = {}) => {
+    const p = new URLSearchParams();
+    if (q.groups) p.set('groups', q.groups);
+    if (q.q) p.set('q', q.q);
+    if (q.project) p.set('project', q.project);
+    if (q.from) p.set('from', q.from);
+    if (q.to) p.set('to', q.to);
+    if (q.page) p.set('page', String(q.page));
+    if (q.pageSize) p.set('pageSize', String(q.pageSize));
+    return jget('/api/activity?' + p.toString()) as Promise<{ ok: boolean; rows: ActivityRow[]; total: number; summary?: Record<string, { events: number; n: number }>; error?: string }>;
   },
   getCategorySummary: () =>
     jget('/api/categories/summary') as Promise<{ ok: boolean; rows: { category: string; count: number; projects: number }[]; at: number; stale: boolean; error?: string }>,

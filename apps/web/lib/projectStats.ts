@@ -13,6 +13,12 @@ export const GROUP_STAGE = {
     reviews: { $sum: { $cond: [{ $gt: ['$reviewsCount', 0] }, 1, 0] } },
     reviewsSum: { $sum: { $ifNull: ['$reviewsCount', 0] } },
     ai: { $sum: { $cond: [{ $gt: ['$aiAt', ''] }, 1, 0] } },
+    // leads the extension's Email audit can still work on
+    emailTodo: { $sum: { $cond: [{ $and: [
+      { $eq: ['$websiteStatus', 'HAS_WEBSITE'] },
+      { $in: [{ $ifNull: ['$email', ''] }, ['']] },
+      { $in: [{ $ifNull: ['$emailCheckedAt', ''] }, ['']] },
+    ] }, 1, 0] } },
     oppSum: { $sum: { $ifNull: ['$opportunityScore', 0] } },
   },
 } as const;
@@ -24,13 +30,14 @@ export async function invalidateProjectsCache() {
   await mongoose.connection.db!.collection('caches').deleteOne({ key: 'projects' });
 }
 
-const ZERO = { total: 0, noWebsite: 0, hot: 0, email: 0, reviews: 0, reviewsSum: 0, ai: 0, oppSum: 0 };
+const ZERO = { total: 0, noWebsite: 0, hot: 0, email: 0, reviews: 0, reviewsSum: 0, ai: 0, oppSum: 0, emailTodo: 0 };
 
 function statSet(project: string, c: Record<string, number>, at: string) {
   return {
     project, updatedAt: at,
     total: c.total || 0, noWebsite: c.noWebsite || 0, hot: c.hot || 0, email: c.email || 0,
     reviews: c.reviews || 0, reviewsSum: c.reviewsSum || 0, ai: c.ai || 0, oppSum: c.oppSum || 0,
+    emailTodo: c.emailTodo || 0,
   };
 }
 
@@ -91,7 +98,7 @@ export async function recomputeAllProjectStats(): Promise<number> {
       await leadsColl.aggregate([
         { $match: match },
         GROUP_STAGE,
-        { $project: { _id: 0, project: '$_id', total: 1, noWebsite: 1, hot: 1, email: 1, reviews: 1, reviewsSum: 1, ai: 1, oppSum: 1, updatedAt: { $literal: at } } },
+        { $project: { _id: 0, project: '$_id', total: 1, noWebsite: 1, hot: 1, email: 1, reviews: 1, reviewsSum: 1, ai: 1, oppSum: 1, emailTodo: 1, updatedAt: { $literal: at } } },
         { $merge: { into: 'projectstats', on: 'project', whenMatched: 'replace', whenNotMatched: 'insert' } },
       ]).toArray(); // toArray() drives the pipeline; $merge emits no rows
     }

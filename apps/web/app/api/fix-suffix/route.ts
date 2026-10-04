@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, Project, ProjectStat, CORS, json } from '@/lib/models';
+import { logActivity } from '@/lib/activity';
 import { recomputeProjectStats } from '@/lib/projectStats';
 
 export const runtime = 'nodejs';
@@ -73,6 +74,9 @@ export async function POST(req: Request) {
     if (froms.length) await ProjectStat.deleteMany({ project: { $in: froms } });
     await recomputeProjectStats([...rename, ...merge].map((r) => r.to));
 
+    await logActivity({ type: 'system.fix-suffix', source: 'system', n: rename.length + merge.length,
+      title: `Project suffix “${from}” → “${to}”: ${rename.length} renamed, ${merge.length} merged, ${leadsUpdated} lead(s) re-homed, ${leadsDropped} duplicate(s) dropped`,
+      data: { from, to, renamed: rename.slice(0, 500), merged: merge.slice(0, 500), leadsUpdated, leadsDropped } });
     return json({ ...summary, leadsUpdated, leadsDropped });
   } catch (e: any) {
     return json({ ok: false, error: e?.message || 'fix-suffix failed' }, { status: 500 });

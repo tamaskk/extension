@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { dbConnect } from '@/lib/db';
 import { Lead, LeadGroup, CORS, json } from '@/lib/models';
+import { logActivity } from '@/lib/activity';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
     if (!keys.length) return json({ ok: false, error: 'no leads selected' }, { status: 400 });
     const groupId = randomUUID();
     await LeadGroup.create({ groupId, name, createdAt: new Date().toISOString(), keys });
+    await logActivity({ type: 'group.create', n: keys.length, keys: keys.slice(0, 1000), title: `Group created: ${name} (${keys.length} lead${keys.length === 1 ? '' : 's'})`, data: { groupId, fromChecked: !!b?.fromChecked } });
     return json({ ok: true, groupId, count: keys.length });
   } catch (e: any) {
     return json({ ok: false, error: e?.message || 'create failed' }, { status: 500 });
@@ -70,7 +72,15 @@ export async function PATCH(req: Request) {
     if (b?.fromChecked) add = add.concat((await Lead.distinct('dedupKey', { checked: true })) as string[]);
     if (add.length) upd.$addToSet = { keys: { $each: add } };
     if (Array.isArray(b?.remove) && b.remove.length) upd.$pull = { keys: { $in: b.remove.map(String) } };
-    if (Object.keys(upd).length) await LeadGroup.updateOne({ groupId: id }, upd);
+    if (Object.keys(upd).length) {
+      const prev = await LeadGroup.findOne({ groupId: id }).select('name -_id').lean() as { name?: string } | null;
+      await LeadGroup.updateOne({ groupId: id }, upd);
+      const parts: string[] = [];
+      if (upd.$set) parts.push(`renamed → “${(upd.$set as { name: string }).name}”`);
+      if (add.length) parts.push(`+${add.length} lead(s)`);
+      if (upd.$pull) parts.push(`−${b.remove.length} lead(s)`);
+      await logActivity({ type: 'group.edit', n: add.length + (upd.$pull ? b.remove.length : 0), keys: [...add, ...(upd.$pull ? b.remove.map(String) : [])].slice(0, 1000), title: `Group ${prev?.name || id}: ${parts.join(', ')}`, data: { groupId: id, added: add.length, removed: upd.$pull ? b.remove.length : 0 } });
+    }
     return json({ ok: true, added: add.length });
   } catch (e: any) {
     return json({ ok: false, error: e?.message || 'update failed' }, { status: 500 });
@@ -82,7 +92,11 @@ export async function DELETE(req: Request) {
   try {
     await dbConnect();
     const b = await req.json();
-    if (b?.id) await LeadGroup.deleteOne({ groupId: String(b.id) });
+    if (b?.id) {
+      const prev = await LeadGroup.findOne({ groupId: String(b.id) }).select('name keys -_id').lean() as { name?: string; keys?: string[] } | null;
+      await LeadGroup.deleteOne({ groupId: String(b.id) });
+      if (prev) await logActivity({ type: 'group.delete', n: 1, title: `Group deleted: ${prev.name} (${(prev.keys || []).length} member(s); leads untouched)`, data: { groupId: String(b.id) } });
+    }
     return json({ ok: true });
   } catch (e: any) {
     return json({ ok: false, error: e?.message || 'delete failed' }, { status: 500 });

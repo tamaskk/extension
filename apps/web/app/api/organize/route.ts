@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Folder, Project, CORS, json } from '@/lib/models';
+import { logActivity } from '@/lib/activity';
 import { invalidateProjectsCache } from '@/lib/projectStats';
 import { COUNTRY_CITIES } from '@/lib/countries';
 import { STATE_REGIONS } from '@/lib/regionNames';
@@ -191,6 +192,9 @@ export async function POST(req: Request) {
     }
     await invalidateProjectsCache(); // folderId moves must show in the sidebar
 
+    await logActivity({ type: 'system.organize', source: 'system', n: projMoves.length,
+      title: `Auto-organize: ${projMoves.length} project(s) moved, ${created.length} folder(s) created, ${reparents.size} re-parented, ${toDelete.length} deleted`,
+      data: { foldersCreated: summary.foldersCreated, foldersDeleted: summary.foldersDeleted, foldersReparented: reparents.size, projectsMoved: projMoves.length, unmatched } });
     return json(summary);
   } catch (e: any) {
     return json({ ok: false, error: e?.message || 'organize failed' }, { status: 500 });

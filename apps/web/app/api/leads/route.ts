@@ -1,6 +1,7 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, Project, LeadGroup, NO_SITE, CORS, json, descendantFolderIds, applyProjectFacets } from '@/lib/models';
 import { recomputeProjectStats } from '@/lib/projectStats';
+import { logActivity, logLeadEdit, diffFields } from '@/lib/activity';
 
 export const runtime = 'nodejs';
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
@@ -79,6 +80,8 @@ export async function POST(req: Request) {
   if (!proj?.query || !lead?.dedupKey) return json({ ok: false, error: 'project.query and lead.dedupKey required' }, { status: 400 });
   const existing = await Lead.findOne({ dedupKey: lead.dedupKey }).select('project').lean() as { project?: string } | null;
   if (existing && existing.project !== proj.query) return json({ ok: true, skippedDuplicate: true, existingProject: existing.project });
+  if (!existing) await logActivity({ type: 'leads.new', project: proj.query, source: 'extension', n: 1, keys: [lead.dedupKey], title: `+1 new lead: ${lead.name || lead.dedupKey}`,
+    data: { leads: [{ key: lead.dedupKey, name: lead.name, category: lead.category, phone: lead.phone, website: lead.website, websiteStatus: lead.websiteStatus, email: lead.email }] } });
   await Project.updateOne({ query: proj.query }, { $set: { query: proj.query, name: proj.name || proj.query, createdAt: proj.createdAt || new Date().toISOString() } }, { upsert: true });
   const { _id, ...rest } = lead;
   await Lead.updateOne({ project: proj.query, dedupKey: lead.dedupKey }, { $set: { ...rest, project: proj.query, dedupKey: lead.dedupKey } }, { upsert: true });
@@ -90,11 +93,16 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   await dbConnect();
   const b = await req.json();
-  if (b.uncheckAll) { const r = await Lead.updateMany({ checked: true }, { $set: { checked: false } }); return json({ ok: true, updated: r.modifiedCount || 0 }); }
+  if (b.uncheckAll) {
+    const r = await Lead.updateMany({ checked: true }, { $set: { checked: false } });
+    if (r.modifiedCount) await logActivity({ type: 'lead.bulk', n: r.modifiedCount, title: `Uncheck all: ${r.modifiedCount} lead(s) unchecked` });
+    return json({ ok: true, updated: r.modifiedCount || 0 });
+  }
   if (b.addCall && b.addCall.id) { // append a Vapi call to the lead's history (Call tab)
     await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, {
       $push: { vapiCalls: { id: String(b.addCall.id), at: String(b.addCall.at || new Date().toISOString()), endedReason: String(b.addCall.endedReason || '') } },
     });
+    await logActivity({ type: 'call.done', project: b.project, keys: [b.dedupKey], n: 1, title: `Call finished${b.addCall.endedReason ? ` — ${b.addCall.endedReason}` : ''}`, data: { callId: String(b.addCall.id), endedReason: String(b.addCall.endedReason || '') } });
     return json({ ok: true });
   }
   const set: Record<string, unknown> = {};
@@ -126,7 +134,13 @@ export async function PATCH(req: Request) {
     if (set[f] === undefined) delete set[f];
   }
   if (Object.keys(set).length) {
+    // what the lead looked like before, so the Changelog can show old → new
+    const prev = await Lead.findOne({ project: b.project, dedupKey: b.dedupKey }).select('name ' + Object.keys(set).join(' ')).lean() as Record<string, unknown> | null;
     await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: set });
+    if (prev) {
+      const derived = new Set(['notesAt', 'emailAt', 'smsAt']); // bookkeeping stamps, not edits
+      await logLeadEdit(b.project, b.dedupKey, String(set.name ?? prev.name ?? ''), diffFields(prev, set, Object.keys(set).filter((f) => !derived.has(f))));
+    }
     // only edits that change the sidebar counters trigger a recount
     if (['websiteStatus', 'opportunityScore', 'leadTemperature', 'email'].some((f) => f in set)) await recomputeProjectStats([b.project]);
   }
@@ -139,13 +153,18 @@ export async function DELETE(req: Request) {
   const b = await req.json();
   if (b.allChecked) {
     const projs = await Lead.distinct('project', { checked: true });
+    const gone = await Lead.find({ checked: true }).limit(1000).select('project dedupKey name phone email website -_id').lean();
     const r = await Lead.deleteMany({ checked: true });
+    if (r.deletedCount) await logActivity({ type: 'leads.delete', n: r.deletedCount, keys: (gone as any[]).map((g) => g.dedupKey), title: `${r.deletedCount} checked lead(s) deleted`, data: { leads: gone, projects: projs } });
     await recomputeProjectStats(projs as string[]);
     return json({ ok: true, deleted: r.deletedCount || 0 });
   }
   const items: { query: string; key: string }[] = b.items || [];
   if (items.length) {
+    const gone = await Lead.find({ dedupKey: { $in: items.slice(0, 1000).map((it) => it.key) } }).select('project dedupKey name phone email website -_id').lean();
     await Lead.bulkWrite(items.map((it) => ({ deleteOne: { filter: { project: it.query, dedupKey: it.key } } })), { ordered: false });
+    await logActivity({ type: 'leads.delete', n: items.length, keys: items.slice(0, 1000).map((it) => it.key), project: items.length === 1 ? items[0].query : undefined,
+      title: items.length === 1 ? `Lead deleted: ${(gone as any[])[0]?.name || items[0].key}` : `${items.length} lead(s) deleted`, data: { leads: gone } });
     await recomputeProjectStats(items.map((it) => it.query));
   }
   return json({ ok: true });

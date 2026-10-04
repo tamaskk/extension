@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, LeadGroup, CORS, json } from '@/lib/models';
+import { logActivity } from '@/lib/activity';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -90,6 +91,7 @@ export async function POST(req: Request) {
     });
     const body = await r.json().catch(() => ({}));
     if (!r.ok) return json({ ok: false, error: body?.message ? String(body.message) : `Vapi ${r.status}` }, { status: 502 });
+    await logActivity({ type: 'call.start', keys: b?.dedupKey ? [String(b.dedupKey)] : undefined, n: 1, title: `Call started: ${b?.name || e164} (${e164})`, data: { name: String(b?.name || ''), phone: e164, callId: body.id || '' } });
     return json({ ok: true, callId: body.id || '', status: body.status || 'queued' });
   } catch (e: any) {
     return json({ ok: false, error: e?.message || 'call failed' }, { status: 500 });

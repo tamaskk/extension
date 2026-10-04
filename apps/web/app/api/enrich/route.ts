@@ -9,6 +9,7 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, Review, Project, CORS, json, descendantFolderIds } from '@/lib/models';
 import { recomputeProjectStats } from '@/lib/projectStats';
+import { logActivity } from '@/lib/activity';
 import { spawn } from 'child_process';
 
 export const runtime = 'nodejs';
@@ -103,6 +104,7 @@ async function enrichOne(lead: any, tag = '') {
   const aiAt = new Date().toISOString();
   await Lead.updateOne({ dedupKey: lead.dedupKey }, { $set: { ...ai, aiAt } });
   await recomputeProjectStats([lead.project]); // ai counter changed
+  await logActivity({ type: 'ai.enrich', project: lead.project, keys: [lead.dedupKey], n: 1, title: `${name}: AI analysis generated`, data: { name, ...ai } });
   const secs = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`[enrich]${tag} ✓ ${name} — ${ai.aiSummary.length}c summary · ${nLines(ai.aiAdvantages)} advantages · ${nLines(ai.aiPainPoints)} pain points · pitch ${ai.aiPitch.length}c  (${secs}s)`);
   return { ...ai, aiAt };

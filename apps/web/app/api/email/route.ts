@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, CORS, json } from '@/lib/models';
+import { logActivity } from '@/lib/activity';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -82,9 +83,11 @@ export async function POST(req: Request) {
     const at = new Date().toISOString();
     if (isSms) {
       await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: { smsBody: body, smsAt: at } });
+      await logActivity({ type: 'outreach.draft', project: b.project, keys: [b.dedupKey], n: 1, title: `${lead.name || b.dedupKey}: SMS draft generated`, data: { name: lead.name, kind: 'sms', body } });
       return json({ ok: true, body, smsAt: at });
     }
     await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: { emailSubject: subject, emailBody: body, emailAt: at } });
+    await logActivity({ type: 'outreach.draft', project: b.project, keys: [b.dedupKey], n: 1, title: `${lead.name || b.dedupKey}: email draft generated — “${subject}”`, data: { name: lead.name, kind: 'email', subject, body } });
     return json({ ok: true, subject, body, emailAt: at });
   } catch (e: any) {
     return json({ ok: false, error: e?.message || 'email generation failed' }, { status: 500 });

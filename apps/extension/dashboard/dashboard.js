@@ -333,7 +333,9 @@ async function syncBundle(opts) {
     }
     showSync(`<b>✓ Sync complete</b><br>${projCount} project(s) · ${fmt(leadCount)} lead(s)${skipped ? ` · ${fmt(skipped)} dupes skipped` : ''}`, 'ok');
     hideSync(6000);
+    self.GridLeadsLog.add({ type: 'sync.manual', n: leadCount, title: `Synced to database: ${projCount} project(s), ${fmt(leadCount)} lead(s)${skipped ? `, ${fmt(skipped)} duplicates skipped` : ''}`, data: { projects: projects.map((p) => p.query).slice(0, 500), leads: leadCount, skippedDuplicates: skipped } });
   } catch (e) {
+    self.GridLeadsLog.add({ type: 'sync.error', title: `Manual sync failed at request ${doneReqs}/${totalReqs}: ${e.message}` });
     showSync(`<b>❌ Sync failed</b><br>${e.message} (at request ${doneReqs}/${totalReqs})<br>Is ${SYNC_BASE} reachable & MongoDB allowing Vercel?`, 'err');
     hideSync(10000);
   }
@@ -343,6 +345,7 @@ const CSV_COLUMNS = [
   ['phone', 'Phone'], ['email', 'Email'], ['website', 'Website'], ['websiteStatus', 'Website Status'],
   ['leadScore', 'Lead Score'], ['leadTemperature', 'Temperature'], ['opportunityScore', 'Opportunity Score'],
   ['topPitch', 'Top Pitch'], ['address', 'Address'], ['lat', 'Lat'], ['lng', 'Lng'], ['mapsUrl', 'Maps URL'],
+  ['emailSource', 'Email Source'],
 ];
 function csvEscape(v) { if (v === null || v === undefined) return ''; let s = String(v); if (/^[=+\-@\t\r]/.test(s) && !/^[+-]?\d+(\.\d+)?$/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
 function buildCsv(list) {
@@ -356,6 +359,7 @@ function matches(r) {
   if (filter === 'haswebsite' && r.websiteStatus !== 'HAS_WEBSITE') return false;
   if (filter === 'hot' && r.leadTemperature !== 'HOT') return false;
   if (filter === 'email' && !r.email) return false;
+  if (filter === 'noemail' && r.email) return false;
   if (term) {
     const hay = `${r.name} ${r.category} ${r.address} ${r.phone} ${r.email || ''}`.toLowerCase();
     if (!hay.includes(term)) return false;
@@ -398,7 +402,11 @@ function render() {
     const reviews = (r.reviewCount == null || r.reviewCount === '') ? '—' : esc(r.reviewCount);
     const temp = r.leadTemperature || '';
     const phone = r.phone ? esc(r.phone) : '<span class="muted">—</span>';
-    const email2 = r.email ? esc(r.email) : '<span class="muted">—</span>';
+    // no email: say why, so "—" is never ambiguous (not looked up yet vs nothing there)
+    const why = r.emailStatus === 'error' ? `site failed: ${r.emailError || 'error'}` : r.emailCheckedAt ? 'website checked — no email on it' : NO_SITE.has(r.websiteStatus) ? 'no website to check' : 'not checked yet';
+    const email2 = r.email
+      ? `<span title="${escAttr((r.emailSource ? 'from ' + r.emailSource : '') + ((r.emails || []).length > 1 ? '\nalso: ' + r.emails.slice(1).join(', ') : ''))}">${esc(r.email)}</span>`
+      : `<span class="muted" title="${escAttr(why)}">${r.emailCheckedAt ? '∅' : '—'}</span>`;
     const safeMaps = /^https?:\/\//i.test(r.mapsUrl || '') ? r.mapsUrl : '';
     const safeWeb = /^https?:\/\//i.test(r.website || '') ? r.website : '';
     const maps = safeMaps ? `<a class="mlink" href="${esc(safeMaps)}" target="_blank" rel="noopener noreferrer">open ↗</a>` : '';
