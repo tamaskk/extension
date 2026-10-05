@@ -18,6 +18,5 @@ Small tasks, at most a day each. Tick a box only when AGENTS.md §07 is met. IDs
 - [ ] T-009 (F3) One scoring implementation shared by web and the extension; decide the fate of `packages/scoring`
 - [ ] T-010 Add `try/catch` to the route handlers listed in docs/ARCHITECTURE.md §04
 - [ ] T-011 Remove or archive the unused root folders: `prisma/`, `countries/`, `state_json/`, `states_table/`
-- [ ] T-012 Refresh `apps/web/README.md` (still describes Next.js 15 and localhost sync)
 
 ## Done

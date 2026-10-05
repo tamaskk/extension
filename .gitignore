@@ -28,3 +28,11 @@ LeadsMap_Crx/
 .gstack/
 .vercel
 *.tsbuildinfo
+
+# Claude Code: personal files, not shared
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/agent-memory-local/
+
+# Secrets (keys)
+*.pem

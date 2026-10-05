@@ -1,45 +1,59 @@
 # GridLeads
 
-A production-grade SaaS + Chrome Extension for **Google Maps lead generation** — built for agencies, freelancers, web designers, SEO consultants, and sales teams. Discover local businesses, enrich their data, detect who has no (or a broken) website, score the opportunity, and export qualified leads.
+Google Maps lead generation for one operator: a Chrome extension scrapes local businesses, a web dashboard scores them by how much website work they need, and the operator researches contacts, writes outreach, sends email and places AI calls from there.
 
-> **The USP:** every lead carries a **Website Sales Opportunity Score (0–100)** — a sales-ready number that tells a rep exactly how much website/marketing work they can pitch and bill.
+> Every lead carries a **website status** and an **opportunity score (0–100)**, so the list is sorted by who to contact first.
 
 ## Monorepo at a glance
 
 | Path | What it is |
 |------|------------|
-| [apps/web](docs/02-folder-structure.md) | Next.js 15 dashboard (App Router, Shadcn/UI, TanStack Query, Zustand) |
-| [apps/api](docs/02-folder-structure.md) | NestJS REST API + BullMQ producers |
-| [apps/worker](docs/02-folder-structure.md) | BullMQ consumers: scraping, enrichment, scoring, exports, outreach |
-| [apps/extension](docs/05-chrome-extension.md) | Manifest V3 Chrome extension (Google Maps scraper) |
-| [packages/scoring](packages/scoring/index.ts) | **Lead Score + Website Opportunity engines** (framework-free, shared by API, worker, and extension) |
-| [packages/db](prisma/schema.prisma) | Prisma schema, migrations, seed |
-| [packages/ui](docs/02-folder-structure.md) | Shared Shadcn-based component library + design tokens |
+| [apps/web](apps/web/README.md) | The dashboard. Next.js 16 (App Router), React 19, Mongoose, zustand. Production: https://gridleads-wheat.vercel.app |
+| [apps/extension](apps/extension/README.md) | Manifest V3 Chrome extension: Google Maps scraper, batch runner, local dashboard, sync |
+| [apps/extension-reviews](apps/extension-reviews/README.md) | Manifest V3 Chrome extension: Google review scraper |
+| [apps/landing](apps/landing) | Marketing page with live counters (Next.js 16) |
+| [apps/tokenleads](apps/tokenleads/ROADMAP.md) | TokenLeads, a separate product: token-based lead marketplace that reads the GridLeads leads read-only |
+| [packages/scoring](packages/scoring/index.ts) | TypeScript scoring library. Not imported by any app today |
+
+There is no root `package.json` and no workspace. Each Next.js app has its own `package.json`; the extensions have no build step.
 
 ## Documentation
 
-1. [Architecture](docs/01-architecture.md) — system design, data flow, infra topology
-2. [Folder structure](docs/02-folder-structure.md) — full monorepo layout
-3. [Database schema](docs/03-database-schema.md) — ERD, indexes, partitioning, RLS
-4. [API specification](docs/04-api-specification.md) — REST surface, DTOs, RBAC, rate limits
-5. [Chrome extension](docs/05-chrome-extension.md) — MV3 architecture + scraping workflow
-6. [Lead scoring & Website Opportunity Engine](docs/06-lead-scoring.md)
-7. [Enrichment pipeline](docs/07-enrichment-pipeline.md) — contacts, confidence scoring
-8. [UI / wireframes / user flows](docs/08-ui-wireframes.md)
-9. [Billing & RBAC](docs/09-billing-rbac.md) — Stripe plans, permission matrix
-10. [Security & GDPR](docs/10-security-gdpr.md)
-11. [Roadmap: MVP → V2 → scaling](docs/11-roadmap.md)
-12. [Deployment & production checklist](docs/12-deployment-checklist.md)
+| File | What it answers |
+|------|-----------------|
+| [AGENTS.md](AGENTS.md) | Rules for AI coding agents and the command reference |
+| [docs/PRD.md](docs/PRD.md) | What the product is, for whom, what is out of scope |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the apps connect, where code goes, intentional decisions |
+| [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | The design tokens and UI conventions of each app |
+| [docs/SECURITY.md](docs/SECURITY.md) | Data, trust boundaries, known gaps |
+| [docs/TASKS.md](docs/TASKS.md) | Open tasks |
+| [docs/archive/](docs/archive/) | The original NestJS / PostgreSQL / BullMQ plan. It was never built; kept for reference only |
 
-## Quickstart (target DX)
+## Quickstart
 
 ```bash
-pnpm install
-docker compose up -d            # postgres + redis + minio(s3)
-pnpm db:migrate && pnpm db:seed
-pnpm dev                        # web :3000, api :4000, worker, extension watcher
+# dashboard (http://localhost:3000)
+npm --prefix apps/web install
+npm --prefix apps/web run dev
+
+# other apps: tokenleads on :3010, landing on :3020
+npm --prefix apps/tokenleads install && npm --prefix apps/tokenleads run dev
+npm --prefix apps/landing install && npm --prefix apps/landing run dev
 ```
 
-## Status
+Each app reads its settings from an untracked `.env` file; the variable names are in `apps/<app>/.env.example` and in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §09. There is no separate development database: a local dashboard works on the production data.
 
-This repository currently contains the **architecture package** and the **runnable scoring engines** (`packages/scoring`, with vitest tests). The application scaffolding (Next.js/NestJS/extension) is specified in the docs and ready to be generated next — see [the roadmap](docs/11-roadmap.md).
+Extensions: open `chrome://extensions`, enable Developer mode, **Load unpacked**, and pick `apps/extension` or `apps/extension-reviews`. Reload the extension after a code change.
+
+## Checks
+
+```bash
+npm --prefix apps/web run typecheck        # also: landing, tokenleads
+npm --prefix apps/web run build
+npm --prefix apps/tokenleads run test      # Vitest
+node --test apps/web/lib/organize.test.mjs
+```
+
+## Deploy
+
+The Next.js apps are deployed to Vercel with the CLI from the app folder (`vercel deploy --prod`). There is no Git integration and no CI.

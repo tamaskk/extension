@@ -1,9 +1,12 @@
 # GridLeads — Web Dashboard (`apps/web`)
 
-A **Next.js 15** replica of the Chrome extension's dashboard — identical layout,
-styling, and behaviour, running as a standalone web app.
+The GridLeads dashboard: a **Next.js 16** web app that started as a replica of the
+Chrome extension's dashboard and has since grown into the main tool (lead detail
+panel, reviews, outreach, calls, map, stats). Behind a single login (`EMAIL` /
+`PASSWORD` env, `gl_auth` cookie). See [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+for the full picture; the feature and API lists below cover the original core only.
 
-## Features (same as the extension)
+## Core features (shared with the extension dashboard)
 
 - Project sidebar with **folders** (collapse/expand, rename, delete)
 - **Checkbox selection** of projects + **shift+click** range select
@@ -47,9 +50,10 @@ In the extension dashboard:
 - **⟳** on a folder → syncs that folder's projects
 - Select projects → **Sync** (bulk bar) → syncs the selection
 
-The extension posts to `http://localhost:3000/api/sync` (change `SYNC_BASE` in
-`apps/extension/dashboard/dashboard.js` for a deployed web app, and add the host
-to the extension's `host_permissions`).
+The extension posts to the production app, `https://gridleads-wheat.vercel.app/api/sync`.
+`SYNC_BASE` is hardcoded in four files (`apps/extension/background/background.js`,
+`dashboard/dashboard.js`, `audit/audit.js`, and `apps/extension-reviews/background/background.js`);
+to sync against `http://localhost:3000`, change all of them.
 
 ## Run
 
@@ -57,6 +61,7 @@ to the extension's `host_permissions`).
 cd apps/web
 npm install
 npm run dev      # http://localhost:3000
+npm run typecheck
 ```
 
 ## Structure
@@ -72,6 +77,9 @@ components/
 lib/
   types.ts            # Lead / Project / Folder types
   scoring.ts          # lead + opportunity scoring (port of the extension engine)
-  store.ts            # Zustand store (localStorage) + selectors + CSV export
+  store.ts            # Zustand store (folders + project summaries, optimistic updates)
+  api.ts              # client fetch wrappers for every /api route
+  models.ts, db.ts    # Mongoose models and the cached connection
+  auth.ts             # JWT cookie login
   seed.ts             # demo dataset (with folders + duplicates)
 ```

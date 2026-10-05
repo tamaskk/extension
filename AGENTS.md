@@ -91,6 +91,7 @@ A task is done when all of these are true:
 - Extension changes: say which page or flow the user must reload and check by hand. You cannot run the extension.
 - New UI uses the app's tokens and class conventions. landing and tokenleads work at 375px.
 - Docs are updated if a structure, a decision, a model or a token changed.
+- README.md and the app's own README are updated in the same change whenever it makes them stale (apps, stack, commands, setup, endpoints, structure). Do this without asking.
 - The summary says what changed, what was not done, and what the user should check.
 
 ## 08 When to stop and ask
@@ -110,4 +111,4 @@ Ask with the specific question, the options you see, and your recommendation.
 - Commit subject: one English sentence saying what the change does, as in the existing history ("Gzip the extension sync uploads"). No `fix` or `wip` throwaways.
 - One logical change per commit. Never commit secrets, .env files or build output.
 - Do not push, force-push or rebase. The user pushes.
-- Deploys go through the Vercel CLI from the app folder, and only when the user asks.
+- The user deploys. Do not run `vercel deploy` after a change; only when the user explicitly asks for a deploy.
