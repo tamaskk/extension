@@ -2,6 +2,7 @@ import { gunzipSync } from 'zlib';
 import { dbConnect } from '@/lib/db';
 import { Folder, Project, Lead, CORS, json } from '@/lib/models';
 import { recomputeProjectStats } from '@/lib/projectStats';
+import { refreshSearchTokens } from '@/lib/searchIndex';
 import { logActivity, diffFields, type ActivityInput, type Diff } from '@/lib/activity';
 
 export const runtime = 'nodejs';
@@ -53,7 +54,11 @@ export async function POST(req: Request) {
       if (pres.upsertedCount) newProjects.push(p.query);
       projectCount++;
       for (const [k, r] of Object.entries(p.records || {}) as [string, any][]) {
-        const { _id, ...rest } = r || {};
+        // `seq` is the server's own sequence state: a bundle (an old export, for
+        // one) must never bring it back, or steps already sent would go out again.
+        const { _id, seq, sig, ...rest } = r || {};
+        // also by a dotted key ("seq.to") or an operator: only plain top-level fields are synced
+        for (const k of Object.keys(rest)) if (k.includes('.') || k.startsWith('$')) delete rest[k];
         // The scraper has no email of its own (Maps doesn't return one), so a
         // re-sync used to $set email:'' over an address found earlier. Empty
         // contact fields are "unknown", never "erase".
@@ -108,6 +113,7 @@ export async function POST(req: Request) {
     }
 
     for (let i = 0; i < ops.length; i += 1000) await Lead.bulkWrite(ops.slice(i, i + 1000), { ordered: false });
+    if (ops.length) await refreshSearchTokens(keys); // from the stored values: an empty incoming contact field did not overwrite them
 
     if (touched.size) await recomputeProjectStats([...touched]); // payload cache TTL picks the new counts up
 

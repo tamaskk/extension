@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       return db.collection('leads').aggregate([
         { $match: match },
         GROUP_STAGE,
-        { $project: { _id: 0, project: '$_id', total: 1, noWebsite: 1, hot: 1, email: 1, reviews: 1, reviewsSum: 1, ai: 1, oppSum: 1, updatedAt: { $literal: at } } },
+        { $project: { _id: 0, project: '$_id', total: 1, noWebsite: 1, hot: 1, email: 1, reviews: 1, reviewsSum: 1, ai: 1, oppSum: 1, emailTodo: 1, emailMiss: 1, updatedAt: { $literal: at } } },
         { $merge: { into: 'projectstats', on: 'project', whenMatched: 'replace', whenNotMatched: 'insert' } },
       ]).toArray(); // toArray() drives the pipeline; $merge emits no rows
     }));

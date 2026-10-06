@@ -13,7 +13,6 @@ Google Maps lead generation for one operator: a Chrome extension scrapes local b
 | [apps/extension-reviews](apps/extension-reviews/README.md) | Manifest V3 Chrome extension: Google review scraper |
 | [apps/landing](apps/landing) | Marketing page with live counters (Next.js 16) |
 | [apps/tokenleads](apps/tokenleads/ROADMAP.md) | TokenLeads, a separate product: token-based lead marketplace that reads the GridLeads leads read-only |
-| [packages/scoring](packages/scoring/index.ts) | TypeScript scoring library. Not imported by any app today |
 
 There is no root `package.json` and no workspace. Each Next.js app has its own `package.json`; the extensions have no build step.
 
@@ -27,7 +26,8 @@ There is no root `package.json` and no workspace. Each Next.js app has its own `
 | [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | The design tokens and UI conventions of each app |
 | [docs/SECURITY.md](docs/SECURITY.md) | Data, trust boundaries, known gaps |
 | [docs/TASKS.md](docs/TASKS.md) | Open tasks |
-| [docs/archive/](docs/archive/) | The original NestJS / PostgreSQL / BullMQ plan. It was never built; kept for reference only |
+| [docs/PERFORMANCE_PLAN.md](docs/PERFORMANCE_PLAN.md) | Why the dashboard loads slowly, with measurements, and the plan to fix it (in Hungarian) |
+| [docs/archive/](docs/archive/) | The original NestJS / PostgreSQL / BullMQ plan and its leftover code (`prisma/`, `scoring/`, `states_table/`). It was never built; kept for reference only |
 
 ## Quickstart
 
@@ -51,9 +51,9 @@ Extensions: open `chrome://extensions`, enable Developer mode, **Load unpacked**
 npm --prefix apps/web run typecheck        # also: landing, tokenleads
 npm --prefix apps/web run build
 npm --prefix apps/tokenleads run test      # Vitest
-node --test apps/web/lib/organize.test.mjs
+node --test apps/web/lib/*.test.mjs
 ```
 
 ## Deploy
 
-The Next.js apps are deployed to Vercel with the CLI from the app folder (`vercel deploy --prod`). There is no Git integration and no CI.
+The Next.js apps are deployed to Vercel with the CLI from the app folder (`vercel deploy --prod`). There is no Git integration and no CI. `apps/web` is the project `gridleads` (https://gridleads-wheat.vercel.app), `apps/landing` is the project `extension` (https://extension-eight-iota.vercel.app); `apps/tokenleads` is not deployed.

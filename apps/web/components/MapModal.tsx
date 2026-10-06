@@ -5,15 +5,13 @@ import { api } from '@/lib/api';
 import { NO_SITE } from '@/lib/types';
 import { useGrid } from '@/lib/store';
 import { COUNTRY_NAMES, COUNTRY_CITIES } from '@/lib/countries';
+import { gridItems, itemAt, mercatorX, mercatorY } from '@/lib/mapGrid.mjs';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global { interface Window { L: any } }
 
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-const MC_CSS = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
-const MC_CSS2 = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css';
-const MC_JS = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
 
 function loadCss(href: string) {
   return new Promise<void>((res) => {
@@ -79,6 +77,90 @@ function popupHtml(p: any) {
     </div>`;
 }
 
+// The leads of the map as one canvas layer. Leaflet markers were one object and
+// one cluster entry per lead; here the points live in typed arrays and each
+// view is drawn from them in a single pass (lib/mapGrid.mjs).
+const DOT_R = 5;
+const RED = '#f43f5e'; const GREEN = '#22c55e'; const ACCENT = '#6366f1';
+type GridItem = { x: number; y: number; count: number; noSite: number; index: number };
+const radiusOf = (it: { count: number }) => (it.count === 1 ? DOT_R : it.count < 100 ? 13 : it.count < 1000 ? 16 : it.count < 10000 ? 19 : 22);
+const short = (n: number) => (n < 1000 ? String(n) : n < 10000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : Math.round(n / 1000) + 'k');
+
+function makePointLayer(L: any, points: [number, number, number, string][], onPick: (key: string, latlng: [number, number]) => void) {
+  const n = points.length;
+  const xs = new Float64Array(n); const ys = new Float64Array(n); const flags = new Uint8Array(n);
+  for (let i = 0; i < n; i++) { xs[i] = mercatorX(points[i][1]); ys[i] = mercatorY(points[i][0]); flags[i] = points[i][2] ? 1 : 0; }
+  let items: GridItem[] = [];
+  let frame = 0;
+
+  const Layer = L.Layer.extend({
+    onAdd(map: any) {
+      this._canvas = L.DomUtil.create('canvas', 'leaflet-zoom-hide');
+      this._canvas.style.pointerEvents = 'none';
+      map.getPanes().overlayPane.appendChild(this._canvas);
+      map.on('move', this._schedule, this);
+      map.on('moveend zoomend resize', this._draw, this);
+      map.on('click', this._click, this);
+      map.on('mousemove', this._hover, this);
+      this._draw();
+    },
+    onRemove(map: any) {
+      cancelAnimationFrame(frame);
+      map.off('move', this._schedule, this);
+      map.off('moveend zoomend resize', this._draw, this);
+      map.off('click', this._click, this);
+      map.off('mousemove', this._hover, this);
+      map.getContainer().style.cursor = '';
+      L.DomUtil.remove(this._canvas);
+    },
+    // while the map is dragged, at most one redraw per frame
+    _schedule() { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => this._draw()); },
+    _draw() {
+      const map = this._map;
+      if (!map) return;
+      const size = map.getSize();
+      const origin = map.getPixelBounds().min;
+      const zoom = map.getZoom();
+      items = gridItems({ xs, ys, flags, scale: 256 * Math.pow(2, zoom), originX: origin.x, originY: origin.y, width: size.x, height: size.y, forceSingle: zoom >= map.getMaxZoom() - 1 }) as GridItem[];
+      const dpr = window.devicePixelRatio || 1;
+      const c: HTMLCanvasElement = this._canvas;
+      L.DomUtil.setPosition(c, map.containerPointToLayerPoint([0, 0]));
+      c.width = size.x * dpr; c.height = size.y * dpr;
+      c.style.width = size.x + 'px'; c.style.height = size.y + 'px';
+      const ctx = c.getContext('2d');
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = '700 11px system-ui, sans-serif';
+      for (const it of items) {
+        const r = radiusOf(it);
+        ctx.beginPath();
+        ctx.arc(it.x, it.y, r, 0, Math.PI * 2);
+        if (it.count === 1) {
+          ctx.globalAlpha = 0.75; ctx.fillStyle = it.noSite ? RED : GREEN; ctx.fill();
+          ctx.globalAlpha = 1;
+        } else {
+          ctx.globalAlpha = 0.88; ctx.fillStyle = ACCENT; ctx.fill();
+          ctx.globalAlpha = 1; ctx.lineWidth = 3;
+          // the ring shows the share of leads without a website
+          ctx.strokeStyle = GREEN; ctx.stroke();
+          if (it.noSite) { ctx.beginPath(); ctx.arc(it.x, it.y, r, -Math.PI / 2, -Math.PI / 2 + (it.noSite / it.count) * Math.PI * 2); ctx.strokeStyle = RED; ctx.stroke(); }
+          ctx.fillStyle = '#fff'; ctx.fillText(short(it.count), it.x, it.y);
+        }
+      }
+    },
+    _click(e: any) {
+      const it = itemAt(items, e.containerPoint.x, e.containerPoint.y, radiusOf) as GridItem | null;
+      if (!it) return;
+      if (it.index >= 0) onPick(points[it.index][3], [points[it.index][0], points[it.index][1]]);
+      else this._map.setZoomAround(e.containerPoint, Math.min(this._map.getMaxZoom(), this._map.getZoom() + 2));
+    },
+    _hover(e: any) {
+      this._map.getContainer().style.cursor = itemAt(items, e.containerPoint.x, e.containerPoint.y, radiusOf) ? 'pointer' : '';
+    },
+  });
+  return new Layer();
+}
+
 type Scope = { type: 'all' | 'folder' | 'project'; id: string };
 
 export default function MapModal({ onClose, inline, onOpenCrm, project, folder, filter, search, categories, ptypes, pregions }:
@@ -96,7 +178,6 @@ export default function MapModal({ onClose, inline, onOpenCrm, project, folder, 
   const folders = useGrid((s) => s.folders);
   const summaries = useGrid((s) => s.summaries);
   const folderList = useMemo(() => Object.values(folders).sort((a, b) => ((a.order ?? 0) - (b.order ?? 0)) || (a.createdAt < b.createdAt ? -1 : 1)), [folders]);
-  const projectList = useMemo(() => Object.values(summaries).sort((a, b) => String(a.name).localeCompare(String(b.name))), [summaries]);
 
   // business types = the verticals of the ROOT folders ("USA Restaurants" → "Restaurants"),
   // i.e. drop the leading country name; de-duplicated.
@@ -136,7 +217,7 @@ export default function MapModal({ onClose, inline, onOpenCrm, project, folder, 
   // cascade (business type → country → state/city or city/area). `none` = nothing
   // selected → plot nothing (don't load everything on first open).
   const eff = (() => {
-    if (!inline) return { project: scope.type === 'project' ? scope.id : null, folder: scope.type === 'folder' ? scope.id : null, ptypes: ptypes || [], pregions: pregions || [], search: search || '', none: false };
+    if (!inline) return { project: scope.type === 'project' ? scope.id : null, folder: scope.type === 'folder' ? scope.id : null, ptypes: ptypes || [], pregions: pregions || [], search: search || '', country: '', none: false };
     const p = cas.biz ? cas.biz.toLowerCase() + ' near' : ''; // vertical → query prefix
     let project: string | null = scope.type === 'project' ? scope.id : null;
     const folder: string | null = scope.type === 'folder' ? scope.id : null;
@@ -149,7 +230,10 @@ export default function MapModal({ onClose, inline, onOpenCrm, project, folder, 
       else { if (p) pt = [p]; if (cas.city) pr = [cas.city]; if (cas.area) sr = cas.area; }
     } else if (p) { pt = [p]; }
     const none = !(folder || project || pt.length || pr.length || sr);
-    return { project, folder, ptypes: pt, pregions: pr, search: sr, none };
+    // a business type with only a country picked: narrow to that country (it
+    // used to plot the type worldwide)
+    const country = pt.length && !pr.length && !sr && !project ? cas.country : '';
+    return { project, folder, ptypes: pt, pregions: pr, search: sr, country, none };
   })();
   const effKey = JSON.stringify(eff);
 
@@ -158,9 +242,8 @@ export default function MapModal({ onClose, inline, onOpenCrm, project, folder, 
     let cancelled = false;
     (async () => {
       try {
-        await Promise.all([loadCss(LEAFLET_CSS), loadCss(MC_CSS), loadCss(MC_CSS2)]);
+        await loadCss(LEAFLET_CSS);
         await loadScript(LEAFLET_JS);
-        await loadScript(MC_JS);
         if (cancelled || !mapEl.current) return;
         const L = window.L;
         const map = L.map(mapEl.current, { worldCopyJump: true }).setView([39.8, -98.5], 4);
@@ -196,19 +279,23 @@ export default function MapModal({ onClose, inline, onOpenCrm, project, folder, 
       }
       setStatus('Loading leads…');
       const q = eff.folder ? { folder: eff.folder } : eff.project ? { project: eff.project } : {};
-      const geo = await api.getGeo({ ...q, filter, search: eff.search, categories, ptypes: eff.ptypes, pregions: eff.pregions }).catch(() => ({ points: [], total: 0, capped: false }));
+      const geo = await api.getGeo({ ...q, filter, search: eff.search, categories, ptypes: eff.ptypes, pregions: eff.pregions, country: eff.country }).catch(() => ({ points: [], total: 0, capped: false }));
       if (cancelled || !mapInstance.current) return;
       if (clusterRef.current) { mapInstance.current.removeLayer(clusterRef.current); clusterRef.current = null; }
-      const cluster = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50 });
-      const bounds: [number, number][] = [];
-      for (const p of geo.points) {
-        if (typeof p.lat !== 'number' || typeof p.lng !== 'number') continue;
-        const noSite = NO_SITE.has(p.websiteStatus as never);
-        const m = L.circleMarker([p.lat, p.lng], { radius: 5, color: noSite ? '#f43f5e' : '#22c55e', weight: 1, fillColor: noSite ? '#f43f5e' : '#22c55e', fillOpacity: 0.7 });
-        m.bindPopup(popupHtml(p), { minWidth: 210 });
-        cluster.addLayer(m);
-        bounds.push([p.lat, p.lng]);
+      let south = 90; let north = -90; let west = 180; let east = -180;
+      for (const [lat, lng] of geo.points) {
+        if (lat < south) south = lat; if (lat > north) north = lat;
+        if (lng < west) west = lng; if (lng > east) east = lng;
       }
+      const bounds: [number, number][] = geo.points.length ? [[south, west], [north, east]] : [];
+      const cluster = makePointLayer(L, geo.points as [number, number, number, string][], async (key, latlng) => {
+        if (!mapInstance.current) return;
+        // the popup is built on click from the key, not for every point up front
+        const popup = L.popup({ minWidth: 210 }).setLatLng(latlng).setContent('<div class="mp">Loading…</div>').openOn(mapInstance.current);
+        const res = await api.getLeadByKey(key).catch(() => null);
+        const lead = res && res.rows && res.rows[0];
+        popup.setContent(lead ? popupHtml(lead) : '<div class="mp">Could not load details.</div>');
+      });
       mapInstance.current.addLayer(cluster);
       clusterRef.current = cluster;
 
@@ -245,7 +332,7 @@ export default function MapModal({ onClose, inline, onOpenCrm, project, folder, 
         else mapInstance.current.setView([39.8, -98.5], 4);
       }
       setTimeout(() => mapInstance.current && mapInstance.current.invalidateSize(), 80);
-      setStatus(`${geo.points.length.toLocaleString()} plotted${geo.capped ? ` (first ${geo.points.length.toLocaleString()} of ${geo.total.toLocaleString()})` : ''}${cityNote} · 🔴 no website · 🟢 has site`);
+      setStatus(`${geo.points.length.toLocaleString()} plotted${geo.capped ? ' (the first ones; narrow the filter to see the rest)' : ''}${cityNote} · 🔴 no website · 🟢 has site`);
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -265,9 +352,12 @@ export default function MapModal({ onClose, inline, onOpenCrm, project, folder, 
           {folderList.map((f) => <option key={f.id} value={`f:${f.id}`}>📁 {f.name}</option>)}
         </optgroup>
       )}
-      <optgroup label="Projects">
-        {projectList.map((p) => <option key={p.query} value={`p:${p.query}`}>{p.name}</option>)}
-      </optgroup>
+      {/* only the project in scope: one <option> per project was 240k DOM nodes; pick a project in the sidebar */}
+      {scope.type === 'project' && (
+        <optgroup label="Project">
+          <option value={`p:${scope.id}`}>{summaries[scope.id]?.name || scope.id}</option>
+        </optgroup>
+      )}
     </select>
   );
 

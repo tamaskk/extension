@@ -14,14 +14,14 @@ Status: Draft · Last updated: 2026-10-05
 
 ## 02 Problem
 
-Finding local businesses that have no website, or a broken one, means searching Google Maps city by city, copying names and phone numbers by hand, opening every listing to check its site, and then keeping track of who was already contacted in a spreadsheet. (assumed — confirm)
+Finding local businesses that have no website, or a broken one, means searching Google Maps city by city, copying names and phone numbers by hand, opening every listing to check its site, and then keeping track of who was already contacted in a spreadsheet.
 
 Today, the operator has to collect and qualify leads by hand because Google Maps has no export and no notion of "this business needs a website".
 This costs them hours per city and leads that are contacted twice or never.
 
 ## 03 Goal
 
-Help the operator go from a Maps search to a qualified, contactable lead list in minutes without manual copying or a spreadsheet. (assumed — confirm)
+Help the operator go from a Maps search to a qualified, contactable lead list in minutes without manual copying or a spreadsheet.
 
 ## 04 Target users
 
@@ -59,9 +59,9 @@ Key user flow:
 
 | Metric | Target | Measured by |
 | --- | --- | --- |
-| Leads with a contact email | 30% of synced leads (assumed — confirm) | `ProjectStat.email / ProjectStat.total` |
-| Outreach emails sent per week | 100 (assumed — confirm) | activity log, type email sent |
-| Calls booked per week | 5 (assumed — confirm) | leads with a sales status and date set |
+| Leads with a contact email | 30% of synced leads | `ProjectStat.email / ProjectStat.total` |
+| Outreach emails sent per week | 100 | activity log, type email sent |
+| Calls booked per week | 5 | leads with a sales status and date set |
 
 ## 07 Out of scope
 
@@ -73,12 +73,14 @@ Key user flow:
 
 ## 08 Open questions
 
-- Is the problem statement in §02 and the goal in §03 right? (assumed — confirm)
-- Are the three metrics in §06 the right ones, and are the targets realistic? (assumed — confirm)
-- Is `packages/scoring` the planned single source for scoring, or legacy? Today nothing imports it and the logic is duplicated in `apps/web/lib/scoring.ts` and `apps/extension/lib/scoring.js`.
-- Which list of "no real website" statuses is correct: the 6 in `apps/web/lib/models.ts` or the 8 in the scoring files?
-- Should commit messages keep the current sentence style or move to Conventional Commits? AGENTS.md §09 documents the current style. (assumed — confirm)
-- Which Vercel projects serve `apps/landing` and `apps/tokenleads`, and at which URLs?
+None open. Answered on 2026-10-05:
+
+- The problem statement in §02 and the goal in §03 are confirmed.
+- The three metrics in §06 and their targets are confirmed. For reference, 5% of synced leads had a contact email on that day (79,430 of 1,603,177) against the 30% target.
+- The old `packages/scoring` library is legacy, not the planned single source for scoring; it now sits in `docs/archive/scoring/`. Scoring lives in `apps/web/lib/scoring.mjs` and `apps/extension/lib/scoring.js`, kept identical by a parity test.
+- The "no real website" list is the eight statuses in docs/ARCHITECTURE.md §06.
+- Commit messages keep the sentence style in AGENTS.md §09.
+- `apps/landing` is served by the Vercel project `extension` at https://extension-eight-iota.vercel.app. `apps/tokenleads` is not deployed.
 
 ## 09 Glossary
 

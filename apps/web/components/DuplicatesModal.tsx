@@ -10,20 +10,49 @@ export default function DuplicatesModal({ onClose, onGoto, onChanged }: { onClos
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [fixing, setFixing] = useState(false);
+  const [error, setError] = useState('');
+  const [scanning, setScanning] = useState(false);
+  const [progress, setProgress] = useState(0); // slices of the running scan done
+  const [scannedAt, setScannedAt] = useState(0);
+  const [found, setFound] = useState(0);       // all groups the scan counted (the list shows the first 2,000)
   const lastIdx = useRef<number | null>(null);
 
   const projName = (q: string) => summaries[q]?.name || q;
   const keyOf = (project: string, key: string) => `${project}|${key}`;
 
+  // the list comes from the last finished scan (cached on the server)
   const load = async () => {
-    setLoading(true);
-    const g = await api.getDuplicates().catch(() => []);
-    setGroups(g);
+    const r = await api.getDuplicates().catch(() => null);
+    if (!r || !r.ok) { setError(r?.error || 'Could not load duplicates.'); return null; }
+    setError('');
+    setGroups(r.groups || []); setFound(r.total || 0); setScannedAt(r.at || 0);
     setSelected(new Set());
     lastIdx.current = null;
-    setLoading(false);
+    return r;
   };
-  useEffect(() => { load(); }, []);
+  // A scan walks all leads in slices; each request stays far below the 60 s limit.
+  const rescan = async () => {
+    if (scanning) return;
+    setScanning(true); setProgress(0); setError('');
+    try {
+      let after: string | null | undefined; let at: number | undefined;
+      for (;;) {
+        const res = await api.scanDuplicates({ after, at });
+        if (!res?.ok) throw new Error(res?.error || 'scan failed');
+        if (res.done) break;
+        after = res.after; at = res.at;
+        setProgress((n) => n + 1);
+      }
+      await load();
+    } catch (e) {
+      setError(`Scan failed: ${e instanceof Error ? e.message : 'unknown error'}`);
+    } finally { setScanning(false); }
+  };
+  useEffect(() => {
+    load().then((r) => { if (r && !r.at) return rescan(); }) // never scanned → scan now
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const flat = useMemo(() => groups.flatMap((g) => g.items.map((it) => keyOf(it.project, it.key))), [groups]);
 
@@ -44,7 +73,12 @@ export default function DuplicatesModal({ onClose, onGoto, onChanged }: { onClos
     if (!items.length) return;
     await api.deleteRecords(items);
     onChanged();
-    await load();
+    // drop the deleted copies from the list on screen; the cached scan is only
+    // rebuilt by Rescan, and a group with one copy left is no longer a duplicate
+    const gone = new Set(items.map((it) => keyOf(it.query, it.key)));
+    setGroups((gs) => gs.map((g) => ({ ...g, items: g.items.filter((it) => !gone.has(keyOf(it.project, it.key))) })).filter((g) => g.items.length > 1));
+    setSelected(new Set());
+    lastIdx.current = null;
   };
 
   const deleteSelected = async () => { if (selected.size && confirm(`Delete ${selected.size} selected copies?`)) await del(toItems([...selected])); };
@@ -62,17 +96,21 @@ export default function DuplicatesModal({ onClose, onGoto, onChanged }: { onClos
         <div className="modal-head">
           <div>
             <div className="modal-title">⧉ Duplicate businesses</div>
-            <div className="modal-sub">{loading ? 'Scanning…' : `${groups.length} duplicate group(s) across your projects`}</div>
+            <div className="modal-sub">{scanning ? `Scanning… slice ${progress + 1}` : loading ? 'Loading…'
+              : `${groups.length} duplicate group(s) across your projects${found > groups.length ? ` (showing the first ${groups.length} of ${found.toLocaleString()})` : ''}${scannedAt ? ` · scanned ${new Date(scannedAt).toLocaleString()}` : ''}`}</div>
           </div>
           <div className="modal-actions">
             {selected.size > 0 && <button className="btn danger" onClick={deleteSelected}>🗑 Delete selected ({selected.size})</button>}
-            <button className="btn fixall" disabled={fixing || !groups.length} onClick={fixAll}>{fixing ? '⚡ Fixing…' : '⚡ Fix all'}</button>
+            <button className="btn" disabled={scanning || loading} onClick={rescan} title="Search all leads again for businesses stored more than once">{scanning ? '⏳ Scanning…' : '⟳ Rescan'}</button>
+            <button className="btn fixall" disabled={fixing || scanning || !groups.length} onClick={fixAll}>{fixing ? '⚡ Fixing…' : '⚡ Fix all'}</button>
             <button className="btn" onClick={onClose}>✕ Close</button>
           </div>
         </div>
         <div className="modal-body">
-          {loading ? (
+          {loading || scanning ? (
             <div className="dupe-empty">Scanning the database…</div>
+          ) : error ? (
+            <div className="dupe-empty">{error}</div>
           ) : !groups.length ? (
             <div className="dupe-empty">🎉 No duplicates found — every business appears in only one project.</div>
           ) : groups.map((g, gi) => (

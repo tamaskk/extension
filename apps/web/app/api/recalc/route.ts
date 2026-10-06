@@ -1,6 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, mongoose, CORS, json } from '@/lib/models';
-import { score } from '@/lib/scoring';
+import { score } from '@/lib/scoring.mjs';
 import type { WebsiteStatus } from '@/lib/types';
 
 export const runtime = 'nodejs';

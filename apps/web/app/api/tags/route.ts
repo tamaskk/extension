@@ -18,25 +18,33 @@ export async function GET() {
 
 // POST /api/tags  { name, color }  → create or recolor a tag
 export async function POST(req: Request) {
-  await dbConnect();
-  const b = await req.json();
-  const name = String(b.name || '').trim();
-  if (!name) return json({ ok: false, error: 'name required' }, { status: 400 });
-  const color = String(b.color || '#6366f1');
-  const res = await Tag.updateOne({ name }, { $set: { name, color } }, { upsert: true });
-  if (res.upsertedCount || res.modifiedCount) await logActivity({ type: 'tag.edit', n: 1, title: res.upsertedCount ? `Tag created: ${name}` : `Tag recolored: ${name}`, data: { name, color } });
-  return json({ ok: true, name, color });
+  try {
+    await dbConnect();
+    const b = await req.json();
+    const name = String(b.name || '').trim();
+    if (!name) return json({ ok: false, error: 'name required' }, { status: 400 });
+    const color = String(b.color || '#6366f1');
+    const res = await Tag.updateOne({ name }, { $set: { name, color } }, { upsert: true });
+    if (res.upsertedCount || res.modifiedCount) await logActivity({ type: 'tag.edit', n: 1, title: res.upsertedCount ? `Tag created: ${name}` : `Tag recolored: ${name}`, data: { name, color } });
+    return json({ ok: true, name, color });
+  } catch (e: any) {
+    return json({ ok: false, error: e?.message || 'tag save failed' }, { status: 500 });
+  }
 }
 
 // DELETE /api/tags  { name }  → remove the tag everywhere
 export async function DELETE(req: Request) {
-  await dbConnect();
-  const b = await req.json();
-  const name = String(b.name || '').trim();
-  if (name) {
-    await Tag.deleteOne({ name });
-    const r = await Lead.updateMany({ tags: name }, { $pull: { tags: name } });
-    await logActivity({ type: 'tag.delete', n: 1, title: `Tag deleted: ${name} (removed from ${r.modifiedCount || 0} lead(s))`, data: { name, leads: r.modifiedCount || 0 } });
+  try {
+    await dbConnect();
+    const b = await req.json();
+    const name = String(b.name || '').trim();
+    if (name) {
+      await Tag.deleteOne({ name });
+      const r = await Lead.updateMany({ tags: name }, { $pull: { tags: name } });
+      await logActivity({ type: 'tag.delete', n: 1, title: `Tag deleted: ${name} (removed from ${r.modifiedCount || 0} lead(s))`, data: { name, leads: r.modifiedCount || 0 } });
+    }
+    return json({ ok: true });
+  } catch (e: any) {
+    return json({ ok: false, error: e?.message || 'tag delete failed' }, { status: 500 });
   }
-  return json({ ok: true });
 }

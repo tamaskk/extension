@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { localPath } from '@/lib/localPath.mjs';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,8 +16,7 @@ export default function LoginPage() {
       const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
       const j = await r.json().catch(() => ({}));
       if (j.ok) {
-        const next = new URLSearchParams(window.location.search).get('next') || '/';
-        window.location.href = next;
+        window.location.href = localPath(new URLSearchParams(window.location.search).get('next'));
       } else { setErr(j.error || 'Login failed.'); setBusy(false); }
     } catch { setErr('Network error — try again.'); setBusy(false); }
   };

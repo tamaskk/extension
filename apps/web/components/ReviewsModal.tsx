@@ -455,6 +455,39 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
   const [sentAt, setSentAt] = useState(lead.emailSentAt || '');
   const [sentTo, setSentTo] = useState(lead.emailSentTo || '');
   const [sendErr, setSendErr] = useState('');
+  // The fallback for a reply the mailbox watcher cannot see.
+  const [seqStatus, setSeqStatus] = useState<string>(lead.seq?.status || '');
+  const [replying, setReplying] = useState(false);
+  // What the second round of the lead's sequence offers; the rule decided it at enrolment, the operator may overrule it.
+  const [seqOffer, setSeqOffer] = useState<string>(lead.seq?.offer || '');
+  const [offerManual, setOfferManual] = useState(!!lead.seq?.offerManual);
+  const [offerBusy, setOfferBusy] = useState(false);
+  const switchOffer = async (offer: 'ai' | 'social') => {
+    setOfferBusy(true); setSendErr('');
+    try {
+      const r = await api.setOffer(lead._project, lead._key, offer);
+      if (!r.ok) { setSendErr(r.error || 'That could not be saved.'); return; }
+      setSeqOffer(offer); setOfferManual(true);
+      if (lead.seq) { lead.seq.offer = offer; lead.seq.offerManual = true; }
+    } catch {
+      setSendErr('Network error. Nothing was changed.');
+    } finally {
+      setOfferBusy(false);
+    }
+  };
+  const markReplied = async () => {
+    setReplying(true); setSendErr('');
+    try {
+      const r = await api.markReplied(lead._project, lead._key);
+      if (!r.ok) { setSendErr(r.error || 'That could not be saved.'); return; }
+      setSeqStatus('replied');
+      if (lead.seq) lead.seq.status = 'replied';
+    } catch {
+      setSendErr('Network error. Nothing was changed.');
+    } finally {
+      setReplying(false);
+    }
+  };
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // SMS draft — same context, GPT writes a ≤320-char text message
   const [sms, setSms] = useState(lead.smsBody || '');
@@ -487,7 +520,7 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
 
   useEffect(() => {
     setSubject(lead.emailSubject || ''); setBody(lead.emailBody || ''); setEmailAt(lead.emailAt || ''); setDraftState('idle');
-    setSentAt(lead.emailSentAt || ''); setSentTo(lead.emailSentTo || ''); setSendErr('');
+    setSentAt(lead.emailSentAt || ''); setSentTo(lead.emailSentTo || ''); setSendErr(''); setSeqStatus(lead.seq?.status || ''); setSeqOffer(lead.seq?.offer || ''); setOfferManual(!!lead.seq?.offerManual);
     setSms(lead.smsBody || ''); setSmsAt(lead.smsAt || ''); setSmsErr(''); setSmsState('idle');
   }, [lead.dedupKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -628,6 +661,18 @@ function EmailsTab({ lead }: { lead: LeadRow }) {
         <span className={`notes-state ${draftState}`}>{draftState === 'saving' ? 'Saving…' : draftState === 'saved' ? '✓ Saved' : ''}</span>
       </div>
       {sentAt && <p className="em-sent">✓ Sent to {sentTo} · {new Date(sentAt).toLocaleString()}</p>}
+      {seqOffer && (
+        <p className="em-sent">
+          Second-round offer: <b>{seqOffer === 'ai' ? 'AI automation' : 'Social media'}</b>{offerManual ? ' (chosen by hand)' : lead.seq?.offerReasons?.length ? ` (${lead.seq.offerReasons.join(', ')})` : ''}
+          {' '}<button className="mini" onClick={() => switchOffer(seqOffer === 'ai' ? 'social' : 'ai')} disabled={offerBusy} title="Choose the other offer for this lead. A choice made by hand is never computed again.">{offerBusy ? 'Saving…' : `Switch to ${seqOffer === 'ai' ? 'social media' : 'AI automation'}`}</button>
+        </p>
+      )}
+      {seqStatus && (
+        <p className="em-sent">
+          Sequence: {seqStatus === 'active' ? 'running' : seqStatus === 'waiting' ? 'got the opening email; the follow-ups wait for you to start them' : seqStatus}
+          {(seqStatus === 'active' || seqStatus === 'waiting') && <> <button className="mini" onClick={markReplied} disabled={replying} title="The lead answered by phone, in a new email or from another address: stop the sequence, no further step goes out">{replying ? 'Saving…' : 'Mark as replied'}</button></>}
+        </p>
+      )}
       {sendErr && <p className="ai-err">⚠ {sendErr}</p>}
       {genErr && <p className="ai-err">⚠ {genErr}</p>}
       {gen && <p className="ai-empty">Asking GPT… (~5s)</p>}

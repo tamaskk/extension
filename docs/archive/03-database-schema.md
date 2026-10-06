@@ -1,6 +1,6 @@
 # 03 — Database Schema
 
-Full Prisma schema: [prisma/schema.prisma](../prisma/schema.prisma). This doc explains the model, the indexing strategy, tenancy/RLS, search, and the scale plan.
+Full Prisma schema: [prisma/schema.prisma](prisma/schema.prisma). This doc explains the model, the indexing strategy, tenancy/RLS, search, and the scale plan.
 
 ## 1. ERD (logical)
 

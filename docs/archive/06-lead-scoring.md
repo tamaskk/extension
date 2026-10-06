@@ -1,6 +1,6 @@
 # 06 — Lead Scoring & Website Opportunity Engine
 
-Implementation: [packages/scoring](../packages/scoring/index.ts) — pure, framework-free, unit-tested ([leadScore.test.ts](../packages/scoring/leadScore.test.ts)). Shared by the API, the worker, and (optionally) the extension preview.
+Implementation: [packages/scoring](scoring/index.ts) — pure, framework-free, unit-tested ([leadScore.test.ts](scoring/leadScore.test.ts)). Shared by the API, the worker, and (optionally) the extension preview.
 
 ## 1. Two scores, two questions
 
@@ -11,7 +11,7 @@ Implementation: [packages/scoring](../packages/scoring/index.ts) — pure, frame
 
 Both run from the same `BusinessSignals` object produced by the scraper + website probe.
 
-## 2. Lead Score rules ([leadScore.ts](../packages/scoring/leadScore.ts))
+## 2. Lead Score rules ([leadScore.ts](scoring/leadScore.ts))
 
 | Signal | Points |
 |--------|-------:|
@@ -27,7 +27,7 @@ Both run from the same `BusinessSignals` object produced by the scraper + websit
 
 Clamped to 100. **Cold 0–39 · Warm 40–69 · Hot 70–100.** "Old site" and "no SSL" are skipped when there is no website (you can't have an old site you don't have). Weights are a per-org config (`LeadScoreWeights`) so agencies can tune to their offer.
 
-## 3. Website Opportunity Engine ([websiteOpportunity.ts](../packages/scoring/websiteOpportunity.ts)) — the USP
+## 3. Website Opportunity Engine ([websiteOpportunity.ts](scoring/websiteOpportunity.ts)) — the USP
 
 Scores concrete, *fixable-and-billable* technical gaps and emits a ranked list of **sales pitches**:
 
@@ -50,7 +50,7 @@ This is what makes GridLeads more than a scraper: a rep opens a Hot lead and alr
 
 | Signal | Source |
 |--------|--------|
-| `websiteStatus` | `classifyWebsite()` ([websiteStatus.ts](../packages/scoring/websiteStatus.ts)) — probe + WHOIS + social-host heuristics |
+| `websiteStatus` | `classifyWebsite()` ([websiteStatus.ts](scoring/websiteStatus.ts)) — probe + WHOIS + social-host heuristics |
 | `domainAgeYears`, `hasSsl` | WHOIS + TLS handshake in the probe job |
 | `pageSpeedScore`, `isMobileFriendly` | Google PageSpeed Insights / Lighthouse |
 | `hasFacebookPixel`, `hasGoogleAnalytics`, `hasMetaAdsPixel` | HTML/script scan of the homepage (tag fingerprints) |

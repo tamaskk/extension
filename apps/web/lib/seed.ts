@@ -1,5 +1,5 @@
 import type { Folder, Lead, Project } from './types';
-import { score } from './scoring';
+import { score } from './scoring.mjs';
 
 // Build a fully-scored Lead from a small business description.
 let cidCounter = 1000;

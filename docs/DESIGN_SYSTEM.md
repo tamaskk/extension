@@ -96,9 +96,11 @@ Shadows in `apps/web`: `var(--shadow)` for floating panels; `0 12px 32px rgba(31
 
 There is no shared primitive library and no `components/ui` folder. Components are feature-level React files in a flat `components/` folder per app, styled by global CSS classes.
 
+- `apps/web`: sidebar rows have fixed heights (project row 33px, folder row 34px, 4px gap; `.side-rows` in `globals.css`). The list is windowed and positions rows by these numbers, so a row must stay one line.
 - `apps/web`: classes carry a short prefix per area: `.side-*` (sidebar), `.navrail-*`, `.crail-*`, `.combo-*` (combo filter), `.ld-*` (lead detail), `.rvp-*` (review panel), `.vapi-*`, `.log-*`, `.mp-*` (map). Reuse the existing prefix of the area; a new area gets a new prefix.
 - Existing building blocks to reuse before writing a new one: `ComboFilter`, `CategoryFilter`, `TagsCell`, `IconPicker`, and the modal pattern used by `StatsModal`, `MapModal`, `DuplicatesModal`.
 - Modals close on overlay click and on Escape.
+- `EmailPreviewModal` (web): the emails of a sequence as one lead gets them, footer included. Use it wherever "what will go out" is shown; do not render sequence text another way.
 - Inline `style={{}}` is tolerated for one-off layout values. `apps/web/app/login/page.tsx` is fully inline-styled.
 - `apps/tokenleads`: `components/Shell.tsx` is the page frame; icons come from `components/Icons.tsx`.
 

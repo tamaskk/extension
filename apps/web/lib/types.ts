@@ -104,9 +104,94 @@ export interface Folder {
 }
 
 /** A Lead decorated with its origin, for cross-project (All leads / duplicates) views. */
+// The part of a lead's outreach sequence state the dashboard shows. The full
+// subdocument is `seq` in lib/models.ts; absent on a lead that was never enrolled.
+export type SeqStatus = 'active' | 'waiting' | 'replied' | 'bounced' | 'finished' | 'stopped' | 'failed' | 'hold';
+export interface LeadSeq {
+  status?: SeqStatus | '';
+  stepId?: string;      // the next step to send
+  nextStepAt?: string;  // ISO, when it is due
+  offer?: 'ai' | 'social' | '';   // what the second round offers
+  offerReasons?: string[];        // why, as short phrases
+  offerManual?: boolean;          // chosen by the operator, not by the rule
+}
+
+// One email of a sequence. `id` never changes; a lead points at its next step by it.
+export interface OutreachStep {
+  id: string;
+  delayDays: number | null; // days after the step before it; null = not filled in yet
+  subject: string;
+  body: string;
+  sameThread: boolean;
+  enabled: boolean;
+  variantOf?: string;       // another wording of that step
+  weight?: number;
+}
+export interface OutreachSequenceRow {
+  sequenceId: string;
+  name: string;
+  language: string;
+  senderIds: string[];      // empty = every sender
+  steps: OutreachStep[];
+  stopOnReply: boolean;
+  stopOnBounce: boolean;
+  enabled: boolean;
+  autoFollowUp: boolean;    // false = after the opening email a lead waits until the operator starts the follow-ups
+  createdAt: string;
+  updatedAt: string;
+  errors: string[];         // what keeps it from running; empty = it may run
+  activeLeads: number | null; // leads in it right now; null = could not be counted
+  sentLast7: number;        // emails it sent in the last seven days
+  sentByStep: Record<string, number>; // emails sent so far per step id; a wording variant has its own id
+}
+
+export interface WarmupTier { fromDay: number; dailyLimit: number }
+
+// A sender account as the dashboard gets it. The app password is never part of
+// it, not even sealed: `hasPassword` only says whether one is stored.
+export interface OutreachSenderRow {
+  senderId: string;
+  label: string;
+  fromName: string;
+  fromEmail: string;
+  language: 'en' | 'hu';
+  smtpHost: string; smtpPort: number;
+  imapHost: string; imapPort: number;
+  authUser: string;
+  hasPassword: boolean;
+  active: boolean;
+  dailyLimit: number;    // the ceiling no warm-up tier can lift
+  warmup: { enabled: boolean; tiers: WarmupTier[] };
+  firstSendAt: string;   // '' until the first email went out; the warm-up days count from it
+  sendDays: number[];    // 1 = Monday ... 7 = Sunday, on the recipient's clock
+  windowFrom: number;    // first sending hour on the recipient's clock
+  windowTo: number;      // the hour sending stops
+  capToday: number;      // what the account may send today (dailyCapFor in lib/warmup.mjs)
+  sentToday: number;     // emails sent since midnight in the warm-up time zone
+  lastTickAt: string;
+  lastCheckedAt: string;
+  notes: string;
+}
+
 export interface LeadRow extends Lead {
   _project: string;
   _key: string;
+  seq?: LeadSeq;
+}
+
+// sums of the project counters of one folder (its own projects, not its sub-folders')
+export interface FolderAggregate {
+  projects: number; zero: number; // zero = projects without a single lead
+  total: number; noWebsite: number; hot: number; email: number; emailMiss: number; emailTodo: number;
+  reviews: number; reviewsSum: number; ai: number; oppSum: number;
+}
+// GET /api/sidebar — everything the sidebar shows before a folder is opened
+export interface SidebarPayload {
+  ok: boolean; error?: string;
+  folders: (Folder & { own: FolderAggregate | null; missing: number | null })[];
+  ungrouped: FolderAggregate;
+  all: FolderAggregate;
+  facets: { types: string[]; regions: string[]; countries: [string, number][] };
 }
 
 export interface ProjectSummary {
@@ -118,6 +203,8 @@ export interface ProjectSummary {
   noWebsite: number;
   hot: number;
   email: number;
+  emailMiss?: number; // website checked, no email found
+  emailTodo?: number; // has a real website, no email, website not checked yet
   reviews?: number;
   reviewsSum?: number;
   ai?: number;
@@ -125,5 +212,5 @@ export interface ProjectSummary {
 }
 
 export const NO_SITE = new Set<WebsiteStatus>([
-  'NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'NOT_WORKING',
+  'NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'NOT_WORKING', 'DOMAIN_PARKED', 'UNDER_CONSTRUCTION',
 ]);

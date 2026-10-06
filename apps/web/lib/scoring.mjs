@@ -1,12 +1,38 @@
-import type { Temperature, WebsiteStatus } from './types';
+// Lead score + Website Opportunity score.
+//
+// This is one of two copies of the scoring engine. The other is
+// apps/extension/lib/scoring.js, which scores leads at scrape time; this copy
+// rescores stored leads (★ Recalc) and the seed data. The extension has no build
+// step and apps do not import from each other, so the logic cannot live in one
+// file. lib/scoring.test.mjs runs both copies over the same inputs and fails
+// when they disagree: change both files in the same commit.
 
-// Port of the extension scoring engine. Lead score + Website Opportunity score.
-const WEBSITELESS = new Set<WebsiteStatus>([
+/** @typedef {import('./types').WebsiteStatus} WebsiteStatus */
+/** @typedef {import('./types').Temperature} Temperature */
+/**
+ * @typedef {object} ScoreInput
+ * @property {string | null} [website]
+ * @property {WebsiteStatus} [websiteStatus]
+ * @property {number | null} [reviewCount]
+ * @property {number | null} [rating]
+ * @property {boolean | null} [hasBookingHint]
+ */
+/**
+ * @typedef {object} ScoreResult
+ * @property {WebsiteStatus} websiteStatus
+ * @property {number} leadScore
+ * @property {Temperature} leadTemperature
+ * @property {number} opportunityScore
+ * @property {string} topPitch
+ */
+
+// Statuses that count as "no real website" (see docs/ARCHITECTURE.md §06).
+const WEBSITELESS = new Set([
   'NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY',
   'DOMAIN_EXPIRED', 'NOT_WORKING', 'BROKEN', 'DOMAIN_PARKED', 'UNDER_CONSTRUCTION',
 ]);
 
-const OPPORTUNITY_PITCH: Record<string, string> = {
+const OPPORTUNITY_PITCH = {
   no_website: 'No website — sell a full website build (highest ticket).',
   no_online_booking: 'No online booking — sell a booking/scheduling integration.',
   few_reviews: 'Few reviews — sell a reputation / review-generation service.',
@@ -14,38 +40,32 @@ const OPPORTUNITY_PITCH: Record<string, string> = {
   instagram_only: 'Only an Instagram page — sell a real website.',
 };
 
-export function classifyWebsite(website?: string | null): WebsiteStatus {
+/**
+ * @param {string | null} [website]
+ * @returns {WebsiteStatus}
+ */
+export function classifyWebsite(website) {
   if (!website) return 'NO_WEBSITE';
   let host = '';
   try { host = new URL(website).hostname.replace(/^www\./, '').toLowerCase(); } catch { return 'HAS_WEBSITE'; }
-  if (host.endsWith('facebook.com') || host === 'fb.me' || host.endsWith('fb.com')) return 'FACEBOOK_ONLY';
-  if (host.endsWith('instagram.com')) return 'INSTAGRAM_ONLY';
+  // Exact domain or subdomain only — endsWith() would misclassify e.g. myfacebook.com.
+  const isDomain = (/** @type {string} */ d) => host === d || host.endsWith('.' + d);
+  if (isDomain('facebook.com') || host === 'fb.me' || isDomain('fb.com')) return 'FACEBOOK_ONLY';
+  if (isDomain('instagram.com')) return 'INSTAGRAM_ONLY';
   return 'HAS_WEBSITE';
 }
 
-export function temperatureFor(score: number): Temperature {
+/**
+ * @param {number} score
+ * @returns {Temperature}
+ */
+export function temperatureFor(score) {
   if (score >= 70) return 'HOT';
   if (score >= 40) return 'WARM';
   return 'COLD';
 }
 
-export interface ScoreInput {
-  website?: string | null;
-  websiteStatus?: WebsiteStatus;
-  reviewCount?: number | null;
-  rating?: number | null;
-  hasBookingHint?: boolean | null;
-}
-
-export interface ScoreResult {
-  websiteStatus: WebsiteStatus;
-  leadScore: number;
-  leadTemperature: Temperature;
-  opportunityScore: number;
-  topPitch: string;
-}
-
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+const clamp = (/** @type {number} */ v, /** @type {number} */ lo, /** @type {number} */ hi) => Math.max(lo, Math.min(hi, v));
 
 /**
  * Opportunity Engine v2 — "how valuable is it to sell THIS business a website".
@@ -57,13 +77,19 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
  *   + review boost (≤ 30)       log scale, 10k+ reviews → full 30
  *   + rating boost (≤ 15)       4.8★+ → full 15, ramps from 3.5★
  *   → no website + 10k reviews + 4.8★ = 100
+ *
+ * @param {ScoreInput} b
+ * @returns {ScoreResult}
  */
-export function score(b: ScoreInput): ScoreResult {
+export function score(b) {
   const status = b.websiteStatus || classifyWebsite(b.website);
   const noSite = WEBSITELESS.has(status);
-  const reviews = Math.max(0, b.reviewCount ?? 0);
-  const rating = b.rating ?? 0;
-  const pitches: string[] = [];
+  // Number() coercion so a non-numeric field from an imported bundle can't turn
+  // reviewBoost/log10 (and thus opportunityScore) into NaN.
+  const reviews = Math.max(0, Number(b.reviewCount) || 0);
+  const rating = Number(b.rating) || 0;
+  /** @type {string[]} */
+  const pitches = [];
 
   let opp = 0;
   if (noSite) {

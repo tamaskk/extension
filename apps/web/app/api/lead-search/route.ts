@@ -1,6 +1,7 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, Project, CORS, json, descendantFolderIds } from '@/lib/models';
 import { recomputeProjectStats } from '@/lib/projectStats';
+import { refreshSearchTokens } from '@/lib/searchIndex';
 import { logActivity } from '@/lib/activity';
 
 export const runtime = 'nodejs';
@@ -97,6 +98,7 @@ export async function POST(req: Request) {
     const set: Record<string, string> = { emailSearchAt: at };
     if (email) set.email = email;
     await Lead.updateOne({ project: b.project, dedupKey: b.dedupKey }, { $set: set });
+    if (email) await refreshSearchTokens([b.dedupKey]);
     if (email) await recomputeProjectStats([b.project]); // email counter changed
     await logActivity(email
       ? { type: 'email.found', project: b.project, keys: [b.dedupKey], n: 1, title: `${lead.name || b.dedupKey} → ${email} (AI web search)`, data: { name: lead.name, email, owner, source, via: 'AI web search' } }

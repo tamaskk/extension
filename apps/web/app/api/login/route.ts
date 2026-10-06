@@ -1,6 +1,7 @@
 import { SignJWT } from 'jose';
 import { timingSafeEqual } from 'crypto';
 import { AUTH_COOKIE, AUTH_MAX_AGE, authKey } from '@/lib/auth';
+import { limit } from '@/lib/rateLimit.mjs';
 
 export const runtime = 'nodejs';
 
@@ -11,11 +12,22 @@ function safeEqual(a: string, b: string) {
   return timingSafeEqual(ab, bb);
 }
 
+// Login attempts allowed per client address before a 429. Generous for one
+// operator who mistypes, slow for anyone guessing the password.
+const MAX_ATTEMPTS = 10;
+const WINDOW_MS = 15 * 60_000;
+
 export async function POST(req: Request) {
+  // Vercel sets x-forwarded-for itself; the first entry is the client address.
+  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+  const rl = limit('login:' + ip, MAX_ATTEMPTS, WINDOW_MS);
+  if (!rl.ok) {
+    return Response.json({ ok: false, error: `Too many login attempts. Try again in ${Math.ceil(rl.retryAfter / 60)} minute(s).` }, { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } });
+  }
   const body = await req.json().catch(() => ({}));
   const E = (process.env.EMAIL || '').trim();
   const P = process.env.PASSWORD || '';
-  if (!E || !P) return Response.json({ ok: false, error: 'Login is not configured (set EMAIL & PASSWORD in the environment).' }, { status: 500 });
+  if (!E || !P || !process.env.AUTH_SECRET) return Response.json({ ok: false, error: 'Login is not configured (set EMAIL, PASSWORD & AUTH_SECRET in the environment).' }, { status: 500 });
 
   const emailOk = String(body?.email || '').trim().toLowerCase() === E.toLowerCase();
   const passOk = safeEqual(String(body?.password || ''), P);
@@ -24,7 +36,7 @@ export async function POST(req: Request) {
   const token = await new SignJWT({ sub: E.toLowerCase() })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('7d')
+    .setExpirationTime(`${AUTH_MAX_AGE}s`)
     .sign(authKey());
 
   const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';

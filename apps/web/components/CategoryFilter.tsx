@@ -10,19 +10,35 @@ export default function CategoryFilter({ project, folder, value, onChange }:
   const [open, setOpen] = useState(false);
   const [cats, setCats] = useState<{ category: string; count: number }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [q, setQ] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  // lists already fetched, by scope — reopening the dropdown costs no request
+  const loaded = useRef(new Map<string, { category: string; count: number }[]>());
+  const scopeKey = `${project || ''}|${folder || ''}`;
 
-  // (re)load the category list whenever the scope changes
+  // another scope → the list on screen no longer applies
+  useEffect(() => { setCats(loaded.current.get(scopeKey) || []); setFailed(false); }, [scopeKey]);
+
+  // Load the list only when the dropdown is opened. For "all leads" this is a
+  // $group over the whole collection (seconds); it used to run on every
+  // dashboard load whether or not anyone looked at it.
   useEffect(() => {
+    if (!open || loaded.current.has(scopeKey)) return;
     let cancelled = false;
-    setLoading(true);
+    setLoading(true); setFailed(false);
     api.getCategories({ project, folder })
-      .then((r) => { if (!cancelled) setCats(r.categories || []); })
-      .catch(() => { if (!cancelled) setCats([]); })
+      .then((r) => {
+        if (cancelled) return;
+        if ('error' in r) { setFailed(true); return; } // the route answers { categories: [], error } on failure
+        loaded.current.set(scopeKey, r.categories || []);
+        setCats(r.categories || []);
+      })
+      .catch(() => { if (!cancelled) setFailed(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [project, folder]);
+    return () => { cancelled = true; setLoading(false); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, scopeKey]);
 
   useEffect(() => {
     if (!open) return;
@@ -45,7 +61,7 @@ export default function CategoryFilter({ project, folder, value, onChange }:
         <div className="catfilter-pop" onClick={(e) => e.stopPropagation()}>
           <input className="catfilter-search" placeholder="Search categories…" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
           <div className="catfilter-bar">
-            <span className="muted">{loading ? 'Loading…' : `${cats.length} categories`}</span>
+            <span className="muted">{loading ? 'Loading…' : failed ? 'Not loaded' : `${cats.length} categories`}</span>
             <span className="catfilter-links">
               {shown.length > 0 && <button className="cf-link" onClick={allShown}>Select shown</button>}
               {value.length > 0 && <button className="cf-link" onClick={() => onChange([])}>Clear</button>}
@@ -59,7 +75,8 @@ export default function CategoryFilter({ project, folder, value, onChange }:
                 <span className="cf-count">{c.count.toLocaleString()}</span>
               </label>
             ))}
-            {!loading && !shown.length && <div className="muted cf-empty">No categories{q ? ' match' : ''}.</div>}
+            {!loading && failed && <div className="muted cf-empty">Could not load categories.</div>}
+            {!loading && !failed && !shown.length && <div className="muted cf-empty">No categories{q ? ' match' : ''}.</div>}
           </div>
         </div>
       )}

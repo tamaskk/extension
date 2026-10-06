@@ -7,12 +7,16 @@
 // writes emails, so it needs the gl_auth session. The extension calls it with
 // credentials (you must be logged in to the web app in the same browser).
 //
-//   POST { action: 'list', q?, limit?, skip? }      → projects, most open work first
+//   POST { action: 'facets' }                       → business types / countries / regions to filter by
+//   POST { action: 'list', q?, type?, country?, region?, email?, work?, minLeads?, sort?, limit?, skip? }
+//                                                   → projects (default: most open work first)
 //   POST { action: 'queue', project, retry? }       → that project's leads to look up
 //   POST { action: 'results', project, results[] }  → save lookups, return fresh counts
 import { dbConnect } from '@/lib/db';
-import { Lead, ProjectStat, CORS, json } from '@/lib/models';
+import { Lead, Project, ProjectStat, CORS, json } from '@/lib/models';
+import { parseProjectGeo, typeRegex, regionRegex, countryRegex } from '@/lib/projectGeo';
 import { recomputeProjectStats } from '@/lib/projectStats';
+import { refreshSearchTokens } from '@/lib/searchIndex';
 import { logActivity } from '@/lib/activity';
 
 export const runtime = 'nodejs';
@@ -60,29 +64,72 @@ async function auditRows(projects: string[]) {
 // before emailTodo existed fall back to an upper bound (site, no email).
 const TODO_EXPR = { $ifNull: ['$emailTodo', { $max: [0, { $subtract: ['$total', { $add: ['$noWebsite', '$email'] }] }] }] };
 
+// Filter options, derived from every project's query. One pass over ~250k short
+// strings; cached per instance because the set changes slowly.
+let facetCache: { at: number; data: unknown } | null = null;
+async function facets() {
+  if (facetCache && Date.now() - facetCache.at < 10 * 60 * 1000) return facetCache.data;
+  const projs = await Project.find().select('query -_id').lean() as { query: string }[];
+  const types = new Map<string, number>(), countries = new Map<string, number>();
+  const regions = new Map<string, { country: string; count: number }>();
+  for (const p of projs) {
+    const g = parseProjectGeo(p.query); if (!g) continue;
+    if (g.type) types.set(g.type, (types.get(g.type) || 0) + 1);
+    countries.set(g.country, (countries.get(g.country) || 0) + 1);
+    const r = regions.get(g.region) || { country: g.country, count: 0 }; r.count++; regions.set(g.region, r);
+  }
+  const data = {
+    types: [...types].map(([value, count]) => ({ value, count })).sort((a, b) => b.count - a.count),
+    countries: [...countries].map(([value, count]) => ({ value, count })).sort((a, b) => b.count - a.count),
+    // one-off suffixes (typos, free-typed searches) would bury the real regions
+    regions: [...regions].filter(([, r]) => r.count >= 3).map(([value, r]) => ({ value, country: r.country, count: r.count })).sort((a, b) => a.value.localeCompare(b.value)),
+  };
+  facetCache = { at: Date.now(), data };
+  return data;
+}
+
 export async function POST(req: Request) {
   try {
     await dbConnect();
     const b = await req.json();
+
+    if (b.action === 'facets') return json({ ok: true, ...(await facets() as object) });
 
     if (b.action === 'list') {
       const limit = Math.max(1, Math.min(200, Number(b.limit) || 100));
       const skip = Math.max(0, Number(b.skip) || 0);
       const words = String(b.q || '').trim().split(/\s+/).filter(Boolean).slice(0, 8);
       const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const match = words.length ? [{ $match: { $and: words.map((w) => ({ project: new RegExp(esc(w), 'i') })) } }] : [];
+      const conds: Record<string, unknown>[] = words.map((w) => ({ project: new RegExp(esc(w), 'i') }));
+      if (b.type) conds.push({ project: typeRegex(String(b.type)) });
+      if (b.region) conds.push({ project: regionRegex(String(b.region)) });
+      else if (b.country) { const re = countryRegex(String(b.country)); if (re) conds.push({ project: re }); }
+      if (b.email === 'has') conds.push({ email: { $gt: 0 } });        // projects that already have ≥1 email
+      if (b.email === 'none') conds.push({ email: { $in: [0, null] } }); // projects without a single email
+      if (Number(b.minLeads) > 0) conds.push({ total: { $gte: Number(b.minLeads) } });
+      const match: any[] = conds.length ? [{ $match: { $and: conds } }] : [];
+      // open work is computed (TODO_EXPR), so its filter goes after $addFields
+      const work: any[] = b.work === 'todo' ? [{ $match: { todo: { $gt: 0 } } }] : b.work === 'done' ? [{ $match: { todo: { $lte: 0 } } }] : [];
+      const SORTS: Record<string, Record<string, 1 | -1>> = {
+        todo: { todo: -1, project: 1 }, total: { total: -1, project: 1 }, email: { email: -1, project: 1 },
+        noWebsite: { noWebsite: -1, project: 1 }, name: { project: 1 },
+      };
+      const sort = SORTS[String(b.sort)] || SORTS.todo;
 
       const [page, totals] = await Promise.all([
         ProjectStat.aggregate([
           ...match,
           { $addFields: { todo: TODO_EXPR } },
-          { $sort: { todo: -1, project: 1 } },
+          ...work,
+          { $sort: sort },
           { $skip: skip }, { $limit: limit },
           { $project: { _id: 0, project: 1 } },
         ]),
         ProjectStat.aggregate([
           ...match,
-          { $group: { _id: null, projects: { $sum: 1 }, total: { $sum: '$total' }, email: { $sum: '$email' }, noWebsite: { $sum: '$noWebsite' }, todo: { $sum: TODO_EXPR } } },
+          { $addFields: { todo: TODO_EXPR } },
+          ...work,
+          { $group: { _id: null, projects: { $sum: 1 }, total: { $sum: '$total' }, email: { $sum: '$email' }, noWebsite: { $sum: '$noWebsite' }, todo: { $sum: '$todo' } } },
         ]),
       ]);
       const rows = await auditRows((page as { project: string }[]).map((p) => p.project));
@@ -136,6 +183,7 @@ export async function POST(req: Request) {
       // dev server that hot-reloaded this file keeps the OLD Lead schema cached,
       // whose strict mode silently strips the new email* fields.
       if (ops.length) await Lead.collection.bulkWrite(ops, { ordered: false });
+      await refreshSearchTokens(detail.filter((d) => d.email || d.phone).map((d) => String(d.key))); // a saved email or phone is searchable at once
       await recomputeProjectStats([b.project]); // email + emailTodo counters changed
       const [row] = await auditRows([b.project]);
       if (detail.length) {

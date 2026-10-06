@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { dbConnect } from '@/lib/db';
 import { Lead, Project, ProjectStat, NO_SITE } from '@/lib/models';
+import { clearProjectIndex } from '@/lib/projectScope';
 
 // One $group bucket per project — shared by the subset and full recompute paths.
 export const GROUP_STAGE = {
@@ -19,25 +20,33 @@ export const GROUP_STAGE = {
       { $in: [{ $ifNull: ['$email', ''] }, ['']] },
       { $in: [{ $ifNull: ['$emailCheckedAt', ''] }, ['']] },
     ] }, 1, 0] } },
+    // website was checked and no email came out of it (none on it, or unreadable)
+    emailMiss: { $sum: { $cond: [{ $and: [
+      { $in: [{ $ifNull: ['$email', ''] }, ['']] },
+      { $gt: [{ $ifNull: ['$emailCheckedAt', ''] }, ''] },
+    ] }, 1, 0] } },
     oppSum: { $sum: { $ifNull: ['$opportunityScore', 0] } },
   },
 } as const;
 
-// Drop the gzipped /api/projects payload so the next GET rebuilds it from the
-// ProjectStat collection (cheap — no lead scan).
+// A project or folder was renamed, moved or deleted: drop everything derived
+// from the project list — the gzipped /api/projects payload and the sidebar
+// aggregates (the next GET rebuilds them from ProjectStat, no lead scan), and
+// this instance's cached project index.
 export async function invalidateProjectsCache() {
   await dbConnect();
-  await mongoose.connection.db!.collection('caches').deleteOne({ key: 'projects' });
+  await mongoose.connection.db!.collection('caches').deleteMany({ key: { $in: ['projects', 'sidebar'] } });
+  clearProjectIndex();
 }
 
-const ZERO = { total: 0, noWebsite: 0, hot: 0, email: 0, reviews: 0, reviewsSum: 0, ai: 0, oppSum: 0, emailTodo: 0 };
+const ZERO = { total: 0, noWebsite: 0, hot: 0, email: 0, reviews: 0, reviewsSum: 0, ai: 0, oppSum: 0, emailTodo: 0, emailMiss: 0 };
 
 function statSet(project: string, c: Record<string, number>, at: string) {
   return {
     project, updatedAt: at,
     total: c.total || 0, noWebsite: c.noWebsite || 0, hot: c.hot || 0, email: c.email || 0,
     reviews: c.reviews || 0, reviewsSum: c.reviewsSum || 0, ai: c.ai || 0, oppSum: c.oppSum || 0,
-    emailTodo: c.emailTodo || 0,
+    emailTodo: c.emailTodo || 0, emailMiss: c.emailMiss || 0,
   };
 }
 
@@ -51,7 +60,8 @@ export async function recomputeProjectStats(projects: (string | null | undefined
   const rows = await Lead.aggregate([{ $match: { project: { $in: uniq } } }, GROUP_STAGE]);
   const at = new Date().toISOString();
   const by = new Map((rows as { _id: string }[]).map((r) => [r._id, r as unknown as Record<string, number>]));
-  await ProjectStat.bulkWrite(uniq.map((p) => ({
+  // native driver: a hot-reloaded dev server keeps the old ProjectStat schema cached, whose strict mode strips new counters
+  await ProjectStat.collection.bulkWrite(uniq.map((p) => ({
     updateOne: { filter: { project: p }, update: { $set: statSet(p, by.get(p) || ZERO, at) }, upsert: true },
   })), { ordered: false });
   // Deliberately NOT invalidating the gz payload cache here: during scraping
@@ -98,7 +108,7 @@ export async function recomputeAllProjectStats(): Promise<number> {
       await leadsColl.aggregate([
         { $match: match },
         GROUP_STAGE,
-        { $project: { _id: 0, project: '$_id', total: 1, noWebsite: 1, hot: 1, email: 1, reviews: 1, reviewsSum: 1, ai: 1, oppSum: 1, emailTodo: 1, updatedAt: { $literal: at } } },
+        { $project: { _id: 0, project: '$_id', total: 1, noWebsite: 1, hot: 1, email: 1, reviews: 1, reviewsSum: 1, ai: 1, oppSum: 1, emailTodo: 1, emailMiss: 1, updatedAt: { $literal: at } } },
         { $merge: { into: 'projectstats', on: 'project', whenMatched: 'replace', whenNotMatched: 'insert' } },
       ]).toArray(); // toArray() drives the pipeline; $merge emits no rows
     }

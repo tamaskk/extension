@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import type { Folder, Lead, ProjectSummary } from './types';
+import type { Folder, FolderAggregate, Lead, ProjectSummary, SidebarPayload } from './types';
 import { api } from './api';
 
 function newId(prefix: string) {
@@ -15,13 +15,29 @@ export interface ExportBundle {
   projects: Record<string, unknown>;
 }
 
+// the "folder" key of the projects that are in no folder
+export const ROOT_FOLDER = '__root__';
+
+const EMPTY_AGG: FolderAggregate = { projects: 0, zero: 0, total: 0, noWebsite: 0, hot: 0, email: 0, emailMiss: 0, emailTodo: 0, reviews: 0, reviewsSum: 0, ai: 0, oppSum: 0 };
+
+// The sidebar is lazy: the store starts with the folders and one row of sums
+// per folder (GET /api/sidebar, ~250 KB). The projects of a folder are fetched
+// when it is opened. Loading all 240k projects up front was 19-65 MB of JSON
+// and seconds of main-thread work on every visit.
 interface GridState {
   folders: Record<string, Folder>;
-  summaries: Record<string, ProjectSummary>; // keyed by query — sidebar + widgets
+  own: Record<string, FolderAggregate | null>; // per folder: sums over the projects directly in it
+  missing: Record<string, number | null>;      // per folder: accurate coverage gap (server-computed)
+  ungrouped: FolderAggregate;                  // sums over the projects in no folder
+  all: FolderAggregate;                        // sums over every project
+  facets: SidebarPayload['facets'];
+  summaries: Record<string, ProjectSummary>;   // keyed by query — only the projects loaded so far
+  folderState: Record<string, 'loading' | 'loaded' | 'error'>; // by folder id / ROOT_FOLDER
   hydrated: boolean;
 
   hydrate(): Promise<void>;
   refresh(): Promise<void>;
+  loadFolder(id: string): Promise<void>;
 
   createFolder(name: string, parentId?: string | null): void;
   renameFolder(id: string, name: string): void;
@@ -43,24 +59,73 @@ interface GridState {
 }
 
 const swallow = () => {};
-const toMap = <T extends { query?: string; id?: string }>(arr: T[], key: 'query' | 'id') => {
-  const m: Record<string, T> = {};
-  for (const x of arr || []) m[(x as Record<string, string>)[key]] = x;
-  return m;
-};
+
+// the store fields a sidebar payload fills
+function fromSidebar(sb: SidebarPayload) {
+  const folders: Record<string, Folder> = {};
+  const own: Record<string, FolderAggregate | null> = {};
+  const missing: Record<string, number | null> = {};
+  for (const { own: o, missing: m, ...f } of sb.folders) { folders[f.id] = f; own[f.id] = o; missing[f.id] = m; }
+  return { folders, own, missing, ungrouped: sb.ungrouped || EMPTY_AGG, all: sb.all || EMPTY_AGG, facets: sb.facets || { types: [], regions: [], countries: [] } };
+}
+
+// does a loaded project belong to the list of this folder key?
+function inFolder(p: ProjectSummary, id: string, folders: Record<string, Folder>) {
+  return id === ROOT_FOLDER ? !(p.folderId && folders[p.folderId]) : p.folderId === id;
+}
 
 export const useGrid = create<GridState>()((set, get) => ({
   folders: {},
+  own: {},
+  missing: {},
+  ungrouped: EMPTY_AGG,
+  all: EMPTY_AGG,
+  facets: { types: [], regions: [], countries: [] },
   summaries: {},
+  folderState: {},
   hydrated: false,
 
+  // Stale-while-revalidate: show what the browser already has in its HTTP cache
+  // (no network, so the sidebar appears at once), then revalidate. When the
+  // ETags match, the content is the same and the store is left alone.
   hydrate: async () => {
-    const [folders, projects] = await Promise.all([api.getFolders(), api.getProjects()]);
-    set({ folders: toMap(folders, 'id'), summaries: toMap(projects, 'query'), hydrated: true });
+    const cached = await api.getSidebarFrom('force-cache');
+    set({ ...fromSidebar(cached.data), hydrated: true });
+    const fresh = await api.getSidebarFrom('no-cache');
+    if (!fresh.etag || fresh.etag !== cached.etag) set(fromSidebar(fresh.data));
   },
+  // After an edit and on the Refresh button: take the server's sidebar and
+  // reload every folder that is open in the store, so local optimistic state
+  // gives way to what the server has.
   refresh: async () => {
-    const [folders, projects] = await Promise.all([api.getFolders(), api.getProjects()]);
-    set({ folders: toMap(folders, 'id'), summaries: toMap(projects, 'query') });
+    const sb = fromSidebar((await api.getSidebarFrom('no-cache')).data);
+    const ids = Object.keys(get().folderState).filter((id) => get().folderState[id] === 'loaded' && (id === ROOT_FOLDER || sb.folders[id]));
+    const lists = await Promise.all(ids.map((id) => api.getFolderProjects(id).catch(() => null)));
+    const summaries: Record<string, ProjectSummary> = {};
+    const folderState: GridState['folderState'] = {};
+    lists.forEach((list, i) => {
+      if (!list) return; // failed: leave it unloaded, opening the folder asks again
+      folderState[ids[i]] = 'loaded';
+      for (const p of list) summaries[p.query] = p;
+    });
+    set({ ...sb, summaries, folderState });
+  },
+  // Fetch the projects of one folder once. A failure is remembered as 'error'
+  // so the sidebar does not ask again on every render; Refresh clears it.
+  loadFolder: async (id) => {
+    if (get().folderState[id]) return;
+    set((s) => ({ folderState: { ...s.folderState, [id]: 'loading' } }));
+    try {
+      const list = await api.getFolderProjects(id);
+      set((s) => {
+        const summaries: Record<string, ProjectSummary> = {};
+        for (const q of Object.keys(s.summaries)) if (!inFolder(s.summaries[q], id, s.folders)) summaries[q] = s.summaries[q];
+        for (const p of list) summaries[p.query] = p;
+        return { summaries, folderState: { ...s.folderState, [id]: 'loaded' } };
+      });
+    } catch {
+      set((s) => ({ folderState: { ...s.folderState, [id]: 'error' } }));
+    }
   },
 
   createFolder: (name, parentId = null) => {
@@ -83,7 +148,8 @@ export const useGrid = create<GridState>()((set, get) => ({
       for (const q of Object.keys(summaries)) if (summaries[q].folderId === id) summaries[q] = { ...summaries[q], folderId: null };
       return { folders, summaries };
     });
-    api.deleteFolder(id).catch(swallow);
+    // its projects became ungrouped and the per-folder sums changed: reconcile
+    api.deleteFolder(id).then(() => get().refresh()).catch(swallow);
   },
   setFolderCollapsed: (id, collapsed) => {
     set((s) => { const f = s.folders[id]; return f ? { folders: { ...s.folders, [id]: { ...f, collapsed } } } : {}; });
@@ -121,7 +187,7 @@ export const useGrid = create<GridState>()((set, get) => ({
   },
   deleteProject: (query) => {
     set((s) => { const summaries = { ...s.summaries }; delete summaries[query]; return { summaries }; });
-    api.deleteProjects([query]).catch(swallow);
+    api.deleteProjects([query]).then(() => get().refresh()).catch(swallow); // the folder sums changed
   },
   renameProjects: (queries, name) => {
     set((s) => { const summaries = { ...s.summaries }; for (const q of queries) if (summaries[q]) summaries[q] = { ...summaries[q], name }; return { summaries }; });
@@ -129,11 +195,13 @@ export const useGrid = create<GridState>()((set, get) => ({
   },
   deleteProjects: (queries) => {
     set((s) => { const summaries = { ...s.summaries }; for (const q of queries) delete summaries[q]; return { summaries }; });
-    api.deleteProjects(queries).catch(swallow);
+    api.deleteProjects(queries).then(() => get().refresh()).catch(swallow); // the folder sums changed
   },
   moveProjects: (queries, folderId) => {
     set((s) => { const summaries = { ...s.summaries }; for (const q of queries) if (summaries[q]) summaries[q] = { ...summaries[q], folderId: folderId || null }; return { summaries }; });
-    api.moveProjects(queries, folderId).catch(swallow);
+    // The moved projects may not all be loaded here (picked from a search), and
+    // both folders' sums changed: reconcile lists and sums with the server.
+    api.moveProjects(queries, folderId).then(() => get().refresh()).catch(swallow);
   },
 
   importMerge: async (data) => {

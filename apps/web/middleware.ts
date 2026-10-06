@@ -3,11 +3,15 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 import { AUTH_COOKIE, authKey } from '@/lib/auth';
 
-// API routes the Chrome scraper / review extensions use — left OPEN on purpose
-// (no login required). EXACT paths only, so web-only sub-routes like
-// /api/reviews/list and /api/reviews/businesses stay PROTECTED. /api/enrich is
-// localhost-guarded inside the route (403s on prod), safe to leave open here.
-const OPEN_API = new Set(['/api/login', '/api/logout', '/api/sync', '/api/reviews', '/api/reviews/next', '/api/missing-states', '/api/enrich']);
+// API routes reachable without a login. EXACT paths only, so sub-routes like
+// /api/reviews/list stay PROTECTED. The two read-only scraper routes
+// (/api/reviews/next, /api/missing-states) are open on purpose. The routes that
+// WRITE lead data (/api/sync, /api/reviews) are not: the extensions send the
+// gl_auth cookie, like /api/audit. /api/enrich is localhost-guarded inside the
+// route (403s on prod), safe to leave open here.
+// /api/outreach/cron is for a scheduler, which has no session: the route itself
+// lets in only a request that carries CRON_SECRET, and answers 404 to the rest.
+const OPEN_API = new Set(['/api/login', '/api/logout', '/api/reviews/next', '/api/missing-states', '/api/enrich', '/api/outreach/cron']);
 
 function isOpenApi(pathname: string) {
   return OPEN_API.has(pathname);

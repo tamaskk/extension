@@ -1,0 +1,564 @@
+// GridLeads — Prisma schema (PostgreSQL)
+// Multi-tenant Google Maps lead-generation SaaS.
+// Tenancy model: Organization is the tenant boundary. Every business object
+// carries organizationId and is filtered by it in a Prisma middleware + RLS.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm, postgis(schema: "public"), citext]
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Identity & tenancy
+// ──────────────────────────────────────────────────────────────────────────
+
+model Organization {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  plan         Plan     @default(FREE)
+  // Stripe
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+  // Cached plan limits (source of truth = Stripe price metadata; cached here)
+  limits       Json     @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  members      Membership[]
+  campaigns    Campaign[]
+  businesses   Business[]
+  contacts     Contact[]
+  exports      Export[]
+  apiKeys      ApiKey[]
+  auditLogs    AuditLog[]
+  usageCounters UsageCounter[]
+  sequences    Sequence[]
+  webhooks     Webhook[]
+
+  @@index([plan])
+}
+
+model User {
+  id          String   @id @default(cuid())
+  // Clerk / Auth.js subject id
+  externalId  String   @unique
+  email       String   @db.Citext
+  name        String?
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  memberships Membership[]
+  ownedLeads  Business[] @relation("LeadOwner")
+  notes       Note[]
+  tasks       Task[]
+  activities  Activity[]
+
+  @@unique([email])
+}
+
+model Membership {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  role           Role     @default(USER)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  SALES_REP
+  USER
+  VIEWER
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  AGENCY
+  ENTERPRISE
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Campaigns
+// ──────────────────────────────────────────────────────────────────────────
+
+model Campaign {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  // Search definition
+  searchQuery    String?
+  country        String?
+  city           String?
+  // Center point + radius (meters) for the Maps query
+  centerLat      Float?
+  centerLng      Float?
+  radiusMeters   Int?
+  status         CampaignStatus @default(ACTIVE)
+  createdById    String?
+  // Denormalized rollups (kept fresh by a worker; cheap reads at scale)
+  totalLeads     Int      @default(0)
+  qualifiedLeads Int      @default(0)
+  lastScrapeAt   DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  businesses   Business[]
+  exports      Export[]
+  tags         CampaignTag[]
+  scrapeJobs   ScrapeJob[]
+
+  @@index([organizationId, status, createdAt])
+  @@index([organizationId, name])
+}
+
+enum CampaignStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Businesses (the lead) — the high-cardinality table (millions of rows)
+// ──────────────────────────────────────────────────────────────────────────
+
+model Business {
+  id             String   @id @default(cuid())
+  organizationId String
+  campaignId     String
+
+  // Google Maps identity
+  googleCid      String?
+  placeId        String?
+  mapsUrl        String?
+
+  name           String
+  category       String?
+  categories     String[] @default([])
+  description    String?
+
+  // Contact surface (scraped from Maps; enrichment fills the rest)
+  phone          String?
+  website        String?
+  email          String?
+
+  // Location
+  addressLine    String?
+  city           String?
+  region         String?
+  country        String?
+  postalCode     String?
+  lat            Float?
+  lng            Float?
+
+  // Reputation
+  rating         Float?
+  reviewCount    Int?
+
+  // Hours / media / attributes as scraped (flexible)
+  hours          Json?
+  photos         String[] @default([])
+  attributes     Json?
+
+  // Detection + scoring (see packages/scoring)
+  websiteStatus       WebsiteStatus @default(UNKNOWN)
+  websiteCheckedAt    DateTime?
+  leadScore           Int      @default(0)
+  leadTemperature     Temperature @default(COLD)
+  opportunityScore    Int      @default(0)   // Website Opportunity Engine 0-100
+  opportunitySignals  Json?                  // breakdown of detected gaps
+  scoreBreakdown      Json?                  // per-rule contributions for transparency
+
+  // CRM
+  pipelineStage  PipelineStage @default(NEW)
+  ownerId        String?
+  customFields   Json?
+
+  // Search vector (maintained by trigger; queried with raw SQL / tsvector)
+  // searchVector  Unsupported("tsvector")?
+
+  enrichmentStatus EnrichmentStatus @default(NONE)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign     Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  owner        User?        @relation("LeadOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  contacts     Contact[]
+  notes        Note[]
+  tasks        Task[]
+  activities   Activity[]
+  tags         BusinessTag[]
+
+  // Dedup within an org: same Google place can't be inserted twice
+  @@unique([organizationId, placeId])
+  @@unique([organizationId, googleCid])
+  // Primary table list view: by campaign, newest first
+  @@index([organizationId, campaignId, createdAt])
+  // Filter facets
+  @@index([organizationId, websiteStatus])
+  @@index([organizationId, leadTemperature])
+  @@index([organizationId, opportunityScore])
+  @@index([organizationId, pipelineStage])
+  @@index([organizationId, city])
+  @@index([organizationId, category])
+  @@index([organizationId, rating])
+  @@index([organizationId, reviewCount])
+}
+
+enum WebsiteStatus {
+  UNKNOWN
+  HAS_WEBSITE
+  NO_WEBSITE
+  FACEBOOK_ONLY
+  INSTAGRAM_ONLY
+  BROKEN
+  REDIRECTS
+  NOT_WORKING
+  DOMAIN_EXPIRED
+  DOMAIN_PARKED
+  UNDER_CONSTRUCTION
+}
+
+enum Temperature {
+  COLD
+  WARM
+  HOT
+}
+
+enum PipelineStage {
+  NEW
+  CONTACTED
+  INTERESTED
+  MEETING
+  PROPOSAL_SENT
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum EnrichmentStatus {
+  NONE
+  QUEUED
+  RUNNING
+  ENRICHED
+  FAILED
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Contacts (people / emails attached to a business)
+// ──────────────────────────────────────────────────────────────────────────
+
+model Contact {
+  id             String   @id @default(cuid())
+  organizationId String
+  businessId     String
+
+  fullName       String?
+  title          String?
+  email          String?  @db.Citext
+  emailType      EmailType? // owner / info / support / sales / generic
+  phone          String?
+  confidence     Int      @default(0) // 0-100, see enrichment pipeline
+
+  linkedin       String?
+  facebook       String?
+  instagram      String?
+  tiktok         String?
+  youtube        String?
+  twitter        String?
+
+  domain         String?
+  whois          Json?
+  techStack      String[] @default([])
+  source         String?  // hunter | apollo | clearbit | pdl | rocketreach | website | google
+  verified       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  business     Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, email])
+  @@index([organizationId, email])
+  @@index([businessId])
+}
+
+enum EmailType {
+  OWNER
+  INFO
+  SUPPORT
+  SALES
+  GENERIC
+  PERSONAL
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// CRM: notes, tasks, activity, tags
+// ──────────────────────────────────────────────────────────────────────────
+
+model Note {
+  id         String   @id @default(cuid())
+  businessId String
+  authorId   String?
+  body       String
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  author   User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, createdAt])
+}
+
+model Task {
+  id         String     @id @default(cuid())
+  businessId String
+  assigneeId String?
+  title      String
+  dueAt      DateTime?
+  done       Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  assignee User?    @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  @@index([assigneeId, done, dueAt])
+  @@index([businessId])
+}
+
+model Activity {
+  id         String   @id @default(cuid())
+  businessId String
+  actorId    String?
+  type       String   // stage_change | email_sent | email_opened | note_added | enriched ...
+  payload    Json?
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  actor    User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, createdAt])
+}
+
+model Tag {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  color          String?
+
+  businesses BusinessTag[]
+  campaigns  CampaignTag[]
+
+  @@unique([organizationId, name])
+}
+
+model BusinessTag {
+  businessId String
+  tagId      String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([businessId, tagId])
+  @@index([tagId])
+}
+
+model CampaignTag {
+  campaignId String
+  tagId      String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([campaignId, tagId])
+  @@index([tagId])
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Scraping jobs (BullMQ-backed; this is the durable record)
+// ──────────────────────────────────────────────────────────────────────────
+
+model ScrapeJob {
+  id             String   @id @default(cuid())
+  organizationId String
+  campaignId     String
+  status         JobStatus @default(QUEUED)
+  source         String   @default("extension") // extension | server
+  recordsFound   Int      @default(0)
+  recordsSaved   Int      @default(0)
+  errors         Int      @default(0)
+  progress       Int      @default(0) // 0-100
+  meta           Json?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status, createdAt])
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Exports
+// ──────────────────────────────────────────────────────────────────────────
+
+model Export {
+  id             String   @id @default(cuid())
+  organizationId String
+  campaignId     String?
+  format         ExportFormat
+  fields         String[] @default([])
+  filters        Json?
+  rowCount       Int      @default(0)
+  s3Key          String?
+  status         JobStatus @default(QUEUED)
+  createdById    String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign     Campaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+}
+
+enum ExportFormat {
+  CSV
+  XLSX
+  JSON
+  GOOGLE_SHEETS
+  WEBHOOK
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Outreach
+// ──────────────────────────────────────────────────────────────────────────
+
+model Sequence {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  status         String   @default("draft")
+  steps          SequenceStep[]
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  enrollments  Enrollment[]
+
+  @@index([organizationId])
+}
+
+model SequenceStep {
+  id          String   @id @default(cuid())
+  sequenceId  String
+  order       Int
+  delayHours  Int      @default(0)
+  subject     String
+  body        String   // supports {{variables}}
+  sequence    Sequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+
+  @@index([sequenceId, order])
+}
+
+model Enrollment {
+  id           String   @id @default(cuid())
+  sequenceId   String
+  contactId    String
+  currentStep  Int      @default(0)
+  status       String   @default("active") // active | replied | unsubscribed | finished
+  createdAt    DateTime @default(now())
+  sequence     Sequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+
+  events       EmailEvent[]
+  @@index([sequenceId, status])
+}
+
+model EmailEvent {
+  id           String   @id @default(cuid())
+  enrollmentId String
+  type         String   // sent | delivered | open | click | reply | bounce | unsubscribe
+  meta         Json?
+  createdAt    DateTime @default(now())
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([enrollmentId, type])
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Platform: keys, webhooks, audit, usage metering
+// ──────────────────────────────────────────────────────────────────────────
+
+model ApiKey {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  hashedKey      String   @unique // store sha-256(key); show prefix only
+  prefix         String
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@index([organizationId])
+}
+
+model Webhook {
+  id             String   @id @default(cuid())
+  organizationId String
+  url            String
+  secret         String
+  events         String[] @default([])
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@index([organizationId])
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  actorId        String?
+  action         String   // e.g. "campaign.delete"
+  targetType     String?
+  targetId       String?
+  ip             String?
+  userAgent      String?
+  meta           Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@index([organizationId, createdAt])
+}
+
+// Per-period metering for plan limit enforcement (campaigns/leads/exports/enrichments)
+model UsageCounter {
+  id             String   @id @default(cuid())
+  organizationId String
+  metric         String   // leads | enrichments | exports | scrapes
+  period         String   // YYYY-MM
+  value          Int      @default(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@unique([organizationId, metric, period])
+}

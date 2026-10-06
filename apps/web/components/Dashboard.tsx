@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useGrid, downloadJson, downloadText, exportCsv, bundleToRows } from '@/lib/store';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useGrid, ROOT_FOLDER, downloadJson, downloadText, exportCsv, bundleToRows } from '@/lib/store';
 import { api } from '@/lib/api';
-import { type LeadRow, type ProjectSummary, type WebsiteStatus, SALES_STATUSES, SALES_COLOR, SALES_NEEDS_DATE } from '@/lib/types';
+import { type FolderAggregate, type LeadRow, type ProjectSummary, type WebsiteStatus, SALES_STATUSES, SALES_COLOR, SALES_NEEDS_DATE } from '@/lib/types';
 import { googleCalendarUrl } from '@/lib/gcal';
 import { BIZ_TYPES } from '@/lib/bizTypes';
 import { ALL_REGIONS, STATE_REGIONS } from '@/lib/regionNames';
@@ -26,6 +26,17 @@ import VapiCallModal from './VapiCallModal';
 import CategoriesView from './CategoriesView';
 import NotesView from './NotesView';
 import ChangelogView from './ChangelogView';
+import OutreachSenders from './OutreachSenders';
+import SequencesView from './SequencesView';
+import EnrollModal from './EnrollModal';
+import RepliesView from './RepliesView';
+import OutreachReport from './OutreachReport';
+import CoverageMatrix from './CoverageMatrix';
+import CampaignToday from './CampaignToday';
+import WarmupConsole from './WarmupConsole';
+import { parseProjectGeo } from '@/lib/projectGeo';
+import { rowOffsets, visibleRange } from '@/lib/windowing.mjs';
+import { covNorm, makeCoverage } from '@/lib/coverage.mjs';
 import LeadSearchModal from './LeadSearchModal';
 import OrganizeModal from './OrganizeModal';
 
@@ -35,25 +46,22 @@ const cityFromFolderName = (name: string) => { const p = String(name || '').trim
 // thousands separator with a dot: 520343 → "520.343"
 const fmtNum = (n: number) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-// ── folder coverage helpers (shared by the cheap badge + the accurate match) ──
-const covNorm = (s: string) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
-const COV_STATE_SET = new Set(STATE_REGIONS.map(covNorm));
-const COV_STATE_KEY: Record<string, string> = {}; STATE_REGIONS.forEach((s) => { COV_STATE_KEY[covNorm(s)] = s; });
-// States sorted longest-first so "West Virginia" wins over "Virginia".
-const COV_STATE_DESC = [...STATE_REGIONS].map(covNorm).sort((a, b) => b.length - a.length);
-// Extract the US state a folder name STARTS WITH ("Alabama Physical Therapy" →
-// "alabama"). The old covRegionOf dropped only the last word, so any 2+ word
-// business type ("Physical Therapy") broke state detection → the badge fell to
-// the city branch and showed a wrong (>51) missing count.
-const covStateOf = (name: string): string | null => {
-  const n = covNorm(name);
-  for (const sk of COV_STATE_DESC) if (n === sk || n.startsWith(sk + ' ')) return sk;
-  return null;
-};
+// ── folder coverage helpers for the cheap badge (lib/coverage.mjs; the accurate
+// number comes from the server with the sidebar payload) ──
+const COVERAGE = makeCoverage({ stateRegions: STATE_REGIONS, countryNames: COUNTRY_NAMES });
+const COV_STATE_SET: Set<string> = COVERAGE.stateSet;
+const covStateOf: (name: string) => string | null = COVERAGE.covStateOf;
+const covRegionOf: (name: string) => string = COVERAGE.covRegionOf;
+const covCountryPrefix: (name: string) => string | undefined = COVERAGE.covCountryPrefix;
 const COV_CITY_SET = new Set<string>(); for (const c of COUNTRY_NAMES) for (const city of (COUNTRY_CITIES[c] || [])) COV_CITY_SET.add(covNorm(city));
-const COV_COUNTRIES_DESC = [...COUNTRY_NAMES].sort((a, b) => b.length - a.length);
-const covRegionOf = (name: string) => { const w = String(name || '').trim().split(/\s+/); return w.length > 1 ? w.slice(0, -1).join(' ') : (name || ''); };
-const covCountryPrefix = (name: string) => { const n = covNorm(name); return COV_COUNTRIES_DESC.find((c) => n.startsWith(covNorm(c) + ' ')); };
+
+const NO_AGG: FolderAggregate = { projects: 0, zero: 0, total: 0, noWebsite: 0, hot: 0, email: 0, emailMiss: 0, emailTodo: 0, reviews: 0, reviewsSum: 0, ai: 0, oppSum: 0 };
+const addAgg = (a: FolderAggregate, b: FolderAggregate | null | undefined): FolderAggregate => {
+  if (!b) return a;
+  const out = { ...a };
+  for (const k of Object.keys(NO_AGG) as (keyof FolderAggregate)[]) out[k] = a[k] + (b[k] || 0);
+  return out;
+};
 
 // project query = "<business type> near <city...> <state/country>" → parse type + region
 const MULTI_REGIONS = ['New York', 'New Jersey', 'New Mexico', 'New Hampshire', 'North Carolina', 'North Dakota', 'South Carolina', 'South Dakota', 'Rhode Island', 'West Virginia', 'District of Columbia', 'Hong Kong', 'Costa Rica', 'Puerto Rico', 'New Orleans'];
@@ -83,6 +91,15 @@ const byCreated = (a: { createdAt: string }, b: { createdAt: string }) => (a.cre
 const byName = (a: { name?: string; createdAt: string }, b: { name?: string; createdAt: string }) =>
   (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' }) || byCreated(a, b);
 const PAGE_SIZES = [10, 20, 50, 100, 200, 500, 1000];
+
+// Sidebar windowing. The row heights must match `.side-rows` in globals.css:
+// rows are positioned by these numbers, not by measuring the DOM.
+const SIDE_PROJECT_H = 33;
+const SIDE_FOLDER_H = 34;
+const SIDE_GAP = 4;
+const SIDE_OVERSCAN = 20;  // rows rendered beyond the viewport on each side
+const SIDE_SCROLL_STEP = 200; // re-window only after this many px of scroll (well inside the overscan)
+const UNGROUPED_LS = 'gridleads_ungrouped';
 
 const STATUS_MAP: Record<string, [string, string]> = {
   HAS_WEBSITE: ['green', 'Has site'], NO_WEBSITE: ['red', 'No website'],
@@ -241,7 +258,13 @@ function ColumnsMenu({ order, hidden, onToggle, onAll, onReset }:
 
 export default function Dashboard() {
   const folders = useGrid((s) => s.folders);
-  const summaries = useGrid((s) => s.summaries);
+  const summaries = useGrid((s) => s.summaries); // only the projects of the folders opened so far
+  const own = useGrid((s) => s.own);
+  const missingMap = useGrid((s) => s.missing);
+  const ungroupedAgg = useGrid((s) => s.ungrouped);
+  const allAgg = useGrid((s) => s.all);
+  const facets = useGrid((s) => s.facets);
+  const folderState = useGrid((s) => s.folderState);
   const hydrated = useGrid((s) => s.hydrated);
   const actions = useGrid((s) => s);
 
@@ -256,6 +279,9 @@ export default function Dashboard() {
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [selTypes, setSelTypes] = useState<string[]>([]);
   const [selRegions, setSelRegions] = useState<string[]>([]);
+  const [selCountry, setSelCountry] = useState('');
+  const [emailF, setEmailF] = useState('');   // '' | has | none | todo | checked | failed
+  const [phoneF, setPhoneF] = useState('');   // '' | has | none
   const [term, setTerm] = useState('');
   const [debTerm, setDebTerm] = useState('');
   const [sortKey, setSortKey] = useState('opportunityScore');
@@ -265,15 +291,15 @@ export default function Dashboard() {
   const [sideFilter, setSideFilter] = useState('');
   const [rowSel, setRowSel] = useState<Set<string>>(new Set());
   const [sidebarW, setSidebarW] = useState(264);
-  const [covData, setCovData] = useState<{ places: Record<string, [string, number][]>; areas: Record<string, Record<string, string[]>> } | null>(null);
   const [panelW, setPanelW] = useState(440);
   const [collapsed, setCollapsed] = useState(false);
+  const [ungroupedOpen, setUngroupedOpen] = useState(false); // the "Ungrouped" sidebar group (projects with no folder)
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile drawer
   const [dupesOpen, setDupesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [view, setView] = useState<'leads' | 'map' | 'stats' | 'reviews' | 'groups' | 'cats' | 'notes' | 'log'>('leads');
+  const [view, setView] = useState<'leads' | 'map' | 'stats' | 'reviews' | 'groups' | 'cats' | 'notes' | 'log' | 'senders' | 'sequences' | 'replies' | 'report' | 'control' | 'coverage' | 'campaign'>('leads');
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; regions: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [reviewRow, setReviewRow] = useState<LeadRow | null>(null);
@@ -282,13 +308,15 @@ export default function Dashboard() {
   const [organizeOpen, setOrganizeOpen] = useState(false);
   const [callCount, setCallCount] = useState(0);
   const [checkedCount, setCheckedCount] = useState(0);
+  const [enrollOpen, setEnrollOpen] = useState(false); // sequence enrolment modal
   const [recalc, setRecalc] = useState<{ running: boolean; done: number; total: number } | null>(null);
   const [recounting, setRecounting] = useState(false); // full rebuild of the cached per-project counters
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [pageRows, setPageRows] = useState<LeadRow[]>([]);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState<number | null>(null); // null while the count is still running
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false); // the lead page request failed (not the same as "no leads")
   const [reloadKey, setReloadKey] = useState(0);
   const [tagReg, setTagReg] = useState<Record<string, string>>({}); // tag name → color
   const [columnOrder, setColumnOrder] = useState<string[]>(DEFAULT_COLS);
@@ -308,6 +336,7 @@ export default function Dashboard() {
     const savedPw = parseInt(localStorage.getItem('gridleads_pw') || '', 10);
     if (savedPw >= 320 && savedPw <= 760) setPanelW(savedPw);
     if (localStorage.getItem('gridleads_collapsed') === '1') setCollapsed(true);
+    if (localStorage.getItem(UNGROUPED_LS) === '1') setUngroupedOpen(true);
     // restore saved column order, dropping unknown keys and appending any new ones
     try {
       const arr = JSON.parse(localStorage.getItem(COLS_LS) || 'null');
@@ -357,7 +386,7 @@ export default function Dashboard() {
   // debounce the search box
   useEffect(() => { const t = setTimeout(() => setDebTerm(term.trim()), 300); return () => clearTimeout(t); }, [term]);
   // any change that affects the result set goes back to page 1
-  useEffect(() => { setPage(1); }, [activeProject, activeFolder, activeGroup, filter, debTerm, sortKey, sortDir, pageSize, selectedCats, selTypes, selRegions]);
+  useEffect(() => { setPage(1); }, [activeProject, activeFolder, activeGroup, filter, debTerm, sortKey, sortDir, pageSize, selectedCats, selTypes, selRegions, selCountry, emailF, phoneF]);
   // picking a project/folder scope leaves any group scope
   useEffect(() => { if (activeProject || activeFolder) setActiveGroup(null); }, [activeProject, activeFolder]);
   // category options are scope-specific, so reset the picks when the scope changes
@@ -366,7 +395,7 @@ export default function Dashboard() {
     api.getCallCount().then((r) => setCallCount(r.total || 0)).catch(() => {});
     api.getCheckedCount().then((r) => setCheckedCount(r.total || 0)).catch(() => {});
   }, []);
-  useEffect(() => { if (hydrated) refreshCallCount(); }, [hydrated, reloadKey, refreshCallCount]);
+  useEffect(() => { refreshCallCount(); }, [reloadKey, refreshCallCount]);
   // close the mobile drawer whenever a scope is picked
   useEffect(() => { setSidebarOpen(false); }, [activeProject, activeFolder]);
   const uncheckAllLeads = async () => {
@@ -390,230 +419,347 @@ export default function Dashboard() {
 
   const catsKey = selectedCats.join('');
   // ----- server-side page fetch -----
+  // Not gated on the store: the sidebar payload is megabytes and took 10-20 s
+  // to arrive and render, while this request needs nothing from it.
   useEffect(() => {
-    if (!hydrated) return;
     let cancelled = false;
     setLoading(true);
-    api.getLeads({ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, sort: sortKey, dir: sortDir, page, pageSize })
+    api.getLeads({ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF, sort: sortKey, dir: sortDir, page, pageSize }, { total: false })
       .then((res) => {
         if (cancelled) return;
         const rows = (res.rows || []).map((r: any) => ({ ...r, _project: r.project, _key: r.dedupKey })) as LeadRow[];
         setPageRows(rows);
-        setTotal(res.total || 0);
+        setLoadError('error' in res); // the route answers { rows: [], total: 0, error } on failure
       })
-      .catch(() => { if (!cancelled) { setPageRows([]); setTotal(0); } })
+      .catch(() => { if (!cancelled) { setPageRows([]); setLoadError(true); } })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, activeProject, activeFolder, activeGroup?.groupId, filter, debTerm, catsKey, selTypes.join('|'), selRegions.join('|'), sortKey, sortDir, page, pageSize, reloadKey]);
+  }, [activeProject, activeFolder, activeGroup?.groupId, filter, debTerm, catsKey, selTypes.join('|'), selRegions.join('|'), selCountry, emailF, phoneF, sortKey, sortDir, page, pageSize, reloadKey]);
 
   const summariesArr = useMemo(() => Object.values(summaries), [summaries]);
   const folderList = useMemo(() => Object.values(folders), [folders]);
 
-  // parse every project into {type, region} for matching; dropdown options come
-  // from the canonical batch lists (BIZ_TYPES + countries/state_json), merged with
-  // anything actually present in the data so old/typo values stay selectable.
-  const projFacets = useMemo(() => {
-    const dataTypes = new Set<string>(); const dataRegions = new Set<string>();
-    for (const p of summariesArr) { const r = parseProject(p.query); if (r.type) dataTypes.add(r.type); if (r.region) dataRegions.add(r.region); }
-    const types = [...new Set([...BIZ_TYPES, ...dataTypes])].sort((a, b) => a.localeCompare(b));
-    const regions = [...new Set([...ALL_REGIONS, ...dataRegions])].sort((a, b) => a.localeCompare(b));
-    return { types, regions };
-  }, [summariesArr]);
+  // Dropdown options: the canonical batch lists (BIZ_TYPES + countries/state_json)
+  // merged with what occurs in the project queries (sent by the server), so old
+  // or mistyped values stay selectable.
+  const projFacets = useMemo(() => ({
+    types: [...new Set([...BIZ_TYPES, ...facets.types])].sort((a, b) => a.localeCompare(b)),
+    regions: [...new Set([...ALL_REGIONS, ...facets.regions])].sort((a, b) => a.localeCompare(b)),
+  }), [facets]);
   const typeSel = selTypes[0] || '';
   const regionSel = selRegions[0] || '';
+  const countryOpts = facets.countries; // [country, projects], most projects first
 
   // ----- sidebar tree (folders can nest inside folders) -----
-  const tree = useMemo(() => {
-    const exists: Record<string, boolean> = {};
-    folderList.forEach((f) => { exists[f.id] = true; });
-    // folders grouped by parent
-    const childrenOf: Record<string, typeof folderList> = {};
-    const roots: typeof folderList = [];
+  // Split by what each part depends on. Opening or closing a folder creates a new
+  // `folders` object; as one big memo that regrouped all 240k projects and
+  // recomputed every folder badge on each click.
+  type FolderT = typeof folderList[number];
+
+  // projects grouped by folderId — depends on the project list only
+  const projIndex = useMemo(() => {
+    const byFolder: Record<string, ProjectSummary[]> = {};
+    const noFolder: ProjectSummary[] = [];
+    for (const p of summariesArr) { if (p.folderId) (byFolder[p.folderId] = byFolder[p.folderId] || []).push(p); else noFolder.push(p); }
+    Object.keys(byFolder).forEach((k) => byFolder[k].sort(byCreated));
+    noFolder.sort(byCreated);
+    return { byFolder, noFolder };
+  }, [summariesArr]);
+
+  // The shape of the folder tree. Open/closed state, icon and manual order are
+  // left out on purpose, so toggling a folder invalidates nothing below. A new
+  // folder property that changes the tree or its sort order must be added here.
+  const folderShape = useMemo(() => folderList.map((f) => `${f.id}\u0001${f.parentId || ''}\u0001${f.name}\u0001${f.createdAt}`).join('\u0002'), [folderList]);
+
+  // ids only: the folder objects themselves change on every toggle
+  const folderTree = useMemo(() => {
+    const exists = new Set(folderList.map((f) => f.id));
+    const nameOf: Record<string, string> = {};
+    folderList.forEach((f) => { nameOf[f.id] = f.name || ''; });
+    const childIds: Record<string, string[]> = {};
+    const rootIds: string[] = [];
     folderList.slice().sort(byName).forEach((f) => {
-      const pid = f.parentId && exists[f.parentId] ? f.parentId : '';
-      if (pid) (childrenOf[pid] = childrenOf[pid] || []).push(f);
-      else roots.push(f);
+      const pid = f.parentId && exists.has(f.parentId) ? f.parentId : '';
+      if (pid) (childIds[pid] = childIds[pid] || []).push(f.id);
+      else rootIds.push(f.id);
     });
-    // projects grouped by folder
-    const projsOf: Record<string, ProjectSummary[]> = {};
-    const ungrouped: ProjectSummary[] = [];
-    summariesArr.forEach((p) => {
-      if (p.folderId && exists[p.folderId]) (projsOf[p.folderId] = projsOf[p.folderId] || []).push(p);
-      else ungrouped.push(p);
-    });
-    Object.keys(projsOf).forEach((k) => projsOf[k].sort(byCreated));
-    ungrouped.sort(byCreated);
-    // recursive total (a folder's own projects + every descendant folder's)
-    const totalOf: Record<string, number> = {};
-    const computeTotal = (f: typeof folderList[number]): number => {
-      let t = (projsOf[f.id] || []).reduce((s, p) => s + p.total, 0);
-      for (const c of (childrenOf[f.id] || [])) t += computeTotal(c);
-      totalOf[f.id] = t; return t;
-    };
-    roots.forEach(computeTotal);
     // descendant ids per folder (for stats scope)
     const descOf: Record<string, Set<string>> = {};
-    const computeDesc = (f: typeof folderList[number]): Set<string> => {
-      const set = new Set<string>([f.id]);
-      for (const c of (childrenOf[f.id] || [])) computeDesc(c).forEach((id) => set.add(id));
-      descOf[f.id] = set; return set;
+    const computeDesc = (id: string): Set<string> => {
+      const set = new Set<string>([id]);
+      for (const c of (childIds[id] || [])) computeDesc(c).forEach((x) => set.add(x));
+      descOf[id] = set; return set;
     };
-    roots.forEach(computeDesc);
-    // per-folder counts of nested sub-folders and projects (for the sidebar badges)
+    rootIds.forEach(computeDesc);
     const folderCountOf: Record<string, number> = {};
+    for (const id of Object.keys(descOf)) folderCountOf[id] = descOf[id].size - 1; // descendants, excluding self
+    // flat list with depth (for the "Move to…" dropdown)
+    const flatIds: { id: string; depth: number }[] = [];
+    const flatten = (id: string, depth: number) => { flatIds.push({ id, depth }); (childIds[id] || []).forEach((c) => flatten(c, depth + 1)); };
+    rootIds.forEach((id) => flatten(id, 0));
+    return { exists, nameOf, childIds, rootIds, descOf, folderCountOf, flatIds };
+    // folderList is read through folderShape: same shape → same tree
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folderShape]);
+
+  // Per-folder numbers. The counts come from the server's per-folder sums (`own`);
+  // project lists exist only for the folders that were opened.
+  const folderTotals = useMemo(() => {
+    const { exists, nameOf, childIds, descOf } = folderTree;
+    const projsOf: Record<string, ProjectSummary[]> = {};
+    const stray: ProjectSummary[] = []; // a folderId that no longer exists counts as ungrouped
+    for (const fid of Object.keys(projIndex.byFolder)) {
+      if (!exists.has(fid)) stray.push(...projIndex.byFolder[fid]);
+      else if (folderState[fid] === 'loaded') projsOf[fid] = projIndex.byFolder[fid];
+    }
+    const ungrouped = folderState[ROOT_FOLDER] !== 'loaded' ? []
+      : stray.length ? [...projIndex.noFolder, ...stray].sort(byCreated) : projIndex.noFolder;
+    // recursive: a folder's own projects + every descendant folder's
+    const totalOf: Record<string, number> = {};
     const projCountOf: Record<string, number> = {};
     const zeroCountOf: Record<string, number> = {}; // projects with 0 leads (orange badge)
     for (const id of Object.keys(descOf)) {
-      const set = descOf[id];
-      folderCountOf[id] = set.size - 1; // descendants, excluding self
-      let pc = 0, zc = 0;
-      set.forEach((did) => (projsOf[did] || []).forEach((p) => { pc++; if (!p.total) zc++; }));
-      projCountOf[id] = pc; zeroCountOf[id] = zc;
+      let t = 0, pc = 0, zc = 0;
+      descOf[id].forEach((did) => { const o = own[did]; if (o) { t += o.total; pc += o.projects; zc += o.zero; } });
+      totalOf[id] = t; projCountOf[id] = pc; zeroCountOf[id] = zc;
     }
     // coverage "missing" per folder (red badge) — CHEAP estimate (reference count −
-    // present count). The accurate, modal-matching number replaces it once the full
-    // reference lists are lazy-loaded (see `accurateMissing`).
+    // present count), used where the server sent no accurate number.
     const missingOf: Record<string, number | null> = {};
-    for (const f of folderList) {
+    for (const id of exists) {
+      const name = nameOf[id];
       let miss: number | null = null;
-      const cp = covCountryPrefix(f.name);
+      const cp = covCountryPrefix(name);
       if (cp) {
-        const kids = childrenOf[f.id] || [];
+        const kidNames = (childIds[id] || []).map((k) => nameOf[k]);
         // State detection by prefix (robust to multi-word business types).
-        const stateKids = kids.map((k) => covStateOf(k.name)).filter(Boolean) as string[];
-        if (covNorm(cp) === 'usa' && stateKids.length > 0 && stateKids.length >= kids.length / 2) {
+        const stateKids = kidNames.map((n) => covStateOf(n)).filter(Boolean) as string[];
+        if (covNorm(cp) === 'usa' && stateKids.length > 0 && stateKids.length >= kidNames.length / 2) {
           miss = Math.max(0, STATE_REGIONS.length - new Set(stateKids).size); // missing US states (of 51)
         } else {
           const cities = COUNTRY_CITIES[cp] || [];
           const citySet = new Set(cities.map(covNorm));
-          const kidRegions = kids.map((k) => covNorm(covRegionOf(k.name)));
+          const kidRegions = kidNames.map((n) => covNorm(covRegionOf(n)));
           const present = new Set(kidRegions.filter((r) => citySet.has(r))).size;
           miss = Math.max(0, cities.length - present); // missing cities
         }
       } else {
-        const reg = covStateOf(f.name) || covNorm(covRegionOf(f.name));
-        if (COV_STATE_SET.has(reg) && STATE_PLACE_COUNTS[reg] != null) miss = Math.max(0, STATE_PLACE_COUNTS[reg] - (projCountOf[f.id] || 0));
-        else if (COV_CITY_SET.has(reg) && CITY_AREA_COUNTS[reg] != null) miss = Math.max(0, CITY_AREA_COUNTS[reg] - (projCountOf[f.id] || 0));
+        const reg = covStateOf(name) || covNorm(covRegionOf(name));
+        if (COV_STATE_SET.has(reg) && STATE_PLACE_COUNTS[reg] != null) miss = Math.max(0, STATE_PLACE_COUNTS[reg] - (projCountOf[id] || 0));
+        else if (COV_CITY_SET.has(reg) && CITY_AREA_COUNTS[reg] != null) miss = Math.max(0, CITY_AREA_COUNTS[reg] - (projCountOf[id] || 0));
       }
-      missingOf[f.id] = miss;
+      missingOf[id] = miss;
     }
+    return { projsOf, ungrouped, totalOf, projCountOf, zeroCountOf, missingOf };
+  }, [projIndex, folderTree, own, folderState]);
 
-    // visible project order (respects collapse) — for shift-click range select
-    const order: string[] = [];
-    const walk = (f: typeof folderList[number]) => {
-      if (f.collapsed) return;
-      (childrenOf[f.id] || []).forEach(walk);
-      (projsOf[f.id] || []).forEach((p) => order.push(p.query));
-    };
-    roots.forEach(walk);
-    ungrouped.forEach((p) => order.push(p.query));
-    // flat list with depth (for the "Move to…" dropdown)
-    const flat: { f: typeof folderList[number]; depth: number }[] = [];
-    const flatten = (f: typeof folderList[number], depth: number) => { flat.push({ f, depth }); (childrenOf[f.id] || []).forEach((c) => flatten(c, depth + 1)); };
-    roots.forEach((f) => flatten(f, 0));
-    return { childrenOf, roots, projsOf, ungrouped, totalOf, descOf, folderCountOf, projCountOf, zeroCountOf, missingOf, order, flat };
-  }, [summariesArr, folderList]);
+  // the same tree with the current folder objects (774 folders: cheap on every toggle)
+  const tree = useMemo(() => {
+    const childrenOf: Record<string, FolderT[]> = {};
+    for (const pid of Object.keys(folderTree.childIds)) childrenOf[pid] = folderTree.childIds[pid].map((id) => folders[id]).filter(Boolean);
+    const roots = folderTree.rootIds.map((id) => folders[id]).filter(Boolean);
+    const flat = folderTree.flatIds.map(({ id, depth }) => ({ f: folders[id], depth })).filter((x) => x.f);
+    return { childrenOf, roots, flat, descOf: folderTree.descOf, folderCountOf: folderTree.folderCountOf, ...folderTotals };
+  }, [folderTree, folderTotals, folders]);
 
-  // lazy-load the full reference lists (states + country areas) once, so the red
-  // "missing" badge can be computed the SAME way the coverage modal does.
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([import('@/lib/states'), import('@/lib/countryAreas')])
-      .then(([s, a]) => { if (!cancelled) setCovData({ places: s.STATE_PLACES, areas: a.COUNTRY_AREAS_BY_FILE }); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  // accurate per-folder "missing" for state/city folders — matches the coverage
-  // modal exactly (token-in-haystack against the real reference list).
-  const accurateMissing = useMemo(() => {
-    const out: Record<string, number> = {};
-    if (!covData) return out;
-    const placesByNorm: Record<string, string[]> = {};
-    for (const [st, arr] of Object.entries(covData.places)) placesByNorm[covNorm(st)] = arr.map((x) => x[0]);
-    const areasByNorm: Record<string, string[]> = {};
-    for (const file of Object.values(covData.areas)) for (const [city, arr] of Object.entries(file)) if (!areasByNorm[covNorm(city)]) areasByNorm[covNorm(city)] = arr;
-    for (const f of folderList) {
-      if (covCountryPrefix(f.name)) continue; // roots keep the cheap estimate
-      const reg = covStateOf(f.name) || covNorm(covRegionOf(f.name)); // prefix state match (multi-word types)
-      const refNames = (COV_STATE_SET.has(reg) && placesByNorm[reg]) ? placesByNorm[reg] : areasByNorm[reg];
-      if (!refNames) continue;
-      const ids = tree.descOf[f.id] || new Set([f.id]);
-      let blob = '';
-      ids.forEach((did) => {
-        for (const p of (tree.projsOf[did] || [])) { if (p.name) blob += ' ' + covNorm(p.name) + ' '; if (p.query) blob += ' ' + covNorm(p.query) + ' '; }
-        if (did !== f.id && folders[did]) blob += ' ' + covNorm(covRegionOf(folders[did].name)) + ' ';
-      });
-      let present = 0;
-      for (const nm of refNames) { const p = ' ' + covNorm(nm) + ' '; if (p.length > 2 && blob.includes(p)) present++; }
-      out[f.id] = Math.max(0, refNames.length - present);
-    }
-    return out;
-  }, [covData, tree, folderList, folders]);
-
-  // ----- sidebar filter: text + business-type + state/country (reveals matches) -----
+  // ----- sidebar filter: text + business-type + state/country -----
+  // Asked from the server (GET /api/projects?search=…): the browser holds only the
+  // projects of opened folders. A folder whose NAME matches the text is shown too.
   const sideQuery = sideFilter.trim().toLowerCase();
+  const filterOn = !!(sideQuery || typeSel || regionSel || selCountry);
+  const filterKey = `${sideQuery}|${typeSel}|${regionSel}|${selCountry}`;
+  const [sideSearch, setSideSearch] = useState<{ key: string; rows: ProjectSummary[]; total: number } | null>(null);
+  useEffect(() => {
+    if (!filterOn) { setSideSearch(null); return; }
+    let cancelled = false;
+    const t = setTimeout(() => {
+      api.searchProjects({ search: sideQuery, ptypes: selTypes, pregions: selRegions, country: selCountry })
+        .then((r) => { if (!cancelled) setSideSearch({ key: filterKey, rows: r.rows, total: r.total }); })
+        .catch(() => { if (!cancelled) setSideSearch({ key: filterKey, rows: [], total: 0 }); });
+    }, 300);
+    return () => { cancelled = true; clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterKey, reloadKey]);
   const filtered = useMemo(() => {
-    if (!sideQuery && !typeSel && !regionSel) return null;
+    if (!filterOn) return null;
+    const ready = !!sideSearch && sideSearch.key === filterKey;
+    const rows = ready ? sideSearch.rows : [];
     const showFolder = new Set<string>();
     const showProject = new Set<string>();
-    const tl = typeSel.toLowerCase(); const rl = regionSel.toLowerCase();
-    const facetOk = (q: string) => { if (!typeSel && !regionSel) return true; const lc = q.toLowerCase(); return (!typeSel || lc.startsWith(tl)) && (!regionSel || lc === rl || lc.endsWith(' ' + rl)); };
-    const projOk = (p: ProjectSummary, textFromAncestor: boolean) => {
-      const textOk = textFromAncestor || !sideQuery || p.name.toLowerCase().includes(sideQuery) || p.query.toLowerCase().includes(sideQuery);
-      return textOk && facetOk(p.query);
-    };
-    const visit = (f: typeof folderList[number], ancestorMatched: boolean): boolean => {
-      const nameMatch = !!sideQuery && f.name.toLowerCase().includes(sideQuery);
-      const sub = ancestorMatched || nameMatch; // matched folder name → its projects pass the text test
-      let anyDesc = false;
-      for (const c of (tree.childrenOf[f.id] || [])) if (visit(c, sub)) anyDesc = true;
-      for (const p of (tree.projsOf[f.id] || [])) if (projOk(p, sub)) { showProject.add(p.query); anyDesc = true; }
-      if (anyDesc) showFolder.add(f.id);
-      return anyDesc;
-    };
-    tree.roots.forEach((f) => visit(f, false));
-    tree.ungrouped.forEach((p) => { if (projOk(p, false)) showProject.add(p.query); });
-    const order: string[] = [];
-    const collect = (f: typeof folderList[number]) => {
-      if (!showFolder.has(f.id)) return;
-      (tree.childrenOf[f.id] || []).forEach(collect);
-      (tree.projsOf[f.id] || []).forEach((p) => { if (showProject.has(p.query)) order.push(p.query); });
-    };
-    tree.roots.forEach(collect);
-    tree.ungrouped.forEach((p) => { if (showProject.has(p.query)) order.push(p.query); });
-    return { showFolder, showProject, order };
-  }, [sideQuery, typeSel, regionSel, tree, projFacets]);
+    const hitsOf: Record<string, ProjectSummary[]> = {}; // matching projects by folder id ('' = no folder)
+    // show a folder and every folder above it
+    const reveal = (id: string) => { let cur = folders[id]; while (cur && !showFolder.has(cur.id)) { showFolder.add(cur.id); cur = cur.parentId ? folders[cur.parentId] : undefined as never; } };
+    for (const p of rows) {
+      showProject.add(p.query);
+      const fid = p.folderId && folders[p.folderId] ? p.folderId : '';
+      (hitsOf[fid] = hitsOf[fid] || []).push(p);
+      if (fid) reveal(fid);
+    }
+    if (sideQuery) for (const f of folderList) if ((f.name || '').toLowerCase().includes(sideQuery)) reveal(f.id);
+    return { showFolder, showProject, hitsOf, rows, total: ready ? sideSearch.total : 0, loading: !ready };
+  }, [filterOn, filterKey, sideSearch, folders, folderList, sideQuery]);
 
-  // ----- widgets (full scope, from summaries) -----
+  // ----- sidebar rows: the tree flattened to what is on screen -----
+  // Folders respect open/closed (all matching folders are open while filtering).
+  // Projects with no folder sit in one "Ungrouped" group, closed by default —
+  // there are thousands of them and rendering each cost seconds per render.
+  type SideRow = { kind: 'folder'; f: FolderT; depth: number } | { kind: 'project'; p: ProjectSummary; depth: number } | { kind: 'ungrouped' }
+    | { kind: 'loading'; id: string; depth: number }; // an open folder whose projects are on their way
+  const visibleRows = useMemo(() => {
+    const rows: SideRow[] = [];
+    const walk = (f: FolderT, depth: number) => {
+      if (filtered && !filtered.showFolder.has(f.id)) return;
+      rows.push({ kind: 'folder', f, depth });
+      if (filtered) { // every shown folder is open while filtering; only the matches are listed
+        for (const c of (tree.childrenOf[f.id] || [])) walk(c, depth + 1);
+        for (const p of (filtered.hitsOf[f.id] || [])) rows.push({ kind: 'project', p, depth: depth + 1 });
+        return;
+      }
+      if (f.collapsed) return;
+      for (const c of (tree.childrenOf[f.id] || [])) walk(c, depth + 1);
+      if (folderState[f.id] === 'loaded') for (const p of (tree.projsOf[f.id] || [])) rows.push({ kind: 'project', p, depth: depth + 1 });
+      else if (own[f.id]?.projects) rows.push({ kind: 'loading', id: f.id, depth: depth + 1 });
+    };
+    tree.roots.forEach((f) => walk(f, 0));
+    if (filtered) { // matches without a folder show whether or not the group is open
+      for (const p of (filtered.hitsOf[''] || [])) rows.push({ kind: 'project', p, depth: 0 });
+    } else if (ungroupedAgg.projects > 0) {
+      rows.push({ kind: 'ungrouped' });
+      if (ungroupedOpen) {
+        if (folderState[ROOT_FOLDER] === 'loaded') for (const p of tree.ungrouped) rows.push({ kind: 'project', p, depth: 1 });
+        else rows.push({ kind: 'loading', id: ROOT_FOLDER, depth: 1 });
+      }
+    }
+    return rows;
+  }, [tree, filtered, ungroupedOpen, folderState, own, ungroupedAgg]);
+  // fetch the projects of every folder that is open and not here yet
+  useEffect(() => {
+    if (!hydrated) return;
+    for (const f of folderList) if (!f.collapsed && own[f.id]?.projects && !folderState[f.id]) actions.loadFolder(f.id);
+    if (ungroupedOpen && ungroupedAgg.projects > 0 && !folderState[ROOT_FOLDER]) actions.loadFolder(ROOT_FOLDER);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, folderList, own, folderState, ungroupedOpen, ungroupedAgg]);
+  // visible project order — for shift-click range select
+  const visibleOrder = useMemo(() => { const o: string[] = []; for (const r of visibleRows) if (r.kind === 'project') o.push(r.p.query); return o; }, [visibleRows]);
+
+  // Windowing: only the rows near the viewport are in the DOM (lib/windowing.mjs).
+  const sideLayout = useMemo(() => {
+    const heights = visibleRows.map((r) => (r.kind === 'project' || r.kind === 'loading' ? SIDE_PROJECT_H : SIDE_FOLDER_H));
+    return { heights, layout: rowOffsets(heights, SIDE_GAP) };
+  }, [visibleRows]);
+  const sideScrollRef = useRef<HTMLDivElement>(null); // .sidebar-scroll: the element that scrolls
+  const sideRowsRef = useRef<HTMLDivElement>(null);   // .side-rows: the windowed list inside it
+  const [sideWin, setSideWin] = useState({ top: 0, height: 1000 });
+  // where the viewport is relative to the list; rects, because the list starts
+  // below the nav rail and the filters, whose height changes
+  const measureSide = useCallback(() => {
+    const sc = sideScrollRef.current, el = sideRowsRef.current;
+    if (!sc || !el) return;
+    const rawTop = sc.getBoundingClientRect().top - el.getBoundingClientRect().top;
+    const top = Math.floor(rawTop / SIDE_SCROLL_STEP) * SIDE_SCROLL_STEP;
+    const height = sc.clientHeight + SIDE_SCROLL_STEP;
+    setSideWin((w) => (w.top === top && w.height === height ? w : { top, height }));
+  }, []);
+  const sidebarShown = mounted && (!collapsed || isMobile);
+  useEffect(() => {
+    const sc = sideScrollRef.current;
+    if (!sc) return;
+    // No requestAnimationFrame throttle: measuring is two rects, and state only
+    // changes once per SIDE_SCROLL_STEP px, so most scroll events re-render nothing.
+    sc.addEventListener('scroll', measureSide, { passive: true });
+    const ro = new ResizeObserver(measureSide);
+    ro.observe(sc);
+    return () => { sc.removeEventListener('scroll', measureSide); ro.disconnect(); };
+  }, [sidebarShown, measureSide]);
+  useLayoutEffect(() => { measureSide(); }); // rows above the list may have changed height in this render
+  const sideRange = useMemo(() => visibleRange(sideLayout.layout, sideLayout.heights, sideWin.top, sideWin.height, SIDE_OVERSCAN), [sideLayout, sideWin]);
+  const toggleUngrouped = () => setUngroupedOpen((v) => { try { localStorage.setItem(UNGROUPED_LS, v ? '0' : '1'); } catch { /* layout only */ } return !v; });
+
+  // ----- widgets -----
+  // From the per-folder sums when the scope is everything or a folder; a
+  // project scope or a type / region / country filter is summed by the server.
+  const facetOn = !!(typeSel || regionSel || selCountry);
+  const statsLocal = useMemo<FolderAggregate | null>(() => {
+    if (!hydrated || facetOn) return null;
+    if (activeFolder) { let a = NO_AGG; (tree.descOf[activeFolder] || new Set([activeFolder])).forEach((id) => { a = addAgg(a, own[id]); }); return a; }
+    if (activeProject) { const p = summaries[activeProject]; return p ? addAgg(NO_AGG, { ...NO_AGG, ...p, projects: 1, zero: p.total ? 0 : 1, emailMiss: p.emailMiss || 0, emailTodo: p.emailTodo || 0, reviews: p.reviews || 0, reviewsSum: p.reviewsSum || 0, ai: p.ai || 0, oppSum: p.oppSum || 0 }) : null; }
+    return allAgg;
+  }, [hydrated, facetOn, activeFolder, activeProject, tree, own, summaries, allAgg]);
+  const statsKey = `${activeFolder || ''}|${activeProject || ''}|${typeSel}|${regionSel}|${selCountry}`;
+  const [scopeStats, setScopeStats] = useState<{ key: string; agg: FolderAggregate } | null>(null);
+  const needScopeStats = hydrated && !statsLocal;
+  useEffect(() => {
+    if (!needScopeStats) return;
+    let cancelled = false;
+    api.getScopeStats({ project: activeProject, folder: activeFolder, ptypes: selTypes, pregions: selRegions, country: selCountry })
+      .then((agg) => { if (!cancelled) setScopeStats({ key: statsKey, agg }); })
+      .catch(() => { /* the tiles stay at zero; the lead count falls back to the server */ });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needScopeStats, statsKey, reloadKey]);
+  const statsAgg = statsLocal || (scopeStats && scopeStats.key === statsKey ? scopeStats.agg : null);
+  const statsReady = !!statsAgg;
   const stats = useMemo(() => {
-    const scope = activeFolder ? summariesArr.filter((p) => p.folderId && (tree.descOf[activeFolder]?.has(p.folderId) ?? p.folderId === activeFolder))
-      : activeProject ? (summaries[activeProject] ? [summaries[activeProject]] : [])
-      : summariesArr;
-    const total = scope.reduce((s, p) => s + p.total, 0);
-    const noweb = scope.reduce((s, p) => s + p.noWebsite, 0);
-    const hot = scope.reduce((s, p) => s + p.hot, 0);
-    const email = scope.reduce((s, p) => s + p.email, 0);
-    const reviews = scope.reduce((s, p) => s + (p.reviews || 0), 0);
-    const reviewsSum = scope.reduce((s, p) => s + (p.reviewsSum || 0), 0);
-    const ai = scope.reduce((s, p) => s + (p.ai || 0), 0);
-    const oppSum = scope.reduce((s, p) => s + (p.oppSum || 0), 0);
-    return { total, noweb, hot, email, reviews, reviewsSum, ai, avg: total ? Math.round(oppSum / total) : 0 };
-  }, [activeProject, activeFolder, summaries, summariesArr, tree]);
-  const globalTotal = useMemo(() => summariesArr.reduce((s, p) => s + (p.total || 0), 0), [summariesArr]);
+    const a = statsAgg || NO_AGG;
+    return { total: a.total, noweb: a.noWebsite, hot: a.hot, email: a.email, emailMiss: a.emailMiss, emailTodo: a.emailTodo, reviews: a.reviews, reviewsSum: a.reviewsSum, ai: a.ai, avg: a.total ? Math.round(a.oppSum / a.total) : 0 };
+  }, [statsAgg]);
+  // Email tile: shows the precomputed project counters, and re-counts live from
+  // the database when clicked (only these two numbers — nothing else reloads).
+  const [emailLive, setEmailLive] = useState<{ email: number; miss: number } | null>(null);
+  const [emailBusy, setEmailBusy] = useState(false);
+  const emailScope = `${activeFolder || ''}|${activeProject || ''}|${typeSel}|${regionSel}|${selCountry}`;
+  const emailScopeRef = useRef(emailScope);
+  useEffect(() => { emailScopeRef.current = emailScope; setEmailLive(null); }, [emailScope]); // other scope → the live numbers no longer apply
+  const emailTile = emailLive || { email: stats.email, miss: stats.emailMiss };
+  const refreshEmailTile = async () => {
+    if (emailBusy) return;
+    const scope = emailScope;
+    setEmailBusy(true);
+    try {
+      const r = await api.getEmailCounts({ project: activeProject, folder: activeFolder, ptypes: selTypes, pregions: selRegions, country: selCountry });
+      if (r?.ok && emailScopeRef.current === scope) setEmailLive({ email: r.email, miss: r.miss });
+    } catch { /* keep the numbers already shown */ }
+    setEmailBusy(false);
+  };
+  const globalTotal = allAgg.total;
   const scopeName = activeFolder ? (folders[activeFolder]?.name || 'this folder') : activeProject ? (summaries[activeProject]?.name || activeProject) : '';
 
   const title = activeFolder ? `📁 ${folders[activeFolder]?.name || 'Folder'}`
     : activeProject === null ? 'All leads'
     : (summaries[activeProject]?.name || activeProject);
-  const totalAll = summariesArr.reduce((s, p) => s + p.total, 0);
-  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const totalAll = allAgg.total;
+  // ----- lead count -----
+  // Apart from the rows, so a slow count never holds the page back, and not
+  // repeated when only the page or the sort changes. Where a chip (or one of
+  // the email dropdown values) is the only filter, the number is already in the
+  // project counters and no request is made at all.
+  const countFromStats = (() => {
+    if (!hydrated || !statsReady || debTerm || selectedCats.length || phoneF || activeGroup) return undefined;
+    if (!emailF) return ({ all: stats.total, nowebsite: stats.noweb, hot: stats.hot, email: stats.email, hasreviews: stats.reviews, hasai: stats.ai } as Record<string, number | undefined>)[filter];
+    if (filter !== 'all') return undefined;
+    // `todo` is left to the server: ProjectStat.emailTodo is only filled for projects
+    // recounted since that counter was added (the sum was 40 against 944,728 real)
+    return ({ has: stats.email, miss: stats.emailMiss } as Record<string, number | undefined>)[emailF];
+  })();
+  useEffect(() => {
+    if (countFromStats !== undefined) { setTotal(countFromStats); return; }
+    let cancelled = false;
+    setTotal(null);
+    api.getLeadsTotal({ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF })
+      .then((res) => { if (!cancelled) setTotal(res.total || 0); })
+      .catch(() => { if (!cancelled) setTotal(0); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countFromStats, activeProject, activeFolder, activeGroup?.groupId, filter, debTerm, catsKey, selTypes.join('|'), selRegions.join('|'), selCountry, emailF, phoneF, reloadKey]);
+  const pageCount = total === null ? null : Math.max(1, Math.ceil(total / pageSize));
+  // with the count still running, "next" is allowed whenever the page came back full
+  const isLastPage = pageCount !== null ? page >= pageCount : pageRows.length < pageSize;
 
   // ----- selection (sidebar projects) -----
   const toggleSelect = (q: string, checked: boolean, shift: boolean) => {
     const next = new Set(selected);
-    const order = filtered ? filtered.order : tree.order; // shift-range over what's actually visible
+    const order = visibleOrder; // shift-range over what's actually visible
     if (shift && lastChecked.current) {
       const a = order.indexOf(lastChecked.current);
       const b = order.indexOf(q);
@@ -621,6 +767,15 @@ export default function Dashboard() {
     } else if (checked) next.add(q); else next.delete(q);
     lastChecked.current = q;
     setSelected(next);
+  };
+
+  // "Select all filtered": the sidebar lists only the first matches, so the full
+  // set of queries is asked from the server (up to 5,000).
+  const selectAllFiltered = async (unselect: boolean) => {
+    let queries: string[];
+    try { queries = (await api.searchProjectQueries({ search: sideQuery, ptypes: selTypes, pregions: selRegions, country: selCountry })).queries; }
+    catch { alert('Could not select the filtered projects.'); return; }
+    setSelected((prev) => { const n = new Set(prev); for (const q of queries) { if (unselect) n.delete(q); else n.add(q); } return n; });
   };
 
   // ----- selection (sidebar folders) -----
@@ -791,7 +946,7 @@ export default function Dashboard() {
     setSelFolders(new Set());
   };
   // gather the cities present beneath a folder (from every descendant folder's name)
-  const openFolderInfo = (f: typeof folderList[number]) => {
+  const openFolderInfo = async (f: typeof folderList[number]) => {
     const ids = tree.descOf[f.id] ? [...tree.descOf[f.id]] : [f.id];
     const childIds = ids.filter((id) => id !== f.id);
     const cities = childIds.map((id) => cityFromFolderName(folders[id]?.name || '')).filter(Boolean);
@@ -802,9 +957,14 @@ export default function Dashboard() {
     // name that only appears as a CITY in another state's project (e.g. Washington, IN)
     const regions = new Set<string>();
     childIds.forEach((id) => { const n = folders[id]?.name; if (n) { names.push(n); const c = cityFromFolderName(n); if (c) regions.add(c); } });
-    ids.forEach((id) => (tree.projsOf[id] || []).forEach((p) => { if (p.name) names.push(p.name); if (p.query) { names.push(p.query); const r = parseProject(p.query).region; if (r) regions.add(r); } }));
-    const projectCount = ids.reduce((s, id) => s + (tree.projsOf[id]?.length || 0), 0);
-    setInfoFolder({ name: f.name, cities, names, regions: [...regions], folderCount: childIds.length, projectCount });
+    // the projects of the whole subtree, by name only — most of them are not loaded here
+    let projects: [string, string | 0][];
+    try { projects = await api.getFolderProjectNames(f.id); } catch { alert('Could not load coverage.'); return; }
+    for (const [query, name] of projects) {
+      if (name) names.push(name);
+      if (query) { names.push(query); const r = parseProject(query).region; if (r) regions.add(r); }
+    }
+    setInfoFolder({ name: f.name, cities, names, regions: [...regions], folderCount: childIds.length, projectCount: projects.length });
   };
   const deleteSelectedFolders = () => {
     if (!confirm(`Delete ${selFolders.size} selected folder(s)? Sub-folders move up to their parent and projects go back to ungrouped (leads kept).`)) return;
@@ -848,14 +1008,15 @@ export default function Dashboard() {
       </span>
     </div>
   );
-  const renderFolder = (f: typeof folderList[number], depth: number): React.ReactNode => {
-    if (filtered && !filtered.showFolder.has(f.id)) return null;
-    const kids = (tree.childrenOf[f.id] || []).filter((c) => !filtered || filtered.showFolder.has(c.id));
-    const projs = (tree.projsOf[f.id] || []).filter((p) => !filtered || filtered.showProject.has(p.query));
+  // one folder row; its children are separate rows of `visibleRows`
+  const renderFolderRow = (f: FolderT, depth: number): React.ReactNode => {
+    const hasKids = filtered
+      ? (tree.childrenOf[f.id] || []).some((c) => filtered.showFolder.has(c.id)) || !!(filtered.hitsOf[f.id] || []).length
+      : !!((tree.childrenOf[f.id] || []).length || own[f.id]?.projects);
     const open = filtered ? true : !f.collapsed; // force-expand while filtering
     return (
-      <div key={f.id}>
         <div
+          key={f.id}
           className={`folder ${activeFolder === f.id ? 'active' : ''} ${selFolders.has(f.id) ? 'selected' : ''} ${dragOverId === f.id ? 'dragover' : ''}`}
           style={{ paddingLeft: 4 + depth * 14 }}
           draggable
@@ -867,11 +1028,11 @@ export default function Dashboard() {
           onClick={() => { setActiveFolder(f.id); setActiveProject(null); }}
         >
           <input type="checkbox" className="folder-check" checked={selFolders.has(f.id)} onChange={() => {}} onClick={(e) => { e.stopPropagation(); toggleFolderSelect(f.id, !selFolders.has(f.id), e.shiftKey); }} />
-          <span className="caret" onClick={(e) => { e.stopPropagation(); actions.setFolderCollapsed(f.id, !f.collapsed); }}>{(kids.length || projs.length) ? (open ? '▾' : '▸') : '·'}</span>
+          <span className="caret" onClick={(e) => { e.stopPropagation(); actions.setFolderCollapsed(f.id, !f.collapsed); }}>{hasKids ? (open ? '▾' : '▸') : '·'}</span>
           <span className="fname" title={f.name}>{f.icon || '📁'} {f.name}</span>
           <span className="ni-right">
             <span className="badge">{tree.totalOf[f.id] ?? 0}</span>
-            {(() => { const m = accurateMissing[f.id] ?? tree.missingOf[f.id]; return (m || 0) > 0 ? <span className="cnt-badge red" title={`${m} missing (not yet scraped vs the full list)`}>{m}</span> : null; })()}
+            {(() => { const m = missingMap[f.id] ?? tree.missingOf[f.id]; return (m || 0) > 0 ? <span className="cnt-badge red" title={`${m} missing (not yet scraped vs the full list)`}>{m}</span> : null; })()}
             {(tree.folderCountOf[f.id] || 0) > 0 && <span className="cnt-badge gold" title={`${tree.folderCountOf[f.id]} sub-folder(s)`}>{tree.folderCountOf[f.id]}</span>}
             {(tree.projCountOf[f.id] || 0) > 0 && <span className="cnt-badge green" title={`${tree.projCountOf[f.id]} project(s)`}>{tree.projCountOf[f.id]}</span>}
             {(tree.zeroCountOf[f.id] || 0) > 0 && <span className="cnt-badge orange" title={`${tree.zeroCountOf[f.id]} projekt 0 leaddel`}>{tree.zeroCountOf[f.id]}</span>}
@@ -883,59 +1044,29 @@ export default function Dashboard() {
             <span className="fdel" onClick={(e) => { e.stopPropagation(); if (confirm('Delete this folder? Sub-folders move up to its parent and its projects go back to ungrouped (leads kept).')) actions.deleteFolder(f.id); }}>✕</span>
           </span>
         </div>
-        {open && (
-          <>
-            {kids.map((c) => renderFolder(c, depth + 1))}
-            {projs.map((p) => renderProject(p, depth + 1))}
-          </>
-        )}
+    );
+  };
+  const renderSideRow = (r: SideRow): React.ReactNode => {
+    if (r.kind === 'folder') return renderFolderRow(r.f, r.depth);
+    if (r.kind === 'project') return renderProject(r.p, r.depth);
+    if (r.kind === 'loading') return (
+      <div key={`load:${r.id}`} className="navitem proj" style={{ paddingLeft: 10 + r.depth * 14 }}>
+        <span className="ni-name">{folderState[r.id] === 'error' ? 'Could not load projects. Use ⟳ Refresh.' : 'Loading…'}</span>
+      </div>
+    );
+    return (
+      <div key="__ungrouped__" className="folder" style={{ paddingLeft: 4 }} title="Projects with no folder" onClick={toggleUngrouped}>
+        <span className="caret">{ungroupedOpen ? '▾' : '▸'}</span>
+        <span className="fname">📁 Ungrouped</span>
+        <span className="ni-right">
+          <span className="badge">{ungroupedAgg.total}</span>
+          <span className="cnt-badge green" title={`${ungroupedAgg.projects} project(s)`}>{ungroupedAgg.projects}</span>
+        </span>
       </div>
     );
   };
 
   if (!mounted) return null;
-  if (!hydrated) return (
-    <div className="app">
-      <aside className="sidebar">
-        <div className="brand"><span className="brand-mark">✦</span> GridLeads</div>
-        <nav className="navrail">
-          {[['🧾', 'Leads'], ['🗺️', 'Map'], ['📊', 'Stats'], ['💬', 'Reviews'], ['📞', 'Calls'], ['⧉', 'Duplicates'], ['🗂️', 'Organize']].map(([ic, label], i) => (
-            <div className={`navrail-item ${i === 0 ? 'active' : ''}`} key={label}><span className="ic">{ic}</span> {label}</div>
-          ))}
-          <div className="navrail-sep" />
-          <div className="navrail-item"><span className="ic">⤴</span> Import</div>
-          <div className="navrail-item"><span className="ic">⤓</span> Export</div>
-        </nav>
-        <div className="side-h"><span>Projects</span></div>
-        <div className="side-filter-wrap"><div className="skel-bar" style={{ height: 32 }} /></div>
-        <div className="nav" style={{ gap: 6 }}>
-          {Array.from({ length: 10 }).map((_, i) => <div key={i} className="skel-bar" style={{ height: 30, width: `${68 + ((i * 11) % 30)}%` }} />)}
-        </div>
-      </aside>
-      <main className="main">
-        <header className="topbar">
-          <div className="skel-bar" style={{ flex: 1, height: 36 }} />
-          <div className="skel-bar" style={{ width: 130, height: 36 }} />
-          <div className="spacer" />
-          <div className="skel-bar" style={{ width: 90, height: 36 }} />
-          <div className="skel-bar" style={{ width: 90, height: 36 }} />
-        </header>
-        <div className="filters">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skel-bar" style={{ width: 78, height: 28, borderRadius: 20 }} />)}
-        </div>
-        <section className="widgets">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div className="widget" key={i}><div className="skel-bar" style={{ height: 26, width: '55%' }} /><div className="skel-bar" style={{ height: 11, width: '40%', marginTop: 9 }} /></div>
-          ))}
-        </section>
-        <section className="tablewrap">
-          <div className="skel-bar" style={{ height: 40, borderRadius: '12px', marginBottom: 6 }} />
-          {Array.from({ length: 14 }).map((_, i) => <div key={i} className="skel-bar" style={{ height: 42, marginBottom: 6, opacity: Math.max(0.25, 1 - i * 0.06) }} />)}
-        </section>
-      </main>
-    </div>
-  );
-
   return (
     <div className={`app ${sidebarOpen ? 'sidebar-open' : ''} ${reviewRow ? 'with-panel' : ''}`} style={{ '--sw': `${collapsed && !isMobile ? 64 : sidebarW}px`, '--pw': `${panelW}px` } as React.CSSProperties}>
       <div className="side-backdrop" onClick={() => setSidebarOpen(false)} />
@@ -953,6 +1084,13 @@ export default function Dashboard() {
             <button className={`crail-i ${view === 'cats' ? 'active' : ''}`} title="Categories" onClick={() => setView('cats')}>🏷</button>
             <button className={`crail-i ${view === 'notes' ? 'active' : ''}`} title="Notes" onClick={() => setView('notes')}>📝</button>
             <button className={`crail-i ${view === 'log' ? 'active' : ''}`} title="Changelog" onClick={() => setView('log')}>🕘</button>
+            <button className={`crail-i ${view === 'coverage' ? 'active' : ''}`} title="Coverage" onClick={() => setView('coverage')}>🧩</button>
+            <button className={`crail-i ${view === 'campaign' ? 'active' : ''}`} title="Campaign" onClick={() => setView('campaign')}>🚀</button>
+            <button className={`crail-i ${view === 'sequences' ? 'active' : ''}`} title="Sequences" onClick={() => setView('sequences')}>📨</button>
+            <button className={`crail-i ${view === 'replies' ? 'active' : ''}`} title="Replies" onClick={() => setView('replies')}>💌</button>
+            <button className={`crail-i ${view === 'senders' ? 'active' : ''}`} title="Senders" onClick={() => setView('senders')}>✉️</button>
+            <button className={`crail-i ${view === 'report' ? 'active' : ''}`} title="Outreach report" onClick={() => setView('report')}>📈</button>
+            <button className={`crail-i ${view === 'control' ? 'active' : ''}`} title="Outreach control" onClick={() => setView('control')}>🚦</button>
             <button className="crail-i" title="Calls" onClick={() => setCallsOpen(true)}>📞</button>
             <button className="crail-i" title="Duplicates" onClick={() => setDupesOpen(true)}>⧉</button>
             <button className="crail-i" title="Organize" onClick={() => setOrganizeOpen(true)}>🗂️</button>
@@ -960,8 +1098,8 @@ export default function Dashboard() {
             {tree.roots.map((f) => (
               <button key={f.id} className={`crail-i ${activeFolder === f.id ? 'active' : ''}`} title={f.name} onClick={() => { setActiveProject(null); setActiveFolder(f.id); setView('leads'); }}>{f.icon || '📁'}</button>
             ))}
-            {tree.ungrouped.length > 0 && (
-              <button className="crail-chip" title={`${tree.ungrouped.length} project${tree.ungrouped.length === 1 ? '' : 's'} with no folder`} onClick={() => setCol(false)}>+{tree.ungrouped.length}</button>
+            {ungroupedAgg.projects > 0 && (
+              <button className="crail-chip" title={`${ungroupedAgg.projects} project${ungroupedAgg.projects === 1 ? '' : 's'} with no folder`} onClick={() => setCol(false)}>+{ungroupedAgg.projects}</button>
             )}
           </div>
           <button className="crail-expand" title="Expand sidebar" onClick={() => setCol(false)}>»</button>
@@ -971,7 +1109,7 @@ export default function Dashboard() {
       {/* SIDEBAR — full (also used on mobile, where collapse is disabled) */}
       {(!collapsed || isMobile) && (
       <aside className="sidebar">
-        <div className="sidebar-scroll">
+        <div className="sidebar-scroll" ref={sideScrollRef}>
         <div className="brand"><span className="brand-mark">✦</span> GridLeads <button className="side-collapse" title="Collapse sidebar" onClick={() => setCol(true)}>«</button></div>
 
         <nav className="navrail">
@@ -983,6 +1121,13 @@ export default function Dashboard() {
           <button className={`navrail-item ${view === 'cats' ? 'active' : ''}`} onClick={() => { setView('cats'); setSidebarOpen(false); }}><span className="ic">🏷</span> Categories</button>
           <button className={`navrail-item ${view === 'notes' ? 'active' : ''}`} onClick={() => { setView('notes'); setSidebarOpen(false); }}><span className="ic">📝</span> Notes</button>
           <button className={`navrail-item ${view === 'log' ? 'active' : ''}`} onClick={() => { setView('log'); setSidebarOpen(false); }}><span className="ic">🕘</span> Changelog</button>
+          <button className={`navrail-item ${view === 'coverage' ? 'active' : ''}`} onClick={() => { setView('coverage'); setSidebarOpen(false); }}><span className="ic">🧩</span> Coverage</button>
+          <button className={`navrail-item ${view === 'campaign' ? 'active' : ''}`} onClick={() => { setView('campaign'); setSidebarOpen(false); }}><span className="ic">🚀</span> Campaign</button>
+          <button className={`navrail-item ${view === 'sequences' ? 'active' : ''}`} onClick={() => { setView('sequences'); setSidebarOpen(false); }}><span className="ic">📨</span> Sequences</button>
+          <button className={`navrail-item ${view === 'replies' ? 'active' : ''}`} onClick={() => { setView('replies'); setSidebarOpen(false); }}><span className="ic">💌</span> Replies</button>
+          <button className={`navrail-item ${view === 'senders' ? 'active' : ''}`} onClick={() => { setView('senders'); setSidebarOpen(false); }}><span className="ic">✉️</span> Senders</button>
+          <button className={`navrail-item ${view === 'report' ? 'active' : ''}`} onClick={() => { setView('report'); setSidebarOpen(false); }}><span className="ic">📈</span> Report</button>
+          <button className={`navrail-item ${view === 'control' ? 'active' : ''}`} onClick={() => { setView('control'); setSidebarOpen(false); }}><span className="ic">🚦</span> Control</button>
           <button className="navrail-item" onClick={() => setCallsOpen(true)}><span className="ic">📞</span> Calls{callCount > 0 && <span className="nb">{callCount.toLocaleString()}</span>}</button>
           <button className="navrail-item" onClick={() => setDupesOpen(true)}><span className="ic">⧉</span> Duplicates</button>
           <button className="navrail-item" onClick={() => setOrganizeOpen(true)}><span className="ic">🗂️</span> Organize</button>
@@ -994,7 +1139,7 @@ export default function Dashboard() {
         </nav>
 
         <div className="side-h">
-          <span>Projects <span className="side-count">{folderList.length} folder{folderList.length === 1 ? '' : 's'} · {summariesArr.length} project{summariesArr.length === 1 ? '' : 's'}</span></span>
+          <span>Projects {hydrated && <span className="side-count">{folderList.length} folder{folderList.length === 1 ? '' : 's'} · {allAgg.projects} project{allAgg.projects === 1 ? '' : 's'}</span>}</span>
           <span className="side-tools">
             <button className="mini" title="New folder" onClick={() => { const n = prompt('Folder name:'); if (n && n.trim()) actions.createFolder(n.trim()); }}>＋</button>
             <button className="mini" title="Import JSON" onClick={() => setImportOpen(true)}>⤴</button>
@@ -1010,13 +1155,13 @@ export default function Dashboard() {
           <ComboFilter value={typeSel} options={projFacets.types} placeholder="All business types" onChange={(v) => setSelTypes(v ? [v] : [])} />
           <ComboFilter value={regionSel} options={projFacets.regions} placeholder="All states / countries" onChange={(v) => setSelRegions(v ? [v] : [])} />
         </div>
-        {filtered && filtered.showProject.size > 0 && (() => {
-          const projs = [...filtered.showProject];
-          const allSel = projs.every((q) => selected.has(q));
+        {filtered && filtered.total > 0 && (() => {
+          const allSel = filtered.rows.length > 0 && filtered.rows.every((p) => selected.has(p.query));
+          const n = Math.min(filtered.total, 5000);
           return (
             <label className="side-selectall">
-              <input type="checkbox" checked={allSel} onChange={() => setSelected((prev) => { const n = new Set(prev); if (allSel) projs.forEach((q) => n.delete(q)); else projs.forEach((q) => n.add(q)); return n; })} />
-              Select all {projs.length} filtered project{projs.length === 1 ? '' : 's'}
+              <input type="checkbox" checked={allSel} onChange={() => selectAllFiltered(allSel)} />
+              Select all {n.toLocaleString()} filtered project{n === 1 ? '' : 's'}{filtered.total > n ? ` (the first of ${filtered.total.toLocaleString()})` : ''}
             </label>
           );
         })()}
@@ -1058,6 +1203,8 @@ export default function Dashboard() {
         )}
 
         <nav className="nav">
+          {!hydrated && Array.from({ length: 10 }).map((_, i) => <div key={i} className="skel-bar" style={{ height: 30, width: `${68 + ((i * 11) % 30)}%` }} />)}
+          {hydrated && <>
           <div
             className={`navitem all ${activeProject === null && activeFolder === null ? 'active' : ''} ${dragOverId === '__root__' ? 'dragover' : ''}`}
             onClick={() => { setActiveProject(null); setActiveFolder(null); }}
@@ -1068,11 +1215,16 @@ export default function Dashboard() {
           >
             <span className="ni-name">All leads</span><span className="badge">{totalAll}</span>
           </div>
-          {tree.roots.map((f) => renderFolder(f, 0))}
-          {tree.ungrouped.filter((p) => !filtered || filtered.showProject.has(p.query)).map((p) => renderProject(p, 0))}
-          {filtered && filtered.showFolder.size === 0 && filtered.showProject.size === 0 && (
+          <div className="side-rows" ref={sideRowsRef} style={{ paddingTop: sideRange.padTop, paddingBottom: sideRange.padBottom }}>
+            {visibleRows.slice(sideRange.first, sideRange.last + 1).map(renderSideRow)}
+          </div>
+          {filtered && filtered.total > filtered.rows.length && (
+            <div className="side-empty">Showing the first {filtered.rows.length.toLocaleString()} of {filtered.total.toLocaleString()} matching projects.</div>
+          )}
+          {filtered && !filtered.loading && filtered.showFolder.size === 0 && filtered.total === 0 && (
             <div className="side-empty">No folders or projects match “{sideFilter.trim()}”.</div>
           )}
+          </>}
         </nav>
 
         <div className="side-foot">Each Google Maps search is saved as a project.</div>
@@ -1109,6 +1261,7 @@ export default function Dashboard() {
                 label: activeFolder ? (folders[activeFolder]?.name || 'folder') : (summaries[activeProject!]?.name || activeProject || ''),
               })}>🔎 Lead search</button>
           )}
+          <button className="btn" onClick={() => setEnrollOpen(true)} title="Put the leads of this filter, the checked leads or this group into an email sequence, or take them out">📨 Sequence</button>
           {checkedCount > 0 && <GroupPickBtn label={`🗂 Group ${checkedCount.toLocaleString()}`} className="btn" alignRight fromChecked />}
           {checkedCount > 0 && <button className="btn" onClick={uncheckAllLeads} title="Clear the Checked status on all checked leads">☐ Uncheck {checkedCount.toLocaleString()}</button>}
           {checkedCount > 0 && <button className="btn danger" onClick={deleteAllChecked} title="Permanently delete every checked lead from the database">🗑 Delete {checkedCount.toLocaleString()}</button>}
@@ -1141,6 +1294,18 @@ export default function Dashboard() {
         {view === 'notes' && <NotesView />}
 
         {view === 'log' && <ChangelogView onOpenProject={(q) => { setActiveGroup(null); setActiveFolder(null); setActiveProject(q); setView('leads'); }} />}
+
+        {view === 'senders' && <OutreachSenders />}
+
+        {view === 'sequences' && <SequencesView />}
+
+        {view === 'replies' && <RepliesView />}
+
+        {view === 'report' && <OutreachReport />}
+        {view === 'coverage' && <CoverageMatrix />}
+        {view === 'campaign' && <CampaignToday reloadKey={reloadKey} onEnroll={() => setEnrollOpen(true)} onEditSequences={() => setView('sequences')} />}
+
+        {view === 'control' && <WarmupConsole />}
 
         {view === 'leads' && <>
         {activeGroup && (
@@ -1192,18 +1357,63 @@ export default function Dashboard() {
           <span className="title">{title}</span>
         </div>
 
+        <div className="filters filters-sel">
+          <div className="fsel-combo"><ComboFilter value={typeSel} options={projFacets.types} placeholder="All business types" onChange={(v) => setSelTypes(v ? [v] : [])} /></div>
+          <select className="select fsel" value={selCountry} disabled={!hydrated} onChange={(e) => { setSelCountry(e.target.value); setSelRegions([]); }} title="Country the search was run in">
+            <option value="">All countries</option>
+            {countryOpts.map(([c, n]) => <option key={c} value={c}>{c} ({n.toLocaleString()})</option>)}
+          </select>
+          <div className="fsel-combo"><ComboFilter value={regionSel} options={selCountry ? projFacets.regions.filter((r) => (parseProjectGeo('x ' + r)?.country || 'Other') === selCountry) : projFacets.regions} placeholder="All states / cities" onChange={(v) => setSelRegions(v ? [v] : [])} /></div>
+          <select className="select fsel" value={emailF} onChange={(e) => setEmailF(e.target.value)} title="Email status of the lead">
+            <option value="">Email: any</option>
+            <option value="has">Has email</option>
+            <option value="none">No email</option>
+            <option value="miss">Searched, not found (all)</option>
+            <option value="todo">No email — website not checked yet</option>
+            <option value="checked">No email — website checked, none on it</option>
+            <option value="failed">No email — website could not be read</option>
+          </select>
+          <select className="select fsel" value={phoneF} onChange={(e) => setPhoneF(e.target.value)}>
+            <option value="">Phone: any</option>
+            <option value="has">Has phone</option>
+            <option value="none">No phone</option>
+          </select>
+          {(typeSel || regionSel || selCountry || emailF || phoneF) && (
+            <button className="chipbtn" onClick={() => { setSelTypes([]); setSelRegions([]); setSelCountry(''); setEmailF(''); setPhoneF(''); }}>✕ Clear filters</button>
+          )}
+        </div>
+
         {(activeFolder || activeProject) && (
           <div className="widgets-scope">
             Stats for <b>{scopeName}</b> — <button className="linkbtn" onClick={() => { setActiveFolder(null); setActiveProject(null); }}>show all {globalTotal.toLocaleString()} leads</button>
           </div>
         )}
-        <section className="widgets">
+        {!hydrated && (
+          <section className="widgets">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div className="widget" key={i}><div className="skel-bar" style={{ height: 26, width: '55%' }} /><div className="skel-bar" style={{ height: 11, width: '40%', marginTop: 9 }} /></div>
+            ))}
+          </section>
+        )}
+        {hydrated && <section className="widgets">
           <div className="widget"><span className="w-ic blue">📋</span><div className="w-body"><div className="w-num">{fmtNum(stats.total)}</div><div className="w-label">{(activeFolder || activeProject) ? 'Leads in view' : 'Total leads'}</div></div></div>
           <div className="widget"><span className="w-ic rose">🚫</span><div className="w-body"><div className="w-num rose">{fmtNum(stats.noweb)}</div><div className="w-label">No website</div></div></div>
           <div className="widget"><span className="w-ic amber">🔥</span><div className="w-body"><div className="w-num amber">{fmtNum(stats.hot)}</div><div className="w-label">Hot leads</div></div></div>
           <div className="widget"><span className="w-ic green">💬</span><div className="w-body"><div className="w-num green">{fmtNum(stats.reviews)} <span className="w-sub">({fmtNum(stats.reviewsSum)})</span></div><div className="w-label">Has reviews</div></div></div>
           <div className="widget"><span className="w-ic violet">✨</span><div className="w-body"><div className="w-num violet">{fmtNum(stats.ai)}</div><div className="w-label">Has AI Analysis</div></div></div>
-        </section>
+          <button className={`widget w-split ${emailBusy ? 'busy' : ''}`} onClick={refreshEmailTile} disabled={emailBusy}
+            title="Click to re-count these two numbers from the database. Top: leads that have an email. Bottom: leads whose website was searched and no email was found. Leads not searched yet are in neither.">
+            <span className="w-half has">
+              <span className="w-half-n">{emailBusy ? <span className="w-half-load" /> : fmtNum(emailTile.email)}</span>
+              <span className="w-half-l">✉ have email{!emailBusy && emailTile.email + emailTile.miss ? ` · ${Math.round((emailTile.email / (emailTile.email + emailTile.miss)) * 100)}% of searched` : ''}</span>
+            </span>
+            <span className="w-half none">
+              <span className="w-half-n">{emailBusy ? <span className="w-half-load" /> : fmtNum(emailTile.miss)}</span>
+              <span className="w-half-l">searched, not found{emailBusy ? ' · counting…' : ''}</span>
+            </span>
+            <span className="w-split-ic">{emailBusy ? '' : '⟳'}</span>
+          </button>
+        </section>}
 
         <section className="tablewrap">
           <table className="table">
@@ -1241,13 +1451,17 @@ export default function Dashboard() {
               })}
             </tbody>
           </table>
-          {!loading && total === 0 && (
+          {loading && pageRows.length === 0 && Array.from({ length: 14 }).map((_, i) => <div key={i} className="skel-bar" style={{ height: 42, marginBottom: 6, opacity: Math.max(0.25, 1 - i * 0.06) }} />)}
+          {!loading && loadError && (
+            <div className="empty">Could not load leads. Use ⟳ Refresh to try again.</div>
+          )}
+          {!loading && !loadError && pageRows.length === 0 && (
             <div className="empty">No leads here. Sync from the GridLeads extension, or use ⤴ Import to load a JSON export.</div>
           )}
         </section>
 
         <footer className="foot pager">
-          <span>{loading ? 'Loading…' : `${total.toLocaleString()} leads`}</span>
+          <span>{loading ? 'Loading…' : total === null ? 'Counting…' : `${total.toLocaleString()} leads`}</span>
           <div className="pager-ctrls">
             <label className="muted">Rows:&nbsp;
               <select className="pager-size" value={pageSize} onChange={(e) => setPageSize(parseInt(e.target.value, 10))}>
@@ -1256,9 +1470,9 @@ export default function Dashboard() {
             </label>
             <button className="pgbtn" disabled={page <= 1} onClick={() => setPage(1)}>«</button>
             <button className="pgbtn" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>‹ Prev</button>
-            <span className="muted">Page {page} / {pageCount}</span>
-            <button className="pgbtn" disabled={page >= pageCount} onClick={() => setPage((p) => Math.min(pageCount, p + 1))}>Next ›</button>
-            <button className="pgbtn" disabled={page >= pageCount} onClick={() => setPage(pageCount)}>»</button>
+            <span className="muted">Page {page}{pageCount !== null ? ` / ${pageCount}` : ''}</span>
+            <button className="pgbtn" disabled={isLastPage} onClick={() => setPage((p) => p + 1)}>Next ›</button>
+            <button className="pgbtn" disabled={pageCount === null || page >= pageCount} onClick={() => { if (pageCount !== null) setPage(pageCount); }}>»</button>
           </div>
         </footer>
         </>}
@@ -1271,6 +1485,12 @@ export default function Dashboard() {
       {organizeOpen && <OrganizeModal onClose={() => setOrganizeOpen(false)} onDone={() => { actions.refresh().catch(() => {}); setReloadKey((k) => k + 1); }} />}
 
       {vapiGroup && <VapiCallModal group={vapiGroup} onClose={() => setVapiGroup(null)} />}
+
+      {enrollOpen && <EnrollModal
+        query={{ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF }}
+        filterLabel={total === null ? 'the leads listed now' : `${total.toLocaleString()} leads listed now`}
+        checkedCount={checkedCount} group={activeGroup}
+        onClose={() => setEnrollOpen(false)} onDone={() => setReloadKey((k) => k + 1)} />}
 
       {leadSearch && <LeadSearchModal scope={leadSearch} onClose={() => setLeadSearch(null)}
         onUpdated={() => { setReloadKey((k) => k + 1); actions.refresh().catch(() => {}); }} />}

@@ -1,9 +1,12 @@
 import { dbConnect } from '@/lib/db';
-import { Lead, Project, CORS, json, descendantFolderIds, NO_SITE } from '@/lib/models';
+import { Lead, Project, ProjectStat, CORS, json, descendantFolderIds } from '@/lib/models';
+import { cachedData } from '@/lib/cache';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
+
+const BUCKET_TTL_MS = 10 * 60_000;
 
 // GET /api/stats?folder=&project=&granularity=day|hour
 //   day  → buckets keyed by YYYY-MM-DD
@@ -26,28 +29,28 @@ export async function GET(req: Request) {
       scope.project = project;
     }
 
+    // Buckets: a $group over the leads in scope. For "all leads" that is the whole
+    // collection (3 s+), so it is cached for 10 minutes and refreshed after the
+    // response; a folder or project scope is narrowed by the project index and runs live.
     const idExpr = gran === 'hour' ? { $substrBytes: ['$scrapedAt', 0, 13] } : { $substrBytes: ['$scrapedAt', 0, 10] };
+    const buildBuckets = () => Lead.aggregate([
+      { $match: { ...scope, scrapedAt: { $gt: '' } } },
+      { $group: { _id: idExpr, count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]).allowDiskUse(true) as unknown as Promise<{ _id: string; count: number }[]>;
+    const scoped = !!(folder || project);
     const [rows, metricAgg] = await Promise.all([
-      Lead.aggregate([
-        { $match: { ...scope, scrapedAt: { $nin: [null, ''] } } },
-        { $group: { _id: idExpr, count: { $sum: 1 } } },
-        { $sort: { _id: 1 } },
-      ]).allowDiskUse(true),
-      // same breakdown as the widget cards, for this scope
-      Lead.aggregate([
+      scoped ? buildBuckets() : cachedData(`stats:${gran}`, BUCKET_TTL_MS, buildBuckets),
+      // The same breakdown as the widget cards, from the same precomputed
+      // per-project counters they use — not a second pass over the leads.
+      ProjectStat.aggregate([
         { $match: scope },
         { $group: {
           _id: null,
-          total: { $sum: 1 },
-          noWebsite: { $sum: { $cond: [{ $in: ['$websiteStatus', NO_SITE] }, 1, 0] } },
-          hot: { $sum: { $cond: [{ $eq: ['$leadTemperature', 'HOT'] }, 1, 0] } },
-          email: { $sum: { $cond: [{ $and: [{ $ne: ['$email', ''] }, { $ne: ['$email', null] }] }, 1, 0] } },
-          reviews: { $sum: { $cond: [{ $gt: ['$reviewsCount', 0] }, 1, 0] } },
-          reviewsSum: { $sum: { $ifNull: ['$reviewsCount', 0] } },
-          ai: { $sum: { $cond: [{ $gt: ['$aiAt', ''] }, 1, 0] } },
-          oppSum: { $sum: { $ifNull: ['$opportunityScore', 0] } },
+          total: { $sum: '$total' }, noWebsite: { $sum: '$noWebsite' }, hot: { $sum: '$hot' }, email: { $sum: '$email' },
+          reviews: { $sum: '$reviews' }, reviewsSum: { $sum: '$reviewsSum' }, ai: { $sum: '$ai' }, oppSum: { $sum: '$oppSum' },
         } },
-      ]).allowDiskUse(true),
+      ]),
     ]);
 
     const valid = gran === 'hour' ? /^\d{4}-\d{2}-\d{2}T\d{2}$/ : /^\d{4}-\d{2}-\d{2}$/;

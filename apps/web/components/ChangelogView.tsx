@@ -21,7 +21,7 @@ const KIND: Record<string, [string, string]> = {
   'leads.new': ['green', 'New leads'], 'leads.change': ['amber', 'Changed'], 'leads.skip': ['gray', 'Duplicate'], 'leads.delete': ['red', 'Deleted'],
   'email.audit': ['green', 'Email audit'], 'email.found': ['green', 'Email found'], 'email.none': ['gray', 'No email'],
   'lead.edit': ['blue', 'Edit'], 'lead.note': ['blue', 'Note'], 'lead.bulk': ['blue', 'Bulk edit'],
-  'outreach.draft': ['pink', 'Draft'], 'outreach.edit': ['pink', 'Draft edit'], 'outreach.sent': ['green', 'Email sent'], 'outreach.error': ['red', 'Send failed'],
+  'outreach.draft': ['pink', 'Draft'], 'outreach.edit': ['pink', 'Draft edit'], 'outreach.sent': ['green', 'Email sent'], 'outreach.error': ['red', 'Send failed'], 'outreach.suppress': ['red', 'Suppression'], 'outreach.sender': ['blue', 'Sender'], 'outreach.sequence': ['blue', 'Sequence'], 'outreach.continue': ['green', 'Follow-ups started'], 'outreach.control': ['blue', 'Control'], 'outreach.seed': ['blue', 'Seed test'], 'outreach.offer': ['blue', 'Offer'], 'outreach.enroll': ['green', 'Enrolled'], 'outreach.step': ['green', 'Step sent'], 'outreach.unknown': ['amber', 'Unknown send'], 'outreach.bounced': ['red', 'Bounce'], 'outreach.replied': ['green', 'Reply'], 'outreach.skip': ['amber', 'Step skipped'], 'outreach.stopped': ['gray', 'Sequence stopped'],
   'call.start': ['pink', 'Call'], 'call.done': ['pink', 'Call'],
   'project.create': ['blue', 'Project'], 'project.rename': ['blue', 'Project'], 'project.move': ['blue', 'Project'], 'project.delete': ['red', 'Project'],
   'folder.create': ['blue', 'Folder'], 'folder.edit': ['blue', 'Folder'], 'folder.delete': ['red', 'Folder'],
