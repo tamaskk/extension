@@ -250,16 +250,23 @@ const SUGGEST_LEADS = 100;
 const SUGGEST_GROUPS = 6;
 const SUGGEST_QUERY_MS = 15_000;
 export interface Suggestion { project: string; key: string; name: string; to: string; sender: string; category: string; score: number | null }
-export async function suggestLeads(sequenceId: string, country: string, n: number, exclude: string[]): Promise<{ ok: boolean; error?: string; picks?: Suggestion[]; examined?: number; skipped?: Skipped }> {
+// `region` narrows the country to one of its regions (a US state, or a city of another country: what a project query ends with);
+// `place` to the projects whose query names that place (a town of the state, an area of the city). Both optional.
+export async function suggestLeads(sequenceId: string, country: string, n: number, exclude: string[], region = '', place = ''): Promise<{ ok: boolean; error?: string; picks?: Suggestion[]; examined?: number; skipped?: Skipped }> {
   await dbConnect();
   const sequence = await OutreachSequence.findOne({ sequenceId }).select('-_id').lean() as unknown as { sequenceId: string; name?: string; language: string; senderIds?: string[]; steps?: unknown[] } | null;
   const senders = await listSenders();
   const block = enrolmentBlock(sequence, senders);
   if (block || !sequence) return { ok: false, error: block || 'The sequence was not found.' };
 
-  const scope = (await leadMatch(new URLSearchParams({ country }))).project as { $in?: string[] } | undefined;
-  if (!scope || !Array.isArray(scope.$in)) return { ok: false, error: `The projects of ${country} could not be listed.` };
-  const withEmail = await ProjectStat.find({ project: { $in: scope.$in }, email: { $gt: 0 } }).sort({ email: -1 }).limit(SUGGEST_PROJECTS * SUGGEST_GROUPS).select('project -_id').lean() as { project: string }[];
+  const where = new URLSearchParams({ country });
+  if (region) where.append('pregion', region);
+  const scope = (await leadMatch(where)).project as { $in?: string[] } | undefined;
+  if (!scope || !Array.isArray(scope.$in)) return { ok: false, error: `The projects of ${region || country} could not be listed.` };
+  // "<type> near <place…> <region>": the place sits between "near" and the region, as whole words
+  const wanted = place.trim().toLowerCase().replace(/\s+/g, ' ');
+  const names = wanted ? scope.$in.filter((q) => { const lc = ` ${q.toLowerCase().replace(/\s+/g, ' ')} `; const near = lc.indexOf(' near '); return near >= 0 && lc.indexOf(` ${wanted} `, near + 5) >= 0; }) : scope.$in;
+  const withEmail = await ProjectStat.find({ project: { $in: names }, email: { $gt: 0 } }).sort({ email: -1 }).limit(SUGGEST_PROJECTS * SUGGEST_GROUPS).select('project -_id').lean() as { project: string }[];
   const busy = await activeCompanyDomains();
   const labelOf = new Map(senders.map((s) => [s.senderId, s.label || s.fromEmail]));
   const picks: Suggestion[] = [];

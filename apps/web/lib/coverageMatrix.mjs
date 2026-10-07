@@ -12,6 +12,33 @@ import { findRegionSuffix } from './regionLookup.mjs';
 export const DEFAULT_COVERAGE_TYPES = [
   'massage', 'hairsalon', 'bar', 'barber', 'nailsalon', 'landscaping', 'spa', 'florist',
   'dental clinic', 'medical clinic', 'physiotherapist', 'financial planner', 'restaurants', 'private clinic',
+  'pet groomer', 'eyelash salon', 'eyebrow bar', 'esthetician', 'car detailing service', 'hvac contractor',
+  'air conditioning contractor', 'remodeler', 'general contractor', 'kitchen remodeler', 'wedding venue', 'event venue',
+  'dog day care center', 'kennel', 'pet boarding service', 'personal trainer', 'martial arts school', 'tattoo shop',
+  'medical spa', 'flooring contractor', 'tile contractor', 'house cleaning service', 'painter', 'gym', 'fitness center',
+  'yoga studio', 'pilates studio', 'photographer', 'wedding photographer', 'pool cleaning service',
+  'swimming pool repair service', 'roofing contractor', 'plumber', 'electrician', 'auto body shop', 'veterinarian',
+  'auto repair shop', 'tree service', 'driving school', 'accountant', 'bookkeeping service', 'window installation service',
+  // the rest of the extension dashboard's batch prefixes (BIZ_TYPES in apps/extension/dashboard/dashboard.js), without "near"
+  'cafes', 'coffee shops', 'pubs', 'bakeries', 'pizzerias', 'fast food', 'food trucks',
+  'ice cream shops', 'breweries', 'wineries', 'caterers', 'delis', 'diners', 'roofers',
+  'carpenters', 'handyman services', 'landscapers', 'lawn care', 'pest control', 'cleaning services', 'maid services',
+  'window cleaners', 'pool services', 'locksmiths', 'movers', 'junk removal', 'fencing contractors', 'concrete contractors',
+  'masons', 'drywall contractors', 'garage door services', 'pressure washing', 'auto repair', 'mechanics', 'car dealers',
+  'used car dealers', 'tire shops', 'car washes', 'gas stations', 'towing services', 'motorcycle dealers', 'rv dealers',
+  'dentists', 'doctors', 'clinics', 'pharmacies', 'chiropractors', 'physical therapists', 'optometrists',
+  'dermatologists', 'pediatricians', 'urgent care', 'mental health counselors', 'massage therapists', 'tanning salons', 'beauty salons',
+  'makeup artists', 'lash technicians', 'crossfit gyms', 'dance studios', 'lawyers', 'financial advisors', 'insurance agents',
+  'real estate agents', 'mortgage brokers', 'marketing agencies', 'web designers', 'architects', 'engineers', 'notaries',
+  'bookkeepers', 'consultants', 'hotels', 'motels', 'bed and breakfasts', 'banquet halls', 'videographers',
+  'dj services', 'event planners', 'grocery stores', 'convenience stores', 'supermarkets', 'liquor stores', 'clothing stores',
+  'shoe stores', 'jewelry stores', 'furniture stores', 'hardware stores', 'pet stores', 'bookstores', 'gift shops',
+  'electronics stores', 'thrift stores', 'pawn shops', 'bike shops', 'sporting goods stores', 'daycares', 'preschools',
+  'tutoring services', 'music schools', 'language schools', 'dry cleaners', 'laundromats', 'tailors', 'shoe repair',
+  'print shops', 'sign shops', 'storage facilities', 'banks', 'credit unions', 'atms', 'check cashing',
+  'churches', 'funeral homes', 'cemeteries', 'nonprofits', 'opticians', 'hearing aid providers', 'medical supply stores',
+  'home health care', 'assisted living', 'nursing homes', 'solar installers', 'security companies', 'it services', 'computer repair',
+  'phone repair', 'appliance repair', 'auto detailing', 'car rental', 'limo services', 'taxi services',
 ];
 
 // Batch prefixes are typed by hand: "hair salons", "hairsalon" and "Hair Salon"

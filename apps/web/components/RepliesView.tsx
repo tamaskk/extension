@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import MailLog from './MailLog';
 import { api } from '@/lib/api';
 import type { InboxItem, SuppressionRow } from '@/lib/api';
 
@@ -9,15 +10,15 @@ import type { InboxItem, SuppressionRow } from '@/lib/api';
 // person tells at a glance, and a wrong machine guess loses someone who was
 // interested. Mail that matched no lead is listed too; it never just disappears.
 
-type Show = 'replies' | 'bounces' | 'unmatched' | 'suppressed';
-const TABS: [Show, string][] = [['replies', 'Replies'], ['bounces', 'Bounces'], ['unmatched', 'Matched no lead'], ['suppressed', 'Suppression list']];
+type Show = 'all' | 'replies' | 'bounces' | 'unmatched' | 'suppressed';
+const TABS: [Show, string][] = [['all', 'All mail'], ['replies', 'Replies'], ['bounces', 'Bounces'], ['unmatched', 'Matched no lead'], ['suppressed', 'Suppression list']];
 const REASON: Record<string, string> = { stop: 'asked to stop', hard_bounce: 'the address bounced', complaint: 'complained', manual: 'added by hand', import: 'imported' };
 const BOUNCE: Record<string, [string, string]> = {
   hard: ['red', 'Address does not exist'], soft: ['amber', 'Temporary'], block: ['pink', 'We were blocked'], unknown: ['gray', 'Could not be read'],
 };
 
 export default function RepliesView() {
-  const [show, setShow] = useState<Show>('replies');
+  const [show, setShow] = useState<Show>('all');
   const [items, setItems] = useState<InboxItem[]>([]);
   const [unseen, setUnseen] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -47,6 +48,7 @@ export default function RepliesView() {
   };
 
   const load = useCallback((which: Show) => {
+    if (which === 'all') { setLoading(false); setError(''); setItems([]); return; } // MailLog loads itself
     if (which === 'suppressed') { loadSuppressed(); return; }
     setLoading(true);
     api.getInbox(which)
@@ -76,9 +78,10 @@ export default function RepliesView() {
         {unseen > 0 && <span className="chip red">{unseen} not read yet</span>}
         <div className="spacer" />
         {TABS.map(([key, label]) => <button key={key} className={`chipbtn ${show === key ? 'active' : ''}`} onClick={() => setShow(key)}>{label}</button>)}
-        <button className="btn" onClick={() => load(show)} disabled={loading}>⟳ Refresh</button>
-        {show !== 'suppressed' && <button className="btn" onClick={markSeen} disabled={marking || !unseen}>{marking ? 'Saving…' : 'Mark all as read'}</button>}
+        {show !== 'all' && <button className="btn" onClick={() => load(show)} disabled={loading}>⟳ Refresh</button>}
+        {show !== 'suppressed' && show !== 'all' && <button className="btn" onClick={markSeen} disabled={marking || !unseen}>{marking ? 'Saving…' : 'Mark all as read'}</button>}
       </div>
+      {show === 'all' && <MailLog />}
       {loading && !items.length && <div className="empty">Loading…</div>}
       {!loading && error && <div className="empty">{error} <button className="mini" onClick={() => load(show)}>Try again</button></div>}
       {show === 'suppressed' && (
@@ -102,7 +105,7 @@ export default function RepliesView() {
           ))}
         </div>
       )}
-      {show !== 'suppressed' && !loading && !error && !items.length && (
+      {show !== 'suppressed' && show !== 'all' && !loading && !error && !items.length && (
         <div className="empty">{show === 'replies' ? 'No replies yet.' : show === 'bounces' ? 'No bounces.' : 'Nothing is waiting here: every message matched a lead.'}</div>
       )}
       <div className="oseq-list">

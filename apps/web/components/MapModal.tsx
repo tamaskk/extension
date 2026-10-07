@@ -6,27 +6,11 @@ import { NO_SITE } from '@/lib/types';
 import { useGrid } from '@/lib/store';
 import { COUNTRY_NAMES, COUNTRY_CITIES } from '@/lib/countries';
 import { gridItems, itemAt, mercatorX, mercatorY } from '@/lib/mapGrid.mjs';
+import { loadLeaflet } from '@/lib/leafletLoader';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global { interface Window { L: any } }
 
-const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-
-function loadCss(href: string) {
-  return new Promise<void>((res) => {
-    if (document.querySelector(`link[href="${href}"]`)) return res();
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; l.onload = () => res(); l.onerror = () => res();
-    document.head.appendChild(l);
-  });
-}
-function loadScript(src: string) {
-  return new Promise<void>((res, rej) => {
-    if (document.querySelector(`script[src="${src}"]`)) return res();
-    const s = document.createElement('script'); s.src = src; s.onload = () => res(); s.onerror = () => rej(new Error('load ' + src));
-    document.head.appendChild(s);
-  });
-}
 const esc = (s: string) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 
 const norm = (s: string) => s.replace(/([a-z])([A-Z])/g, '$1 $2'); // "NewYork" → "New York"
@@ -242,8 +226,7 @@ export default function MapModal({ onClose, inline, onOpenCrm, project, folder, 
     let cancelled = false;
     (async () => {
       try {
-        await loadCss(LEAFLET_CSS);
-        await loadScript(LEAFLET_JS);
+        await loadLeaflet();
         if (cancelled || !mapEl.current) return;
         const L = window.L;
         const map = L.map(mapEl.current, { worldCopyJump: true }).setView([39.8, -98.5], 4);

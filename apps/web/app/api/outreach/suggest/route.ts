@@ -1,13 +1,15 @@
 import { CORS, json } from '@/lib/models';
 import { MAX_KEYS, suggestLeads } from '@/lib/enroll';
-import { COUNTRY_NAMES } from '@/lib/countries';
+import { COUNTRY_CITIES, COUNTRY_NAMES } from '@/lib/countries';
+import { STATE_REGIONS } from '@/lib/regionNames';
 import { refuseUnlessOperator } from '@/lib/session';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
 
-// POST /api/outreach/suggest  { sequenceId, country, n, exclude?: [dedupKey] }
+// POST /api/outreach/suggest  { sequenceId, country, region?, place?, n, exclude?: [dedupKey] }
+// `region` is a US state or a city of the country, `place` a town or area inside it; without them the whole country is searched.
 // Leads to put into a sequence: the best-scored leads of the country that pass
 // every enrolment rule right now (an address that takes mail, not suppressed,
 // not written to before, the sequence's language, a known time zone, one per
@@ -24,7 +26,10 @@ export async function POST(req: Request) {
     if (!COUNTRY_NAMES.includes(country)) return json({ ok: false, error: 'Choose a country.' }, { status: 400 });
     const n = Math.min(50, Math.max(1, Math.floor(Number(b?.n) || 5)));
     const exclude = (Array.isArray(b?.exclude) ? b.exclude : []).filter((k: unknown): k is string => typeof k === 'string' && k.length > 0 && k.length <= 200).slice(0, MAX_KEYS * 5);
-    const answer = await suggestLeads(sequenceId, country, n, exclude);
+    const region = String(b?.region || '').trim().slice(0, 80);
+    if (region && !(country === 'USA' ? STATE_REGIONS : COUNTRY_CITIES[country] || []).includes(region)) return json({ ok: false, error: 'Unknown state or city.' }, { status: 400 });
+    const place = String(b?.place || '').trim().slice(0, 80);
+    const answer = await suggestLeads(sequenceId, country, n, exclude, region, place);
     return json(answer, answer.ok ? undefined : { status: 400 });
   } catch (e) {
     console.error('outreach suggest failed', e instanceof Error ? e.message : '');

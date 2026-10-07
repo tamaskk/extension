@@ -100,6 +100,7 @@ There is no shared primitive library and no `components/ui` folder. Components a
 - `apps/web`: classes carry a short prefix per area: `.side-*` (sidebar), `.navrail-*`, `.crail-*`, `.combo-*` (combo filter), `.ld-*` (lead detail), `.rvp-*` (review panel), `.vapi-*`, `.log-*`, `.mp-*` (map). Reuse the existing prefix of the area; a new area gets a new prefix.
 - Existing building blocks to reuse before writing a new one: `ComboFilter`, `CategoryFilter`, `TagsCell`, `IconPicker`, and the modal pattern used by `StatsModal`, `MapModal`, `DuplicatesModal`.
 - Modals close on overlay click and on Escape.
+- `PlacePickerModal` (web): a map to pick a country, a US state or a city, each label with the local time, green during sending hours. Leaflet comes through `lib/leafletLoader.ts`; do not load it another way.
 - `EmailPreviewModal` (web): the emails of a sequence as one lead gets them, footer included. Use it wherever "what will go out" is shown; do not render sequence text another way.
 - Inline `style={{}}` is tolerated for one-off layout values. `apps/web/app/login/page.tsx` is fully inline-styled.
 - `apps/tokenleads`: `components/Shell.tsx` is the page frame; icons come from `components/Icons.tsx`.

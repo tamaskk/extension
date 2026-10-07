@@ -1166,6 +1166,35 @@ button.widget.w-split:hover .w-split-ic { opacity: .8; }
 
 /* ── Campaign (components/CampaignToday.tsx) ── */
 .ocmp-line { border-top: 1px solid var(--line); padding-top: 8px; }
-.ocmp-tr { display: grid; grid-template-columns: 56px minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1.3fr) minmax(0, .7fr) minmax(0, 1.3fr); gap: 10px; align-items: center; padding: 7px 9px; border-top: 1px solid var(--line); font-size: 12px; }
+.ocmp-tr { display: grid; grid-template-columns: 72px minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1.3fr) minmax(0, .7fr) minmax(0, 1.3fr); gap: 10px; align-items: center; padding: 7px 9px; border-top: 1px solid var(--line); font-size: 12px; }
 .ocmp-tr > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .oseq-senders { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.cov-cell { border: 1px solid transparent; cursor: pointer; font-family: inherit; }
+.cov-cell:hover { border-color: var(--accent); }
+.cov-cell.picked { border-color: var(--accent); background: rgba(99,102,241,.18); color: var(--accent); }
+.orep-inline .search.cov-prefix { width: 170px; }
+.cov-log { max-height: 260px; overflow: auto; font-size: 11px; }
+
+/* ── Mail log (components/MailLog.tsx) ── */
+.omail-tr { display: grid; grid-template-columns: 150px 56px minmax(0, .7fr) minmax(0, 1.6fr) minmax(0, 1.8fr) minmax(0, .9fr); gap: 10px; align-items: center; padding: 7px 9px; border-top: 1px solid var(--line); font-size: 12px; }
+.omail-tr > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.omail-text { margin: 0 9px 8px 216px; background: var(--panel2); border-radius: 8px; padding: 8px 10px; }
+.cov-add { flex: none; width: 260px; }
+.cov-cols { display: flex; flex-wrap: wrap; gap: 6px; max-height: 240px; overflow: auto; }
+.cov-col { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 9px; padding: 3px 5px; font-size: 12px; background: var(--panel2); }
+.cov-x { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 10px; padding: 0 0 0 4px; opacity: 0; }
+.cov-table th:hover .cov-x, .cov-x:focus-visible { opacity: 1; }
+.cov-x:hover { color: var(--hot); }
+.search.ocmp-place { flex: none; width: 190px; }
+
+/* ── Place picker (components/PlacePickerModal.tsx) ── */
+.cpick-map { height: 58vh; border-radius: 0; }
+.cpick-time { font-variant-numeric: tabular-nums; }
+.cpick-label { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 3px 7px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 11px; line-height: 1.2; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 8px rgba(31,41,68,.18); }
+.cpick-label span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.cpick-label.open { border-color: var(--ok); }
+.cpick-label.open span { color: #15803d; font-weight: 600; }
+.cpick-label.picked { border-color: var(--accent); background: var(--accent); color: #fff; }
+.cpick-label.picked span { color: #fff; }
+.cpick-label.off { opacity: .55; cursor: default; }
+.cpick-cities { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 18px 14px; max-height: 22vh; overflow: auto; }

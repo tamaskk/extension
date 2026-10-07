@@ -341,7 +341,9 @@ async function postSync(body) {
       headers = { 'Content-Type': 'application/octet-stream', 'x-gl-gzip': '1' };
     }
   } catch { payload = json; headers = { 'Content-Type': 'application/json' }; }
-  const r = await fetch(SYNC_BASE + '/api/sync', { method: 'POST', headers, body: payload });
+  // /api/sync writes lead data, so it needs the web app's login cookie.
+  const r = await fetch(SYNC_BASE + '/api/sync', { method: 'POST', credentials: 'include', headers, body: payload });
+  if (r.status === 401) throw new Error('not logged in to the web app, log in at ' + SYNC_BASE + '/login');
   if (!r.ok) throw new Error('sync HTTP ' + r.status);
   return r.json().catch(() => ({}));
 }
@@ -428,6 +430,7 @@ function buildItems(prefix, middles, suffix, populations) {
 // remain it closes its window. The run ends when every worker is done.
 const ENGINE_V = 2;
 const DEFAULT_CONCURRENCY = 5;       // how many windows scrape in parallel (#2)
+const MAX_WINDOWS = 8;               // the most a start may ask for: more windows than this are too small to stay visible, and a hidden one stops
 const NAV_SETTLE = 2200;             // after a tab loads, before scraping (original)
 const DONE_SETTLE = 1200;            // after scrapeDone, before advancing (original)
 const tsNow = () => Date.now();
@@ -497,6 +500,22 @@ async function openWorkerWindow(idx, count) {
   return null;
 }
 
+// Tab mode: the worker is a tab in the window the run was started from, not a
+// new window. A Maps tab that is already open there is used; otherwise one is
+// opened. The tab is brought to the front: Chrome stops rendering a hidden tab,
+// and the scrape scrolls the result list, so it only moves while it is visible.
+async function openWorkerTab(windowId, usedTabIds) {
+  try {
+    const q = { url: 'https://www.google.com/maps/*' };
+    if (windowId != null) q.windowId = windowId;
+    const open = (await chrome.tabs.query(q)).find((t) => t.id != null && !usedTabIds.includes(t.id));
+    const tab = open || await chrome.tabs.create(windowId != null ? { windowId, url: 'https://www.google.com/maps', active: true } : { url: 'https://www.google.com/maps', active: true });
+    if (!tab || tab.id == null) return null;
+    if (open) { try { await chrome.tabs.update(tab.id, { active: true }); } catch { /* */ } }
+    return { windowId: tab.windowId, tabId: tab.id };
+  } catch (e) { console.warn('[GridLeads] worker tab failed:', e && e.message); return null; }
+}
+
 // Open windows until the number of LIVE workers reaches the target (concurrency,
 // capped by remaining work). Patient + retrying, so Chrome's burst-limit on rapid
 // window.create calls (and a killed-then-revived SW) can't permanently cap us
@@ -523,7 +542,11 @@ async function topUpWorkers(reuseTabId) {
       if (fails >= 3) break; // give up for now; the watchdog will retry the rest in ~30s
       const idx = b.workers.length;
       let windowId = null, tabId = null, created = false;
-      if (idx === 0 && await isMapsTab(reuseTabId)) {
+      if (b.inTab) {
+        // never a new window in this mode; `created` stays false, so the tab is not closed either
+        const tab = await openWorkerTab(b.tabWindowId, b.workers.filter((w) => w.stage !== 'done').map((w) => w.tabId));
+        if (tab) { windowId = tab.windowId; tabId = tab.tabId; }
+      } else if (idx === 0 && await isMapsTab(reuseTabId)) {
         tabId = reuseTabId; try { const t = await chrome.tabs.get(tabId); windowId = t.windowId; } catch { /* */ }
       } else {
         const win = await openWorkerWindow(idx, want);
@@ -540,7 +563,10 @@ async function topUpWorkers(reuseTabId) {
 }
 
 // Start processing the queue with N parallel windows (one batch each).
-async function startQueue(reuseTabId) {
+// `opts.inTab`: one worker, in a tab of window `opts.windowId`, instead of new windows.
+// `opts.windows`: how many windows work side by side (1 to MAX_WINDOWS) instead of the default;
+// a worker takes one batch at a time, so as many windows as batches gives each batch its own.
+async function startQueue(reuseTabId, opts = {}) {
   if (_startingQueue) return { ok: true, already: true };
   _startingQueue = true;
   try {
@@ -552,7 +578,10 @@ async function startQueue(reuseTabId) {
     const conc = await lockBatch(async () => {
       const b = await getBatch(); if (!b) return 0;
       b.active = true; b.mode = await getBatchMode(); b.streamSynced = b.streamSynced || 0;
-      b.concurrency = DEFAULT_CONCURRENCY; // fixed number of parallel windows
+      b.inTab = !!opts.inTab; b.tabWindowId = opts.inTab && opts.windowId != null ? opts.windowId : null;
+      // one tab only: a window shows one tab at a time, and a hidden tab does not scrape
+      const asked = Math.floor(Number(opts.windows));
+      b.concurrency = b.inTab ? 1 : (asked >= 1 ? Math.min(MAX_WINDOWS, asked) : DEFAULT_CONCURRENCY);
       for (const x of b.queue) if (x.status === 'running') { x.status = 'pending'; x.workerId = null; } // recover stale
       b.workers = [];
       const pending = b.queue.filter((x) => x.status === 'pending').length;
@@ -915,8 +944,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         break;
       }
       case 'batchStartQueue': {
-        const r = await startQueue(msg.tabId);
-        if (r && r.ok && !r.already) glog({ type: 'batch.start', title: 'Batch run started (auto-opened windows)' });
+        const inTab = msg.inTab === true;
+        const r = await startQueue(inTab ? null : msg.tabId, inTab ? { inTab: true, windowId: sender && sender.tab ? sender.tab.windowId : null } : { windows: msg.windows });
+        if (r && r.ok && !r.already) glog({ type: 'batch.start', title: inTab ? 'Batch run started (one tab in the current window)' : 'Batch run started (auto-opened windows)' });
         sendResponse(r);
         break;
       }

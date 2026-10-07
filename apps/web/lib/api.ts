@@ -145,10 +145,12 @@ export interface ControlState {
   heartbeat?: { lastTickAt: string; action: string; reason: string; sentToday: number; stale: boolean };
 }
 // GET /api/outreach/today. `fate`: today = goes out today · hours = today, once it is a sending hour where the lead is ·
+// next = after midnight in Budapest, on tomorrow's limit ·
 // limit = the sender's limit is used up before its turn · closed = no sending hour left today · off = its sequence is switched off
 export interface TodayQueueRow {
   project: string; dedupKey: string; name: string; to: string; sequenceId: string; sequence: string; step: number; steps: number;
-  senderId: string; dueAt: string; tz: string; fate: 'today' | 'hours' | 'limit' | 'closed' | 'off'; opensAt: string;
+  senderId: string; dueAt: string; tz: string; fate: 'today' | 'hours' | 'next' | 'limit' | 'closed' | 'off'; opensAt: string;
+  expectedAt: string; // when it is likely to go out, counting the sender's pause between two emails; '' when not today
 }
 export interface TodayPlanData {
   ok: boolean; error?: string;
@@ -160,6 +162,14 @@ export interface TodayPlanData {
   sent?: { to: string; sentAt: string; outcome: string; sequence: string; step: number; senderId: string; seed: boolean }[];
   at?: string;
 }
+// GET /api/outreach/mail: one email that went out (`out`) or came in (`in`).
+// `state` is the outcome of a sent email, or what an arrived one is: human | auto | bounce | stop.
+// `note` is the start of an arrived message's text, or the receiving server's words for a bounced send.
+export interface MailLogRow {
+  dir: 'out' | 'in'; at: string; senderId: string; address: string; title: string; state: string; note: string;
+  sequenceId: string; project: string; dedupKey: string; leadName?: string; ignored?: string;
+}
+export interface MailLogData { ok: boolean; error?: string; senders?: { senderId: string; label: string; fromEmail: string }[]; rows?: MailLogRow[]; capped?: boolean }
 export interface ControlPatch { postmaster?: { spamRate: string; date: string }; seed?: { inbox: number; of: number; date?: string }; seedAddresses?: string[]; authConfirmed?: boolean; repliesReviewed?: true }
 
 // what one round of the mailbox watcher found (POST /api/outreach/inbox)
@@ -484,6 +494,7 @@ export const api = {
   getOutreachReport: (days: number) => jget('/api/outreach/report?days=' + days) as Promise<OutreachReportData>,
   // may anything be sent today, and why not
   getTodayPlan: () => jget('/api/outreach/today') as Promise<TodayPlanData>,
+  getMailLog: (sender = '') => jget('/api/outreach/mail' + (sender ? '?sender=' + encodeURIComponent(sender) : '')) as Promise<MailLogData>,
   getControl: () => jget('/api/outreach/control') as Promise<ControlState>,
   saveControl: (patch: ControlPatch) => jsend('/api/outreach/control', 'POST', patch) as Promise<{ ok: boolean; error?: string }>,
   // send one step to the seed addresses, the operator's own test mailboxes
@@ -525,8 +536,8 @@ export const api = {
     ...c, source: c.source.kind === 'filter' ? { kind: 'filter', query: leadsParams(c.source.query).toString() } : c.source,
   }) as Promise<EnrollResult>,
   // leads that would pass every enrolment rule right now, best score first; writes nothing
-  suggestLeads: (sequenceId: string, country: string, n: number, exclude: string[]) =>
-    jsend('/api/outreach/suggest', 'POST', { sequenceId, country, n, exclude }) as Promise<{ ok: boolean; error?: string; picks?: SuggestedLead[]; examined?: number; skipped?: Record<string, number> }>,
+  suggestLeads: (sequenceId: string, country: string, n: number, exclude: string[], region = '', place = '') =>
+    jsend('/api/outreach/suggest', 'POST', { sequenceId, country, region, place, n, exclude }) as Promise<{ ok: boolean; error?: string; picks?: SuggestedLead[]; examined?: number; skipped?: Record<string, number> }>,
   // sender accounts (the app password goes in, it never comes back)
   getSenders: () => jget('/api/outreach/senders') as Promise<{ ok: boolean; error?: string; senders?: OutreachSenderRow[] }>,
   addSender: (s: SenderInput) => jsend('/api/outreach/senders', 'POST', s) as Promise<{ ok: boolean; error?: string; senderId?: string }>,

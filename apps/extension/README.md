@@ -15,6 +15,10 @@ exports a **CSV** — all locally in your browser. No account or backend require
 4. Select this folder: `apps/extension`
 5. The **◧ GridLeads** icon appears in your toolbar (pin it for easy access)
 
+Syncing to the web app needs your dashboard login: log in at the web app in the
+same browser profile first (the session lasts 7 days). Without it a sync fails
+with a "not logged in" message and the leads stay in the browser.
+
 Works in Chrome, Edge, Brave, and any Chromium browser. After editing any file,
 return to `chrome://extensions` and click the **↻ reload** icon on the card.
 
@@ -33,6 +37,18 @@ return to `chrome://extensions` and click the **↻ reload** icon on the card.
 The CSV includes: Business, Category, Rating, Reviews, Phone, Website, **Website
 Status**, **Lead Score**, **Temperature**, **Opportunity Score**, **Top Pitch**,
 Address, coordinates, and Maps URL — sorted by Opportunity Score (best first).
+
+## Queue from the dashboard
+
+The Coverage tab of the dashboard can put missing runs straight into the batch queue, without a JSON file. Click the cells to pick runs (a state and a business type), check the prefix ("bars near"), then **Queue in the extension** or **Queue and start**.
+
+**Queue and start** runs the searches in one of three ways, chosen next to the button:
+
+- *each batch in its own window* (default): as many windows of this browser as batches were queued (8 at most), one batch per window, side by side. A window closes when its batch is done.
+- *in a tab of this window*: one worker, in a Google Maps tab of the same window. A Maps tab that is already open is used, otherwise one opens. No new browser window. It scrapes while that tab is the visible one; Chrome pauses a hidden tab, so drag it out into its own window to keep using the dashboard.
+- *in my open Google Maps windows*: the same as "Claim" in the popup.
+
+It works in the browser where this extension is installed: `content/dashboardBridge.js` runs on the dashboard page (`gridleads-wheat.vercel.app`, `localhost:3000` / `3001`) and passes on five commands only: `batchEnqueue`, `batchStartQueue`, `batchStartAdopt`, and the read-only `batchStatus` and `batchQueue`. After changing the extension, reload it on `chrome://extensions` and then reload the dashboard page.
 
 ## Emails (v0.3)
 
