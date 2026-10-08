@@ -8,20 +8,24 @@ import { campaignState } from '@/lib/campaignState';
 import type { CampaignState } from '@/lib/campaignState';
 import { readHeartbeat } from '@/lib/dispatcher';
 import { dayStart } from '@/lib/warmup.mjs';
-import { isInsideWindow, nextOpening } from '@/lib/sendWindow.mjs';
+import { isInsideWindow, nextOpening, windowOf } from '@/lib/sendWindow.mjs';
+import { minGapMs } from '@/lib/dispatchPlan.mjs';
 
 // Per sender. A day's limit is 100 at most, so this is the whole day and more.
 const QUEUE_LIMIT = 200;
 const SENT_LIMIT = 300;
 
 // today: goes out today · hours: today, once it is a sending hour where the lead is ·
+// next: after midnight in Budapest, on tomorrow's limit, while it is still a sending hour where the lead is ·
 // limit: the sender's limit of today is used up before its turn ·
 // closed: no sending hour left today where the lead is · off: its sequence is switched off
-export type QueueFate = 'today' | 'hours' | 'limit' | 'closed' | 'off';
+export type QueueFate = 'today' | 'hours' | 'next' | 'limit' | 'closed' | 'off';
 export interface QueueRow {
   project: string; dedupKey: string; name: string; to: string;
   sequenceId: string; sequence: string; step: number; steps: number;
   senderId: string; dueAt: string; tz: string; fate: QueueFate; opensAt: string;
+  overLimit: boolean; // fate `next` because today's limit is used up: it is a sending hour there, but no email is left for today
+  expectedAt: string; // when the send round is likely to reach it: after its due time, the sender's pause and the leads before it. '' when no time can be given
 }
 export interface SentRow { to: string; sentAt: string; outcome: string; sequence: string; step: number; senderId: string; seed: boolean }
 export interface TodayPlan {
@@ -72,18 +76,46 @@ export async function todayPlan(now = new Date()): Promise<TodayPlan> {
     const more = leads.length > QUEUE_LIMIT;
     if (more) leads.length = QUEUE_LIMIT;
     let turn = 0; // its place among the leads that can go at all
+    // A sender pauses between two emails (lib/dispatchPlan.mjs), so "due" is not
+    // "goes now": each lead's turn comes one pause after the one before it.
+    const w = windowOf(window) as { from: number; to: number };
+    const gap = minGapMs(s.capToday, w.to - w.from) as number;
+    const last = !window ? null : await OutreachSend.findOne({ senderId: s.senderId, outcome: { $ne: 'failed' } }).sort({ sentAt: -1 }).select('sentAt -_id').lean() as { sentAt?: string } | null;
+    const lastAt = Date.parse(last?.sentAt || '');
+    let free = Math.max(now.getTime(), Number.isFinite(lastAt) ? lastAt + gap : 0); // when the sender may send again
+    // "Today" is the sender's calendar day in Budapest, because the daily limit
+    // turns over at Budapest midnight. A lead in California still has sending
+    // hours left when that day ends; it goes out after midnight, on tomorrow's limit.
+    const gapTomorrow = minGapMs(s.capTomorrow, w.to - w.from) as number;
+    const endOfTomorrow = endOfDay.getTime() + 24 * 3_600_000;
+    let turnTomorrow = 0;
     for (const lead of leads) {
       const sequence = sequenceOf.get(lead.seq?.sequenceId || '');
       const opens = nextOpening(lead, window, now) as Date | null;
-      let fate: QueueFate;
+      const due = Date.parse(lead.seq?.nextStepAt || '') || 0;
+      let fate: QueueFate = 'closed';
+      let expectedAt = '';
+      let overLimit = false; // waits for tomorrow because today's limit is used up, not because of the hour
       if (!sequence?.enabled) fate = 'off';
-      else if (!opens || opens.getTime() >= endOfDay.getTime()) fate = 'closed';
-      else if (turn++ >= left) fate = 'limit';
-      else fate = isInsideWindow(lead, window, now) ? 'today' : 'hours';
+      else if (opens) {
+        // its turn today: after the sender's pause, its own due time and the opening of its window
+        const at = Math.max(free, due, opens.getTime());
+        if (turn < left && at < endOfDay.getTime() && isInsideWindow(lead, window, new Date(at))) {
+          fate = isInsideWindow(lead, window, now) ? 'today' : 'hours';
+          expectedAt = new Date(at).toISOString(); free = at + gap; turn++;
+        } else {
+          // not today: the first sending hour where it is, after midnight here
+          const later = nextOpening(lead, window, new Date(Math.max(free, due, endOfDay.getTime()))) as Date | null;
+          if (later && later.getTime() < endOfTomorrow && turnTomorrow < s.capTomorrow) {
+            fate = 'next'; expectedAt = later.toISOString(); free = later.getTime() + gapTomorrow; turnTomorrow++;
+            overLimit = turn >= left;
+          } else fate = turn >= left ? 'limit' : 'closed';
+        }
+      }
       queue.push({
         project: lead.project, dedupKey: lead.dedupKey, name: lead.name || lead.dedupKey, to: lead.seq?.to || '',
         sequenceId: lead.seq?.sequenceId || '', sequence: sequence?.name || 'A deleted sequence', ...stepNumber(sequence, lead.seq?.stepId || ''),
-        senderId: s.senderId, dueAt: lead.seq?.nextStepAt || '', tz: lead.seq?.tz || '', fate, opensAt: opens ? opens.toISOString() : '',
+        senderId: s.senderId, dueAt: lead.seq?.nextStepAt || '', tz: lead.seq?.tz || '', fate, opensAt: opens ? opens.toISOString() : '', expectedAt, overLimit,
       });
     }
     senders.push({ senderId: s.senderId, label: s.label, fromEmail: s.fromEmail, capToday: s.capToday, sentToday: s.sentToday, left, queued: leads.length, more });

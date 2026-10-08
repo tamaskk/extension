@@ -67,7 +67,7 @@ Tamás`, true),
     name: 'Három szolgáltatás, magyar',
     language: 'hu',
     steps: [
-      step(0, '{{name}}: néhány ötlet', `Jó napot kívánok!
+      step(0, '{{name}}: néhány ötlet', `Sziasztok!
 
 Kálmán Tamás vagyok, helyi vállalkozásoknak segítek abban, hogy több ügyfelet szerezzenek az interneten. Azért írok, mert úgy látom, Önöknél ({{name}}) is lenne ebben lehetőség. Három területen tudok segíteni:
 
@@ -81,7 +81,7 @@ Ha szívesen megnézné, kérem, válaszoljon erre a levélre, és küldök néh
 
 Üdvözlettel:
 Kálmán Tamás`, false),
-      step(3, '', `Jó napot kívánok!
+      step(3, '', `Sziasztok!
 
 Röviden a weboldalról, hátha Önöknek ez a leghasznosabb.
 
@@ -91,7 +91,7 @@ Az Önök vállalkozására készített oldalt egy rövid megbeszélésen késze
 
 Üdvözlettel:
 Kálmán Tamás`, true),
-      step(4, '', `Jó napot kívánok!
+      step(4, '', `Sziasztok!
 
 A másik terület, amelyet említettem: az AI automatizálás.
 
@@ -101,7 +101,7 @@ Egy rövid megbeszélésen működés közben megmutatom, hogyan nézne ki ez Ö
 
 Üdvözlettel:
 Kálmán Tamás`, true),
-      step(5, '', `Jó napot kívánok!
+      step(5, '', `Sziasztok!
 
 Az utolsó levelem, a közösségi médiáról.
 

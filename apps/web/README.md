@@ -54,6 +54,7 @@ unique on `{project, dedupKey}`, so it scales past the 16MB-per-document limit).
 | GET | `/api/coverage/missing` | `?type=&country=&kind=`: the places a business type still lacks, as `[{ city, areas }]` for the extension's "Load batches from JSON" |
 | POST | `/api/outreach/suggest` | leads to start a sequence with: the best-scored leads of a country that pass every enrolment rule; writes nothing |
 | POST | `/api/outreach/cron?job=send\|inbox` | the outreach loop for a scheduler (cron-job.org) instead of the runner tab; needs `Authorization: Bearer <CRON_SECRET>` |
+| GET | `/api/outreach/mail` | `?sender=`: everything GridLeads sent and everything its mailbox watcher read, newest first, for the Replies tab's "All mail" |
 | GET | `/api/outreach/today` | the Campaign tab: the gate, each sender's limit, the leads in line for today with what will become of each, and what went out today |
 | GET | `/api/outreach/report` | what went out and what became of it, by step, sender and offer, for 7 or 30 days or all time |
 | GET/POST | `/api/outreach/control` | may anything be sent today and why not, the senders' limits, the loop's heartbeat · the values entered by hand (Postmaster spam rate, seed result, acknowledgements) |
