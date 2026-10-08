@@ -25,6 +25,17 @@ const SKIP_TEXT: Record<string, string> = {
 const clock = (iso: string) => (iso ? new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '');
 const minute = (iso: string) => (iso ? new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
 
+// the same instant on the lead's own clock; '' when its zone is unknown or the same time as here
+function localMinute(iso: string, zone: string): string {
+  if (!iso || !zone) return '';
+  try {
+    const there = new Date(iso).toLocaleTimeString([], { timeZone: zone, hour: '2-digit', minute: '2-digit' });
+    return there === minute(iso) ? '' : there;
+  } catch {
+    return ''; // a zone this browser does not know has no clock to show
+  }
+}
+
 const FATE: Record<TodayQueueRow['fate'], { cls: string; text: string }> = {
   today: { cls: 'green', text: 'Goes out today' },
   hours: { cls: 'blue', text: 'Today, in sending hours' },
@@ -290,15 +301,15 @@ export default function CampaignToday({ reloadKey, onEnroll, onEditSequences }: 
             {!queue.length && <div className="muted oseq-hint">Nobody is due today.</div>}
             {queue.length > 0 && (
               <div className="orep-table">
-                <div className="ocmp-tr orep-th"><span title="When the send round is likely to reach it">Goes about</span><span>Lead</span><span>To</span><span>Sequence</span><span>From</span><span>What happens</span></div>
+                <div className="ocmp-tr orep-th"><span title="When the send round is likely to reach it: your time, and in brackets the time where the lead is">Goes about</span><span>Lead</span><span>To</span><span>Sequence</span><span>From</span><span>What happens</span></div>
                 {queue.map((q) => (
                   <div key={`${q.project}:${q.dedupKey}`} className="ocmp-tr">
-                    <span className="muted" title={`Due since ${clock(q.dueAt)}`}>{q.expectedAt ? `≈ ${minute(q.expectedAt)}` : '—'}</span>
+                    <span className="muted" title={`Due since ${clock(q.dueAt)}`}>{q.expectedAt ? `≈ ${minute(q.expectedAt)}` : '—'}{q.expectedAt && localMinute(q.expectedAt, q.tz) && <span title={`The time where the lead is (${q.tz})`}> ({localMinute(q.expectedAt, q.tz)})</span>}</span>
                     <span><button className="mini" title="See the emails this lead gets" onClick={() => setPreviewOf({ sequenceId: q.sequenceId, lead: { project: q.project, dedupKey: q.dedupKey } })}>👁</button> {q.name}</span>
                     <span className="muted">{q.to}</span>
                     <span>{q.sequence}{q.step > 0 && <span className="muted"> · step {q.step} of {q.steps}</span>}</span>
                     <span className="muted">{senderName(q.senderId)}</span>
-                    <span><span className={`chip ${FATE[q.fate].cls}`} title={q.tz ? `Time zone: ${q.tz}` : undefined}>{FATE[q.fate].text}</span></span>
+                    <span><span className={`chip ${q.fate === 'next' && q.overLimit ? 'amber' : FATE[q.fate].cls}`} title={q.tz ? `Time zone: ${q.tz}` : undefined}>{q.fate === 'next' && q.overLimit ? 'Today\'s limit is used up, goes after midnight' : FATE[q.fate].text}</span></span>
                   </div>
                 ))}
               </div>

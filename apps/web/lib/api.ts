@@ -150,6 +150,7 @@ export interface ControlState {
 export interface TodayQueueRow {
   project: string; dedupKey: string; name: string; to: string; sequenceId: string; sequence: string; step: number; steps: number;
   senderId: string; dueAt: string; tz: string; fate: 'today' | 'hours' | 'next' | 'limit' | 'closed' | 'off'; opensAt: string;
+  overLimit: boolean; // waits for tomorrow because today's limit is used up, not because of the hour
   expectedAt: string; // when it is likely to go out, counting the sender's pause between two emails; '' when not today
 }
 export interface TodayPlanData {

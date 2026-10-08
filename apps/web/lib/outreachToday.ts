@@ -24,6 +24,7 @@ export interface QueueRow {
   project: string; dedupKey: string; name: string; to: string;
   sequenceId: string; sequence: string; step: number; steps: number;
   senderId: string; dueAt: string; tz: string; fate: QueueFate; opensAt: string;
+  overLimit: boolean; // fate `next` because today's limit is used up: it is a sending hour there, but no email is left for today
   expectedAt: string; // when the send round is likely to reach it: after its due time, the sender's pause and the leads before it. '' when no time can be given
 }
 export interface SentRow { to: string; sentAt: string; outcome: string; sequence: string; step: number; senderId: string; seed: boolean }
@@ -94,6 +95,7 @@ export async function todayPlan(now = new Date()): Promise<TodayPlan> {
       const due = Date.parse(lead.seq?.nextStepAt || '') || 0;
       let fate: QueueFate = 'closed';
       let expectedAt = '';
+      let overLimit = false; // waits for tomorrow because today's limit is used up, not because of the hour
       if (!sequence?.enabled) fate = 'off';
       else if (opens) {
         // its turn today: after the sender's pause, its own due time and the opening of its window
@@ -106,13 +108,14 @@ export async function todayPlan(now = new Date()): Promise<TodayPlan> {
           const later = nextOpening(lead, window, new Date(Math.max(free, due, endOfDay.getTime()))) as Date | null;
           if (later && later.getTime() < endOfTomorrow && turnTomorrow < s.capTomorrow) {
             fate = 'next'; expectedAt = later.toISOString(); free = later.getTime() + gapTomorrow; turnTomorrow++;
+            overLimit = turn >= left;
           } else fate = turn >= left ? 'limit' : 'closed';
         }
       }
       queue.push({
         project: lead.project, dedupKey: lead.dedupKey, name: lead.name || lead.dedupKey, to: lead.seq?.to || '',
         sequenceId: lead.seq?.sequenceId || '', sequence: sequence?.name || 'A deleted sequence', ...stepNumber(sequence, lead.seq?.stepId || ''),
-        senderId: s.senderId, dueAt: lead.seq?.nextStepAt || '', tz: lead.seq?.tz || '', fate, opensAt: opens ? opens.toISOString() : '', expectedAt,
+        senderId: s.senderId, dueAt: lead.seq?.nextStepAt || '', tz: lead.seq?.tz || '', fate, opensAt: opens ? opens.toISOString() : '', expectedAt, overLimit,
       });
     }
     senders.push({ senderId: s.senderId, label: s.label, fromEmail: s.fromEmail, capToday: s.capToday, sentToday: s.sentToday, left, queued: leads.length, more });

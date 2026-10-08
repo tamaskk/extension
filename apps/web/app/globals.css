@@ -1166,7 +1166,7 @@ button.widget.w-split:hover .w-split-ic { opacity: .8; }
 
 /* ── Campaign (components/CampaignToday.tsx) ── */
 .ocmp-line { border-top: 1px solid var(--line); padding-top: 8px; }
-.ocmp-tr { display: grid; grid-template-columns: 72px minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1.3fr) minmax(0, .7fr) minmax(0, 1.3fr); gap: 10px; align-items: center; padding: 7px 9px; border-top: 1px solid var(--line); font-size: 12px; }
+.ocmp-tr { display: grid; grid-template-columns: 118px minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1.3fr) minmax(0, .7fr) minmax(0, 1.3fr); gap: 10px; align-items: center; padding: 7px 9px; border-top: 1px solid var(--line); font-size: 12px; }
 .ocmp-tr > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .oseq-senders { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
 .cov-cell { border: 1px solid transparent; cursor: pointer; font-family: inherit; }
