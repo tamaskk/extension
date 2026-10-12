@@ -86,6 +86,30 @@ export interface EnrollCall {
   source: { kind: 'filter'; query: LeadsQuery } | { kind: 'checked' } | { kind: 'group'; groupId: string } | { kind: 'keys'; keys: string[] };
   cursor?: string; runId?: string; taken?: number;
 }
+// POST /api/outreach/schedule: leads put into their sequences on future days,
+// every sender's days filled up to its limit. `plan` writes nothing; `apply`
+// writes the plan back, at most 200 leads per call.
+export interface SchedulePlanCall {
+  source: EnrollCall['source'];
+  sequences: Record<string, string>;   // language → sequenceId; a language without one is left out
+  mode: 'range' | 'all'; from?: string; to?: string;   // days as 'YYYY-MM-DD'
+}
+export interface SchedulePlacement { project: string; key: string; name: string; to: string; senderId: string; day: string; at: string }
+export interface SchedulePlan {
+  ok: boolean; error?: string;
+  mode?: 'range' | 'all'; fromDay?: string; toDay?: string;
+  matched?: number; examined?: number; complete?: boolean;
+  stopped?: '' | 'full' | 'max' | 'budget';   // why reading stopped early: no room left · the plan's size · the time
+  left?: number;       // leads that pass every rule and found no day
+  lastDay?: string;
+  skipped?: Record<string, number>;
+  notes?: string[];
+  senders?: { senderId: string; label: string; fromEmail: string; language: string; sequenceId: string; sequence: string }[];
+  // booked: sent today, already due that day, or pushed over from a fuller day before
+  days?: { day: string; rows: { senderId: string; cap: number; booked: number; free: number; placed: number; open: boolean }[] }[];
+  placements?: SchedulePlacement[];
+}
+export interface ScheduleApplyResult { ok: boolean; error?: string; written?: number; dropped?: Record<string, number>; runId?: string }
 export interface SuggestedLead { project: string; key: string; name: string; to: string; sender: string; category: string; score: number | null }
 export interface EnrollResult {
   ok: boolean; error?: string; dryRun?: boolean;
@@ -536,6 +560,11 @@ export const api = {
   enroll: (c: EnrollCall) => jsend('/api/outreach/enroll', 'POST', {
     ...c, source: c.source.kind === 'filter' ? { kind: 'filter', query: leadsParams(c.source.query).toString() } : c.source,
   }) as Promise<EnrollResult>,
+  schedulePlan: (c: SchedulePlanCall) => jsend('/api/outreach/schedule', 'POST', {
+    ...c, action: 'plan', source: c.source.kind === 'filter' ? { kind: 'filter', query: leadsParams(c.source.query).toString() } : c.source,
+  }) as Promise<SchedulePlan>,
+  scheduleApply: (sequences: Record<string, string>, items: Pick<SchedulePlacement, 'project' | 'key' | 'senderId' | 'at'>[], runId: string) =>
+    jsend('/api/outreach/schedule', 'POST', { action: 'apply', sequences, items, runId }) as Promise<ScheduleApplyResult>,
   // leads that would pass every enrolment rule right now, best score first; writes nothing
   suggestLeads: (sequenceId: string, country: string, n: number, exclude: string[], region = '', place = '') =>
     jsend('/api/outreach/suggest', 'POST', { sequenceId, country, region, place, n, exclude }) as Promise<{ ok: boolean; error?: string; picks?: SuggestedLead[]; examined?: number; skipped?: Record<string, number> }>,

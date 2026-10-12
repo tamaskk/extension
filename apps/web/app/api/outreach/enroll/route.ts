@@ -1,24 +1,11 @@
 import { CORS, json } from '@/lib/models';
-import { MAX_KEYS, MAX_LIMIT, runContinue, runEnrollment, runUnenrollment } from '@/lib/enroll';
-import type { EnrollRequest, EnrollSource } from '@/lib/enroll';
+import { MAX_LIMIT, coerceSource, runContinue, runEnrollment, runUnenrollment } from '@/lib/enroll';
+import type { EnrollRequest } from '@/lib/enroll';
 import { refuseUnlessOperator } from '@/lib/session';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
-
-// The selection, coerced: one of the existing ways to pick leads, or a list of lead keys.
-function sourceOf(s: unknown): EnrollSource | null {
-  const v = s && typeof s === 'object' ? s as Record<string, unknown> : {};
-  if (v.kind === 'checked') return { kind: 'checked' };
-  if (v.kind === 'group' && typeof v.groupId === 'string' && v.groupId) return { kind: 'group', groupId: v.groupId };
-  if (v.kind === 'keys' && Array.isArray(v.keys)) {
-    const keys = [...new Set(v.keys.filter((k): k is string => typeof k === 'string' && k.length > 0 && k.length <= 200))];
-    return keys.length && keys.length <= MAX_KEYS ? { kind: 'keys', keys } : null;
-  }
-  if (v.kind === 'filter' && typeof v.query === 'string') return { kind: 'filter', query: v.query.slice(0, 20_000) };
-  return null;
-}
 
 // POST /api/outreach/enroll
 //   { action: 'enroll' | 'unenroll' | 'continue', dryRun, sequenceId, source, limit, ignoreLanguage?, cursor?, runId?, taken? }
@@ -34,7 +21,7 @@ export async function POST(req: Request) {
     const refused = await refuseUnlessOperator(req, true);
     if (refused) return refused;
     const b = await req.json().catch(() => ({}));
-    const source = sourceOf(b?.source);
+    const source = coerceSource(b?.source);
     if (!source) return json({ ok: false, error: 'Choose what to enrol: the current filter, the checked leads, or a group.' }, { status: 400 });
     const action = b?.action === 'unenroll' ? 'unenroll' : b?.action === 'continue' ? 'continue' : 'enroll';
     const sequenceId = String(b?.sequenceId || '');

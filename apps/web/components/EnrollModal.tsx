@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import type { EnrollResult, LeadsQuery } from '@/lib/api';
 import type { OutreachSequenceRow } from '@/lib/types';
+import { REASONS } from '@/lib/skipReasons';
 
 // Puts leads into a sequence, or takes them out. It writes to many leads at
 // once, so it always goes in two steps: a preview that changes nothing and
@@ -19,22 +20,6 @@ interface Props {
   onClose: () => void;
   onDone: () => void;
 }
-
-const REASONS: [string, string][] = [
-  ['noEmail', 'no email address'],
-  ['badEmail', 'an address that must not be written to (noreply, a placeholder, the website agency)'],
-  ['noMx', 'the address\'s domain takes no mail'],
-  ['active', 'already in a sequence'],
-  ['replied', 'replied to an earlier sequence'],
-  ['suppressed', 'on the suppression list'],
-  ['alreadyMailed', 'this address, or this company, was written to before'],
-  ['language', 'another language than the sequence'],
-  ['languageUnknown', 'language not known (country of the project not recognised)'],
-  ['noTimezone', 'time zone not known (no coordinates and no country in the address)'],
-  ['domain', 'another lead of the same company is in a sequence'],
-  ['noSender', 'no sender account available'],
-  ['overLimit', 'over the limit of this run'],
-];
 
 export default function EnrollModal({ query, filterLabel, checkedCount, group, onClose, onDone }: Props) {
   const [sequences, setSequences] = useState<OutreachSequenceRow[] | null>(null);

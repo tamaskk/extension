@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
-import type { SuggestedLead, TodayPlanData, TodayQueueRow } from '@/lib/api';
+import type { LeadsQuery, SuggestedLead, TodayPlanData, TodayQueueRow } from '@/lib/api';
 import { COUNTRY_CITIES, COUNTRY_NAMES } from '@/lib/countries';
 import { STATE_REGIONS } from '@/lib/regionNames';
 import EmailPreviewModal from './EmailPreviewModal';
 import PlacePickerModal from './PlacePickerModal';
+import CampaignScheduler from './CampaignScheduler';
 
 // Campaign tab: the day on one screen. Is sending allowed, is the loop alive,
 // which sequences run, who is in line for today and what will become of each,
@@ -36,6 +37,12 @@ function localMinute(iso: string, zone: string): string {
   }
 }
 
+// "Mon 07:00": for a time that is not today. The day is in English like the rest of the copy.
+const dayMinute = (iso: string) => (iso ? `${new Date(iso).toLocaleDateString('en-US', { weekday: 'short' })} ${minute(iso)}` : '');
+
+// when the window opens again for a lead that has no sending hour in the next day
+const waitsFor = (q: TodayQueueRow) => (q.fate === 'closed' ? q.opensAt : '');
+
 const FATE: Record<TodayQueueRow['fate'], { cls: string; text: string }> = {
   today: { cls: 'green', text: 'Goes out today' },
   hours: { cls: 'blue', text: 'Today, in sending hours' },
@@ -49,7 +56,10 @@ const OUTCOME: Record<string, string> = {
   failed: 'red', bounced: 'red', blocked: 'red', complained: 'red', stopped: 'gray',
 };
 
-export default function CampaignToday({ reloadKey, onEnroll, onEditSequences }: { reloadKey: number; onEnroll: () => void; onEditSequences: () => void }) {
+// `selection` is what the Leads tab shows and holds right now: the scheduler takes its leads from there
+interface Selection { query: LeadsQuery; filterLabel: string; checkedCount: number; group: { groupId: string; name: string } | null }
+
+export default function CampaignToday({ reloadKey, selection, onEnroll, onEditSequences, onScheduled }: { reloadKey: number; selection: Selection; onEnroll: () => void; onEditSequences: () => void; onScheduled: () => void }) {
   const [data, setData] = useState<TodayPlanData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -169,6 +179,11 @@ export default function CampaignToday({ reloadKey, onEnroll, onEditSequences }: 
   const sentToday = senders.reduce((n, s) => n + s.sentToday, 0);
   const capToday = senders.reduce((n, s) => n + s.capToday, 0);
   const anyOn = sequences.some((s) => s.enabled);
+  // Nobody can go today or tomorrow although leads are due: the senders' sending days are over.
+  // The first window that opens again is the answer to "why is nothing scheduled".
+  const waiting = queue.filter((q) => q.fate === 'closed' && q.opensAt);
+  const reopensAt = going || queue.some((q) => q.fate === 'next') || !waiting.length ? '' : waiting.map((q) => q.opensAt).sort()[0];
+  const weekend = [0, 6].includes(new Date(data?.at || Date.now()).getDay());
 
   return (
     <div className="groups-wrap">
@@ -196,6 +211,7 @@ export default function CampaignToday({ reloadKey, onEnroll, onEditSequences }: 
           {!hb?.lastTickAt && <div className="oseq-note bad">The send loop has never run. Open the runner tab, or check the scheduler job.</div>}
           {gate.blockers.map((b) => <div key={b} className="oseq-note bad">Blocks sending: {b}</div>)}
           {gate.warnings.map((w) => <div key={w} className="oseq-note">{w}</div>)}
+          {reopensAt && <div className="oseq-note">{weekend ? 'It is the weekend, so nothing goes out' : 'Nothing goes out today or tomorrow'}: these are not sending days for the leads in line. Sending starts again {dayMinute(reopensAt)}, your time.</div>}
           {gate.allowed && hb?.stale && <div className="oseq-note bad">Nothing goes out while the runner tab is closed. Open it and leave it open.</div>}
           {gate.allowed && !anyOn && <div className="oseq-note">No sequence is switched on, so nothing goes out.</div>}
 
@@ -229,6 +245,8 @@ export default function CampaignToday({ reloadKey, onEnroll, onEditSequences }: 
               {msg && <span className="muted">{msg}</span>}
             </div>
           </div>
+
+          <CampaignScheduler sequences={sequences} {...selection} onDone={onScheduled} />
 
           {seq && (
             <div className="oseq-card">
@@ -304,7 +322,7 @@ export default function CampaignToday({ reloadKey, onEnroll, onEditSequences }: 
                 <div className="ocmp-tr orep-th"><span title="When the send round is likely to reach it: your time, and in brackets the time where the lead is">Goes about</span><span>Lead</span><span>To</span><span>Sequence</span><span>From</span><span>What happens</span></div>
                 {queue.map((q) => (
                   <div key={`${q.project}:${q.dedupKey}`} className="ocmp-tr">
-                    <span className="muted" title={`Due since ${clock(q.dueAt)}`}>{q.expectedAt ? `≈ ${minute(q.expectedAt)}` : '—'}{q.expectedAt && localMinute(q.expectedAt, q.tz) && <span title={`The time where the lead is (${q.tz})`}> ({localMinute(q.expectedAt, q.tz)})</span>}</span>
+                    <span className="muted" title={q.expectedAt || !waitsFor(q) ? `Due since ${clock(q.dueAt)}` : `Due since ${clock(q.dueAt)}. Its next sending hour starts then; the exact time depends on the limit and the leads before it.`}>{q.expectedAt ? `≈ ${minute(q.expectedAt)}` : dayMinute(waitsFor(q)) || '—'}{localMinute(q.expectedAt || waitsFor(q), q.tz) && <span title={`The time where the lead is (${q.tz})`}> ({localMinute(q.expectedAt || waitsFor(q), q.tz)})</span>}</span>
                     <span><button className="mini" title="See the emails this lead gets" onClick={() => setPreviewOf({ sequenceId: q.sequenceId, lead: { project: q.project, dedupKey: q.dedupKey } })}>👁</button> {q.name}</span>
                     <span className="muted">{q.to}</span>
                     <span>{q.sequence}{q.step > 0 && <span className="muted"> · step {q.step} of {q.steps}</span>}</span>

@@ -12,7 +12,7 @@ This file records the visual decisions that exist in the code today. Nothing her
 
 ## 02 Color palette
 
-### apps/web (light, the only effective theme)
+### apps/web (light by default, dark by choice)
 
 Defined in the second `:root` block of `apps/web/app/globals.css`. The first `:root` block is the dark extension palette, kept verbatim and overridden; do not remove it (ARCHITECTURE §06).
 
@@ -31,6 +31,8 @@ Defined in the second `:root` block of `apps/web/app/globals.css`. The first `:r
 | --cold | #94a3b8 | Cold leads |
 | --ok | #22c55e | Success |
 | --shadow | 0 12px 34px rgba(31,41,68,.10) | Floating panels |
+
+Dark theme: `<html data-theme="dark">`, switched by the toggle above "Log out" and kept in `localStorage` (`gridleads_theme`); `app/layout.tsx` applies it before the first paint. Its tokens are the dark palette of the first `:root` block, with `--ink: #818cf8` and a darker `--shadow`. The block "DARK THEME" at the end of `globals.css` also repeats every rule that names a light colour literally with its dark counterpart (white and pale backgrounds become `--panel` / `--panel2`, pale borders `--line` or `#3b4158`, the dark chip texts their light versions: `#4ade80`, `#fbbf24`, `#f87171`, `#818cf8`, `#8b5cf6`). A new rule that uses only tokens works in both themes; one that names a light colour needs a line in that block. The login page is inline-styled and stays light.
 
 Runtime layout variables set from JavaScript: `--sw` (sidebar width, default 264px), `--pw` (panel width).
 
@@ -101,6 +103,7 @@ There is no shared primitive library and no `components/ui` folder. Components a
 - Existing building blocks to reuse before writing a new one: `ComboFilter`, `CategoryFilter`, `TagsCell`, `IconPicker`, and the modal pattern used by `StatsModal`, `MapModal`, `DuplicatesModal`.
 - Modals close on overlay click and on Escape.
 - `PlacePickerModal` (web): a map to pick a country, a US state or a city, each label with the local time, green during sending hours. Leaflet comes through `lib/leafletLoader.ts`; do not load it another way.
+- `CampaignScheduler` and `SchedulePreviewModal` (web): the "Schedule ahead" card of the Campaign tab and the plan it opens, with the `.osch-*` classes for the day table. A card that can be closed keeps its state in `localStorage` and stays a `.oseq-card`.
 - `EmailPreviewModal` (web): the emails of a sequence as one lead gets them, footer included. Use it wherever "what will go out" is shown; do not render sequence text another way.
 - Inline `style={{}}` is tolerated for one-off layout values. `apps/web/app/login/page.tsx` is fully inline-styled.
 - `apps/tokenleads`: `components/Shell.tsx` is the page frame; icons come from `components/Icons.tsx`.

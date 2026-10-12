@@ -15,6 +15,7 @@
 import { dbConnect } from '@/lib/db';
 import { Lead, Project, ProjectStat, CORS, json } from '@/lib/models';
 import { parseProjectGeo, typeRegex, regionRegex, countryRegex } from '@/lib/projectGeo';
+import { STATE_REGIONS } from '@/lib/regionNames';
 import { recomputeProjectStats } from '@/lib/projectStats';
 import { refreshSearchTokens } from '@/lib/searchIndex';
 import { logActivity } from '@/lib/activity';
@@ -82,7 +83,8 @@ async function facets() {
     types: [...types].map(([value, count]) => ({ value, count })).sort((a, b) => b.count - a.count),
     countries: [...countries].map(([value, count]) => ({ value, count })).sort((a, b) => b.count - a.count),
     // one-off suffixes (typos, free-typed searches) would bury the real regions
-    regions: [...regions].filter(([, r]) => r.count >= 3).map(([value, r]) => ({ value, country: r.country, count: r.count })).sort((a, b) => a.value.localeCompare(b.value)),
+    // `state` marks a US state: some American projects end in a city instead, and the audit page lists only the states
+    regions: [...regions].filter(([, r]) => r.count >= 3).map(([value, r]) => ({ value, country: r.country, count: r.count, state: STATE_REGIONS.includes(value) })).sort((a, b) => a.value.localeCompare(b.value)),
   };
   facetCache = { at: Date.now(), data };
   return data;

@@ -318,6 +318,19 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false); // the lead page request failed (not the same as "no leads")
   const [reloadKey, setReloadKey] = useState(0);
+  // The theme lives on <html data-theme>; app/layout.tsx applies the stored one before the first paint.
+  const [dark, setDark] = useState(false);
+  useEffect(() => { setDark(document.documentElement.getAttribute('data-theme') === 'dark'); }, []);
+  const toggleTheme = () => {
+    const next = !dark;
+    setDark(next);
+    if (next) document.documentElement.setAttribute('data-theme', 'dark'); else document.documentElement.removeAttribute('data-theme');
+    try {
+      localStorage.setItem('gridleads_theme', next ? 'dark' : 'light');
+    } catch (e) {
+      console.warn('theme: could not store the choice', e);
+    }
+  };
   const [tagReg, setTagReg] = useState<Record<string, string>>({}); // tag name → color
   const [columnOrder, setColumnOrder] = useState<string[]>(DEFAULT_COLS);
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
@@ -1067,6 +1080,10 @@ export default function Dashboard() {
   };
 
   if (!mounted) return null;
+  // what the Leads tab shows now: the selection the enrolment modal and the Campaign tab's scheduler work on
+  const enrollQuery = { project: activeProject, folder: activeFolder, group: activeGroup?.groupId, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF };
+  const enrollLabel = total === null ? 'the leads listed now' : `${total.toLocaleString()} leads listed now`;
+
   return (
     <div className={`app ${sidebarOpen ? 'sidebar-open' : ''} ${reviewRow ? 'with-panel' : ''}`} style={{ '--sw': `${collapsed && !isMobile ? 64 : sidebarW}px`, '--pw': `${panelW}px` } as React.CSSProperties}>
       <div className="side-backdrop" onClick={() => setSidebarOpen(false)} />
@@ -1135,6 +1152,7 @@ export default function Dashboard() {
           <button className="navrail-item" onClick={() => setImportOpen(true)}><span className="ic">⤴</span> Import</button>
           <button className="navrail-item" onClick={() => exportJsonScope({}, 'all')}><span className="ic">⤓</span> Export</button>
           <div className="navrail-sep" />
+          <button className="navrail-item" onClick={toggleTheme} aria-pressed={dark}><span className="ic">{dark ? '☀️' : '🌙'}</span> {dark ? 'Light mode' : 'Dark mode'}</button>
           <button className="navrail-item" onClick={async () => { await fetch('/api/logout', { method: 'POST' }).catch(() => {}); window.location.href = '/login'; }}><span className="ic">🚪</span> Log out</button>
         </nav>
 
@@ -1303,7 +1321,8 @@ export default function Dashboard() {
 
         {view === 'report' && <OutreachReport />}
         {view === 'coverage' && <CoverageMatrix />}
-        {view === 'campaign' && <CampaignToday reloadKey={reloadKey} onEnroll={() => setEnrollOpen(true)} onEditSequences={() => setView('sequences')} />}
+        {view === 'campaign' && <CampaignToday reloadKey={reloadKey} onEnroll={() => setEnrollOpen(true)} onEditSequences={() => setView('sequences')}
+          selection={{ query: enrollQuery, filterLabel: enrollLabel, checkedCount, group: activeGroup }} onScheduled={() => setReloadKey((k) => k + 1)} />}
 
         {view === 'control' && <WarmupConsole />}
 
@@ -1363,7 +1382,7 @@ export default function Dashboard() {
             <option value="">All countries</option>
             {countryOpts.map(([c, n]) => <option key={c} value={c}>{c} ({n.toLocaleString()})</option>)}
           </select>
-          <div className="fsel-combo"><ComboFilter value={regionSel} options={selCountry ? projFacets.regions.filter((r) => (parseProjectGeo('x ' + r)?.country || 'Other') === selCountry) : projFacets.regions} placeholder="All states / cities" onChange={(v) => setSelRegions(v ? [v] : [])} /></div>
+          <div className="fsel-combo"><ComboFilter value={regionSel} options={selCountry === 'USA' ? STATE_REGIONS : selCountry ? projFacets.regions.filter((r) => (parseProjectGeo('x ' + r)?.country || 'Other') === selCountry) : projFacets.regions} placeholder={selCountry === 'USA' ? 'All states' : 'All states / cities'} onChange={(v) => setSelRegions(v ? [v] : [])} /></div>
           <select className="select fsel" value={emailF} onChange={(e) => setEmailF(e.target.value)} title="Email status of the lead">
             <option value="">Email: any</option>
             <option value="has">Has email</option>
@@ -1487,8 +1506,8 @@ export default function Dashboard() {
       {vapiGroup && <VapiCallModal group={vapiGroup} onClose={() => setVapiGroup(null)} />}
 
       {enrollOpen && <EnrollModal
-        query={{ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF }}
-        filterLabel={total === null ? 'the leads listed now' : `${total.toLocaleString()} leads listed now`}
+        query={enrollQuery}
+        filterLabel={enrollLabel}
         checkedCount={checkedCount} group={activeGroup}
         onClose={() => setEnrollOpen(false)} onDone={() => setReloadKey((k) => k + 1)} />}
 

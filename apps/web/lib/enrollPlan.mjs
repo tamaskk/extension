@@ -67,14 +67,39 @@ export const SKIP_REASONS = ['noEmail', 'badEmail', 'noMx', 'active', 'replied',
 // a usable address at a domain that takes mail, no running sequence, not
 // suppressed, the language, a known time zone, a free company domain, a sender.
 export function planEnrollment(candidates, ctx) {
-  const { sequence, isSuppressed, busyDomains, ignoreLanguage } = ctx;
+  const { sequence } = ctx;
   const now = ctx.now || new Date();
   const random = ctx.random || Math.random;
+  const first = nextEnabledStep(sequence, '');
+  const senders = eligibleSenders(sequence, ctx.senders);
+  const { passed, skipped, byLanguage } = screenCandidates(candidates, ctx);
+
+  const assigned = first ? assignSenders(passed.map((p) => p.c.key), senders, now) : new Map();
+  const take = [];
+  const bySender = {};
+  for (const p of passed) {
+    const senderId = assigned.get(p.c.key);
+    if (!senderId) { skipped.noSender++; continue; }
+    bySender[senderId] = (bySender[senderId] || 0) + 1;
+    take.push({
+      project: p.c.project, key: p.c.key, name: p.c.name || '',
+      seq: seqFor(p, sequence, first.step.id, senderId, new Date(now.getTime() + Math.floor(random() * SPREAD_MINUTES * 60_000)).toISOString()),
+    });
+  }
+  return { take, skipped, bySender, byLanguage };
+}
+
+// The checks of planEnrollment without the sender: which candidates may go in.
+// → { passed: [{ c, to, language, tz }], skipped, byLanguage }
+// `ctx.languages` lists the languages that have a sequence to go into; without
+// it, the one language of `ctx.sequence`. Scheduling ahead (lib/schedulePlan.mjs)
+// calls this directly, because it gives the sender and the day itself.
+export function screenCandidates(candidates, ctx) {
+  const { sequence, isSuppressed, busyDomains, ignoreLanguage } = ctx;
+  const languages = ctx.languages || [sequence.language];
   const room = ctx.room === undefined ? Infinity : Math.max(0, ctx.room);
   const skipped = Object.fromEntries(SKIP_REASONS.map((r) => [r, 0]));
   const byLanguage = {};
-  const first = nextEnabledStep(sequence, '');
-  const senders = eligibleSenders(sequence, ctx.senders);
 
   const passed = [];
   const taken = new Set(); // company domains taken earlier in this same batch
@@ -100,7 +125,7 @@ export function planEnrollment(candidates, ctx) {
     byLanguage[language || 'unknown'] = (byLanguage[language || 'unknown'] || 0) + 1;
     if (!ignoreLanguage) {
       if (!language) { skipped.languageUnknown++; continue; }
-      if (language !== sequence.language) { skipped.language++; continue; }
+      if (!languages.includes(language)) { skipped.language++; continue; }
     }
     // No zone, no enrolment: the send window runs on the lead's own clock, and a
     // lead without one would sit in the sequence for good without ever being sent to.
@@ -112,41 +137,33 @@ export function planEnrollment(candidates, ctx) {
     if (domain) taken.add(domain);
     passed.push({ c, to, language, tz });
   }
+  return { passed, skipped, byLanguage };
+}
 
-  const assigned = first ? assignSenders(passed.map((p) => p.c.key), senders, now) : new Map();
-  const take = [];
-  const bySender = {};
-  for (const p of passed) {
-    const senderId = assigned.get(p.c.key);
-    if (!senderId) { skipped.noSender++; continue; }
-    bySender[senderId] = (bySender[senderId] || 0) + 1;
-    take.push({
-      project: p.c.project, key: p.c.key, name: p.c.name || '',
-      seq: {
-        sequenceId: sequence.sequenceId,
-        stepId: first.step.id,
-        nextStepAt: new Date(now.getTime() + Math.floor(random() * SPREAD_MINUTES * 60_000)).toISOString(),
-        senderId,
-        to: p.to,
-        // the sequence's language: it is the language the lead will be written in
-        language: sequence.language,
-        // found here, once; the dispatcher reads it and never works it out again
-        tz: p.tz,
-        // Which offer the second round makes (lib/routeOffer.mjs). Decided
-        // here, once, so it cannot change in the middle of a sequence and the
-        // reports stay stable. `offerManual` is set when the operator overrides it.
-        ...offerOf(p.c),
-        threadSubject: '',
-        lastMessageId: '',
-        sentStepIds: [],
-        status: 'active',
-        lastSentAt: '',
-        claimedAt: '',
-        errorCount: 0,
-      },
-    });
-  }
-  return { take, skipped, bySender, byLanguage };
+// The `seq` subdocument a lead that passed (a row of screenCandidates) starts with.
+export function seqFor(p, sequence, stepId, senderId, nextStepAt) {
+  return {
+    sequenceId: sequence.sequenceId,
+    stepId,
+    nextStepAt,
+    senderId,
+    to: p.to,
+    // the sequence's language: it is the language the lead will be written in
+    language: sequence.language,
+    // found here, once; the dispatcher reads it and never works it out again
+    tz: p.tz,
+    // Which offer the second round makes (lib/routeOffer.mjs). Decided
+    // here, once, so it cannot change in the middle of a sequence and the
+    // reports stay stable. `offerManual` is set when the operator overrides it.
+    ...offerOf(p.c),
+    threadSubject: '',
+    lastMessageId: '',
+    sentStepIds: [],
+    status: 'active',
+    lastSentAt: '',
+    claimedAt: '',
+    errorCount: 0,
+  };
 }
 
 function offerOf(lead) {

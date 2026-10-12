@@ -371,7 +371,7 @@ function InfoTab({ lead, stats, onEditAll }: { lead: LeadRow; stats: Stats; onEd
         {ai.at && <div className="ai-at">generated {new Date(ai.at).toLocaleString()}</div>}
       </div>
 
-      <div className="rvp-card" style={{ background: '#fff' }}>
+      <div className="rvp-card" style={{ background: 'var(--panel)' }}>
         {rowsData.map(([k, v]) => (
           <div className="si-row" key={k}><span className="si-k">{k}</span><span className="si-v">{v}</span></div>
         ))}

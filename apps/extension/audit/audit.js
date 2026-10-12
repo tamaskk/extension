@@ -18,6 +18,7 @@ function bg(message) {
 }
 
 let source = localStorage.getItem('gl_audit_src') === 'local' ? 'local' : 'db';
+let localOptions = null;  // filter options built from this browser's projects
 let rows = [];            // audit rows currently listed (in run order)
 let totals = null;        // database: totals over ALL matching projects (not just the loaded page)
 let more = false;         // database: more pages available
@@ -26,6 +27,57 @@ let running = false;
 let stopping = false;
 const finished = new Set();
 let runningQuery = '';
+
+// ---------- filters ----------
+const FILTER_IDS = ['fType', 'fCountry', 'fRegion', 'fEmail', 'fWork', 'fMin', 'fSort'];
+function filters() {
+  return {
+    q: $('q').value.trim(), type: $('fType').value, country: $('fCountry').value, region: $('fRegion').value,
+    email: $('fEmail').value, work: $('fWork').value, minLeads: Number($('fMin').value) || 0, sort: $('fSort').value || 'todo',
+  };
+}
+// A project is "<business type> near <place…> <state|country|city>".
+const typeOf = (query) => { const s = String(query || '').toLowerCase(); const i = s.indexOf(' near '); return (i >= 0 ? s.slice(0, i) : s.split(/\s+/)[0] || '').trim(); };
+const endsWithWord = (query, word) => { const s = String(query || '').toLowerCase(), w = String(word).toLowerCase(); return s === w || s.endsWith(' ' + w); };
+
+let facets = null; // { types, countries, regions } — from the database (covers every project)
+function fillSelect(id, first, opts) {
+  const sel = $(id), keep = sel.value || localStorage.getItem('gl_audit_' + id) || '';
+  sel.innerHTML = `<option value="">${first}</option>` + opts.map((o) => `<option value="${esc(o.value)}">${esc(o.label || o.value)}${o.count != null ? ` (${fmt(o.count)})` : ''}</option>`).join('');
+  sel.value = opts.some((o) => o.value === keep) ? keep : '';
+}
+function fillRegions() {
+  const country = $('fCountry').value;
+  let list = ((facets && facets.regions) || []).filter((r) => !country || r.country === country);
+  // USA: states only. Some American projects end in a city name, and hundreds of those buried the states.
+  if (country === 'USA' && list.some((r) => r.state)) list = list.filter((r) => r.state);
+  fillSelect('fRegion', country === 'USA' ? 'All states' : 'All states / cities', list);
+}
+function fillFacets() {
+  if (!facets) return;
+  fillSelect('fType', 'All business types', facets.types);
+  fillSelect('fCountry', 'All countries', facets.countries);
+  fillRegions();
+}
+// Browser source has no server to ask → build the options from the local projects.
+function localFacets(all) {
+  const types = new Map(), regions = new Map();
+  const known = (facets && facets.regions) || [];
+  for (const r of all) {
+    const t = typeOf(r.query); if (t) types.set(t, (types.get(t) || 0) + 1);
+    const words = String(r.query).split(/\s+/);
+    const hit = known.filter((k) => endsWithWord(r.query, k.value)).sort((a, b) => b.value.length - a.value.length)[0];
+    const reg = hit ? hit.value : words[words.length - 1];
+    const cur = regions.get(reg) || { country: hit ? hit.country : 'Other', state: !!(hit && hit.state), count: 0 }; cur.count++; regions.set(reg, cur);
+  }
+  const countries = new Map();
+  for (const [, r] of regions) countries.set(r.country, (countries.get(r.country) || 0) + r.count);
+  return {
+    types: [...types].map(([value, count]) => ({ value, count })).sort((a, b) => b.count - a.count),
+    countries: [...countries].map(([value, count]) => ({ value, count })).sort((a, b) => b.count - a.count),
+    regions: [...regions].map(([value, r]) => ({ value, country: r.country, state: r.state, count: r.count })).sort((a, b) => a.value.localeCompare(b.value)),
+  };
+}
 
 // ---------- data sources ----------
 async function api(body) {
@@ -43,7 +95,7 @@ async function api(body) {
 const SRC = {
   db: {
     async list(skip) {
-      const j = await api({ action: 'list', q: $('q').value.trim(), limit: PAGE, skip });
+      const j = await api(Object.assign({ action: 'list', limit: PAGE, skip }, filters()));
       return { rows: j.rows, totals: j.totals, more: j.more };
     },
     async queue(query, retry) { return (await api({ action: 'queue', project: query, retry })).rows; },
@@ -58,9 +110,25 @@ const SRC = {
   local: {
     async list() {
       const res = await bg({ type: 'auditLocal' });
-      const term = $('q').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-      let list = ((res && res.rows) || []).filter((r) => term.every((w) => (r.query + ' ' + r.name).toLowerCase().includes(w)));
-      list.sort((a, b) => b.todo - a.todo || String(a.query).localeCompare(String(b.query)));
+      const all = (res && res.rows) || [];
+      localOptions = localFacets(all);
+      const f = filters();
+      const term = f.q.toLowerCase().split(/\s+/).filter(Boolean);
+      const inCountry = f.country ? new Set(localOptions.regions.filter((r) => r.country === f.country).map((r) => r.value)) : null;
+      const list = all.filter((r) => {
+        if (!term.every((w) => (r.query + ' ' + r.name).toLowerCase().includes(w))) return false;
+        if (f.type && typeOf(r.query) !== f.type) return false;
+        if (f.region && !endsWithWord(r.query, f.region)) return false;
+        if (!f.region && inCountry && ![...inCountry].some((reg) => endsWithWord(r.query, reg))) return false;
+        if (f.email === 'has' && !r.email) return false;
+        if (f.email === 'none' && r.email) return false;
+        if (f.work === 'todo' && !r.todo) return false;
+        if (f.work === 'done' && r.todo) return false;
+        if (f.minLeads && r.total < f.minLeads) return false;
+        return true;
+      });
+      const key = { todo: 'todo', total: 'total', email: 'email', noWebsite: 'noSite' }[f.sort];
+      list.sort((a, b) => (key ? (b[key] || 0) - (a[key] || 0) : 0) || String(a.query).localeCompare(String(b.query)));
       return { rows: list, totals: null, more: false };
     },
     async queue(query, retry) {
@@ -79,13 +147,15 @@ const SRC = {
 // ---------- rendering ----------
 const cell = (n, cls) => `<td class="num ${n ? (cls || '') : 'zero'}">${fmt(n)}</td>`;
 
+const anyFilter = () => { const f = filters(); return !!(f.q || f.type || f.country || f.region || f.email || f.work || f.minLeads); };
+
 function renderTiles() {
   const sum = (k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
   const tiles = [];
   if (source === 'db' && totals) {
     const pct = totals.total ? ((totals.email / totals.total) * 100).toFixed(totals.email / totals.total < 0.01 ? 3 : 1) : '0';
     tiles.push(
-      [fmt(totals.projects), 'Projects', $('q').value.trim() ? 'matching the filter' : 'in the database', ''],
+      [fmt(totals.projects), 'Projects', anyFilter() ? 'matching the filters' : 'in the database', ''],
       [fmt(totals.total), 'Leads', '', ''],
       [fmt(totals.email), 'With email', pct + '% of all leads', 'ok'],
       [fmt(totals.todo), 'To check', 'have a website, no email yet', 'accent'],
@@ -168,11 +238,16 @@ function showWarn(e) {
     : `⚠ ${esc(e.message || e)} — is ${esc(SYNC_BASE)} reachable?`;
 }
 
+let loadSeq = 0; // filters fire loads in quick succession → only the newest answer may render
 async function load(append) {
+  const seq = ++loadSeq;
   showWarn(null);
   if (!append) { $('rows').innerHTML = ''; $('empty').classList.remove('hidden'); $('empty').textContent = 'Scanning…'; }
   try {
+    if (source === 'db' && !facets) { try { const fj = await api({ action: 'facets' }); facets = { types: fj.types, countries: fj.countries, regions: fj.regions }; fillFacets(); } catch (e) { if (e.login) throw e; } }
     const res = await SRC[source].list(append ? rows.length : 0);
+    if (seq !== loadSeq) return; // a newer load started meanwhile
+    if (source === 'local' && localOptions) { const keep = facets; facets = localOptions; fillFacets(); facets = keep; }
     // the server order shifts as projects get checked → never list one twice
     const have = new Set(append ? rows.map((r) => r.query) : []);
     rows = append ? rows.concat(res.rows.filter((r) => !have.has(r.query))) : res.rows;
@@ -180,6 +255,7 @@ async function load(append) {
     more = !!res.more;
     if (!append) { selected = new Set([...selected].filter((q) => rows.some((r) => r.query === q))); }
   } catch (e) {
+    if (seq !== loadSeq) return;
     if (!append) { rows = []; totals = null; more = false; }
     showWarn(e);
   }
@@ -296,13 +372,14 @@ async function startRun(list, follow) {
     // the next open ones are at the TOP again: re-ask from 0 and skip what is
     // already listed; only page deeper if a whole page was already seen.
     const seen = new Set(rows.map((r) => r.query));
-    let next = [], skip = 0, exhausted = false;
+    const byWork = ($('fSort').value || 'todo') === 'todo';
+    let next = [], skip = byWork ? 0 : rows.length, exhausted = false; // other sort orders are stable → just continue after what is listed
     try {
       for (let guard = 0; guard < 50 && !next.length && !exhausted; guard++) {
         const res = await SRC.db.list(skip);
         if (res.totals) totals = res.totals;
         next = res.rows.filter((r) => !seen.has(r.query));
-        if (!$('retry').checked && res.rows.length && res.rows.every((r) => !r.todo)) { next = []; exhausted = true; } // sorted by open work → nothing left
+        if (byWork && !$('retry').checked && res.rows.length && res.rows.every((r) => !r.todo)) { next = []; exhausted = true; } // sorted by open work → nothing left
         if (!res.more) exhausted = true;
         skip += PAGE;
       }
@@ -346,6 +423,23 @@ $('rescan').addEventListener('click', () => { if (!running) { finished.clear(); 
 let qTimer = null;
 $('q').addEventListener('input', () => { clearTimeout(qTimer); qTimer = setTimeout(() => { if (!running) load(false); }, 350); });
 
+FILTER_IDS.forEach((id) => {
+  const saved = localStorage.getItem('gl_audit_' + id);
+  if (saved && [...$(id).options].some((o) => o.value === saved)) $(id).value = saved; // static selects; the dynamic ones are restored in fillSelect
+  $(id).addEventListener('change', () => {
+    if (id === 'fCountry') { $('fRegion').value = ''; if (source === 'db') fillRegions(); }
+    FILTER_IDS.forEach((x) => localStorage.setItem('gl_audit_' + x, $(x).value));
+    if (!running) { selected.clear(); finished.clear(); load(false); }
+  });
+});
+$('fReset').addEventListener('click', () => {
+  if (running) return;
+  FILTER_IDS.forEach((id) => { $(id).value = id === 'fSort' ? 'todo' : ''; localStorage.removeItem('gl_audit_' + id); });
+  $('q').value = '';
+  if (source === 'db') fillRegions();
+  selected.clear(); finished.clear(); load(false);
+});
+
 function applySource(s) {
   source = s === 'local' ? 'local' : 'db';
   localStorage.setItem('gl_audit_src', source);
@@ -353,7 +447,9 @@ function applySource(s) {
 }
 document.querySelectorAll('#src .seg-btn').forEach((b) => b.addEventListener('click', () => {
   if (running) return;
-  applySource(b.dataset.src); selected.clear(); finished.clear(); load(false);
+  applySource(b.dataset.src); selected.clear(); finished.clear();
+  if (source === 'db') fillFacets();
+  load(false);
 }));
 
 $('conc').value = localStorage.getItem('gl_audit_conc') || '8';

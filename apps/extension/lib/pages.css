@@ -70,3 +70,6 @@ input[type="date"].select { color-scheme: dark; }
 .rel summary { cursor: pointer; font-weight: 600; padding: 9px 0; }
 .rel h4 { margin: 10px 0 4px; font-size: 13px; } .rel ul { margin: 0 0 12px; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .rel ul b { color: var(--text); }
+
+/* audit filters */
+.filters-row .select { max-width: 230px; padding: 8px 10px; font-size: 12px; }

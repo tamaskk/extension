@@ -63,7 +63,9 @@ async function fetchNext(exclude) {
   } finally { clearTimeout(t); }
 }
 async function postReviews(body) {
-  const r = await fetch(SYNC_BASE + '/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  // POST /api/reviews writes lead data, so it needs the web app's login cookie.
+  const r = await fetch(SYNC_BASE + '/api/reviews', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (r.status === 401) { const e = new Error('not logged in to the web app, log in at ' + SYNC_BASE + '/login'); e.login = true; throw e; }
   if (!r.ok) throw new Error('save HTTP ' + r.status);
   return r.json().catch(() => ({}));
 }
@@ -357,6 +359,9 @@ async function onReviewsScraped(msg, tid) {
   try {
     await postReviews({ project: cur.project, dedupKey: cur.dedupKey, cid: cur.cid || '', placeId: cur.placeId || '', name: cur.name || '', reviews, error: '' });
   } catch (e) {
+    // No session: every save would fail the same way and each business would be
+    // given up on after 3 attempts, so stop the run instead of burning the queue.
+    if (e && e.login) { await stopRun('Stopped: ' + e.message + ', then start again.'); return; }
     await failBusiness(tid, 'save: ' + String(e.message || e)); // POST failed → not done → retry
     return;
   }

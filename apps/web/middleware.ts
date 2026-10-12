@@ -11,7 +11,9 @@ import { AUTH_COOKIE, authKey } from '@/lib/auth';
 // route (403s on prod), safe to leave open here.
 // /api/outreach/cron is for a scheduler, which has no session: the route itself
 // lets in only a request that carries CRON_SECRET, and answers 404 to the rest.
-const OPEN_API = new Set(['/api/login', '/api/logout', '/api/reviews/next', '/api/missing-states', '/api/enrich', '/api/outreach/cron']);
+// /api/widget/queues is read by a phone's home-screen widget, which has no
+// session: it answers the senders' names and the day's counts, nothing else.
+const OPEN_API = new Set(['/api/login', '/api/logout', '/api/reviews/next', '/api/missing-states', '/api/enrich', '/api/outreach/cron', '/api/widget/queues']);
 
 function isOpenApi(pathname: string) {
   return OPEN_API.has(pathname);

@@ -73,10 +73,10 @@ npm --prefix apps/<app> run dev          dev server (web 3000, tokenleads 3010, 
 npm --prefix apps/<app> run build        production build (must pass before a deploy)
 npm --prefix apps/<app> run typecheck    type check
 npm --prefix apps/tokenleads run test    unit tests (Vitest)
-node --test apps/web/lib/organize.test.mjs   the web unit test
+node --test apps/web/lib/*.test.mjs      the web unit tests
 ```
 
-- `lint`: the script exists but `next lint` was removed in Next.js 16 and there is no ESLint config. Do not run it. (planned, T-007)
+- `lint`: does not exist. `next lint` was removed in Next.js 16 and there is no ESLint config; `typecheck` is the static check.
 - `format`, `test:e2e`: do not exist. (planned)
 - Extensions: no commands. Load `apps/extension` or `apps/extension-reviews` unpacked in `chrome://extensions` and reload after a change.
 - `apps/landing` and `apps/tokenleads` may have no `node_modules`; ask before running `npm install`.
