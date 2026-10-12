@@ -33,6 +33,7 @@ import RepliesView from './RepliesView';
 import OutreachReport from './OutreachReport';
 import CoverageMatrix from './CoverageMatrix';
 import CampaignToday from './CampaignToday';
+import CampaignScheduler from './CampaignScheduler';
 import WarmupConsole from './WarmupConsole';
 import { parseProjectGeo } from '@/lib/projectGeo';
 import { rowOffsets, visibleRange } from '@/lib/windowing.mjs';
@@ -66,6 +67,18 @@ const addAgg = (a: FolderAggregate, b: FolderAggregate | null | undefined): Fold
 // project query = "<business type> near <city...> <state/country>" → parse type + region
 const MULTI_REGIONS = ['New York', 'New Jersey', 'New Mexico', 'New Hampshire', 'North Carolina', 'North Dakota', 'South Carolina', 'South Dakota', 'Rhode Island', 'West Virginia', 'District of Columbia', 'Hong Kong', 'Costa Rica', 'Puerto Rico', 'New Orleans'];
 const MULTI_REGIONS_LC = MULTI_REGIONS.map((m) => m.toLowerCase());
+// The Leads filter panel's dropdowns beyond type / country / region / email /
+// phone. The keys are the query parameters of GET /api/leads (lib/leadMatch.ts).
+const NO_XF = { website: '', temp: '', reviews: '', ai: '', checked: '', status: '', tag: '', seq: '' };
+const XF_FIELDS: [keyof typeof NO_XF, string, [string, string][]][] = [
+  ['website', 'Website', [['none', 'No website'], ['has', 'Has website']]],
+  ['temp', 'Temperature', [['hot', 'Hot'], ['warm', 'Warm'], ['cold', 'Cold']]],
+  ['reviews', 'Reviews', [['has', 'Has reviews'], ['none', 'No reviews']]],
+  ['ai', 'AI analysis', [['has', 'Has AI analysis'], ['none', 'No AI analysis']]],
+  ['checked', 'Checked', [['yes', 'Checked'], ['no', 'Not checked']]],
+  ['seq', 'Sequence', [['none', 'Not in a sequence'], ['any', 'In a sequence, any state'], ['active', 'Queued or running'], ['waiting', 'Waiting for follow-ups'], ['replied', 'Replied'], ['bounced', 'Bounced'], ['finished', 'Finished'], ['stopped', 'Stopped'], ['failed', 'Failed']]],
+];
+
 function parseProject(q: string): { type: string; region: string } {
   const s = String(q || '').trim();
   if (!s) return { type: '', region: '' };
@@ -275,7 +288,9 @@ export default function Dashboard() {
   const [activeGroup, setActiveGroup] = useState<{ groupId: string; name: string; count: number } | null>(null);
   const [vapiGroup, setVapiGroup] = useState<{ groupId: string; name: string } | null>(null); // Vapi calling modal target
   const [leadSearch, setLeadSearch] = useState<{ project?: string | null; folder?: string | null; label: string } | null>(null); // automated email research target
-  const [filter, setFilter] = useState<'all' | 'nowebsite' | 'haswebsite' | 'hot' | 'email' | 'hasreviews' | 'hasai'>('all');
+  const [xf, setXf] = useState(NO_XF);
+  const setX = (k: keyof typeof NO_XF, v: string) => setXf((f) => ({ ...f, [k]: v }));
+  const xfKey = Object.values(xf).join('|');
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [selTypes, setSelTypes] = useState<string[]>([]);
   const [selRegions, setSelRegions] = useState<string[]>([]);
@@ -399,7 +414,7 @@ export default function Dashboard() {
   // debounce the search box
   useEffect(() => { const t = setTimeout(() => setDebTerm(term.trim()), 300); return () => clearTimeout(t); }, [term]);
   // any change that affects the result set goes back to page 1
-  useEffect(() => { setPage(1); }, [activeProject, activeFolder, activeGroup, filter, debTerm, sortKey, sortDir, pageSize, selectedCats, selTypes, selRegions, selCountry, emailF, phoneF]);
+  useEffect(() => { setPage(1); }, [activeProject, activeFolder, activeGroup, xfKey, debTerm, sortKey, sortDir, pageSize, selectedCats, selTypes, selRegions, selCountry, emailF, phoneF]);
   // picking a project/folder scope leaves any group scope
   useEffect(() => { if (activeProject || activeFolder) setActiveGroup(null); }, [activeProject, activeFolder]);
   // category options are scope-specific, so reset the picks when the scope changes
@@ -437,7 +452,7 @@ export default function Dashboard() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    api.getLeads({ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF, sort: sortKey, dir: sortDir, page, pageSize }, { total: false })
+    api.getLeads({ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, ...xf, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF, sort: sortKey, dir: sortDir, page, pageSize }, { total: false })
       .then((res) => {
         if (cancelled) return;
         const rows = (res.rows || []).map((r: any) => ({ ...r, _project: r.project, _key: r.dedupKey })) as LeadRow[];
@@ -448,7 +463,7 @@ export default function Dashboard() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeProject, activeFolder, activeGroup?.groupId, filter, debTerm, catsKey, selTypes.join('|'), selRegions.join('|'), selCountry, emailF, phoneF, sortKey, sortDir, page, pageSize, reloadKey]);
+  }, [activeProject, activeFolder, activeGroup?.groupId, xfKey, debTerm, catsKey, selTypes.join('|'), selRegions.join('|'), selCountry, emailF, phoneF, sortKey, sortDir, page, pageSize, reloadKey]);
 
   const summariesArr = useMemo(() => Object.values(summaries), [summaries]);
   const folderList = useMemo(() => Object.values(folders), [folders]);
@@ -744,13 +759,15 @@ export default function Dashboard() {
   const totalAll = allAgg.total;
   // ----- lead count -----
   // Apart from the rows, so a slow count never holds the page back, and not
-  // repeated when only the page or the sort changes. Where a chip (or one of
-  // the email dropdown values) is the only filter, the number is already in the
-  // project counters and no request is made at all.
+  // repeated when only the page or the sort changes. Where one dropdown value
+  // that the project counters keep is the only filter, the number is already
+  // there and no request is made at all.
   const countFromStats = (() => {
     if (!hydrated || !statsReady || debTerm || selectedCats.length || phoneF || activeGroup) return undefined;
-    if (!emailF) return ({ all: stats.total, nowebsite: stats.noweb, hot: stats.hot, email: stats.email, hasreviews: stats.reviews, hasai: stats.ai } as Record<string, number | undefined>)[filter];
-    if (filter !== 'all') return undefined;
+    const set = Object.entries(xf).filter(([, v]) => v);
+    if (set.length > 1 || (set.length && emailF)) return undefined;
+    if (set.length) return ({ 'website:none': stats.noweb, 'temp:hot': stats.hot, 'reviews:has': stats.reviews, 'ai:has': stats.ai } as Record<string, number | undefined>)[set[0].join(':')];
+    if (!emailF) return stats.total;
     // `todo` is left to the server: ProjectStat.emailTodo is only filled for projects
     // recounted since that counter was added (the sum was 40 against 944,728 real)
     return ({ has: stats.email, miss: stats.emailMiss } as Record<string, number | undefined>)[emailF];
@@ -759,12 +776,12 @@ export default function Dashboard() {
     if (countFromStats !== undefined) { setTotal(countFromStats); return; }
     let cancelled = false;
     setTotal(null);
-    api.getLeadsTotal({ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF })
+    api.getLeadsTotal({ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, ...xf, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF })
       .then((res) => { if (!cancelled) setTotal(res.total || 0); })
       .catch(() => { if (!cancelled) setTotal(0); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countFromStats, activeProject, activeFolder, activeGroup?.groupId, filter, debTerm, catsKey, selTypes.join('|'), selRegions.join('|'), selCountry, emailF, phoneF, reloadKey]);
+  }, [countFromStats, activeProject, activeFolder, activeGroup?.groupId, xfKey, debTerm, catsKey, selTypes.join('|'), selRegions.join('|'), selCountry, emailF, phoneF, reloadKey]);
   const pageCount = total === null ? null : Math.max(1, Math.ceil(total / pageSize));
   // with the count still running, "next" is allowed whenever the page came back full
   const isLastPage = pageCount !== null ? page >= pageCount : pageRows.length < pageSize;
@@ -1081,7 +1098,7 @@ export default function Dashboard() {
 
   if (!mounted) return null;
   // what the Leads tab shows now: the selection the enrolment modal and the Campaign tab's scheduler work on
-  const enrollQuery = { project: activeProject, folder: activeFolder, group: activeGroup?.groupId, filter, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF };
+  const enrollQuery = { project: activeProject, folder: activeFolder, group: activeGroup?.groupId, ...xf, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF };
   const enrollLabel = total === null ? 'the leads listed now' : `${total.toLocaleString()} leads listed now`;
 
   return (
@@ -1293,7 +1310,7 @@ export default function Dashboard() {
             title={title}
             project={activeProject}
             folder={activeFolder}
-            filter={filter}
+            filter={xf.website === 'none' ? 'nowebsite' : xf.website === 'has' ? 'haswebsite' : xf.temp === 'hot' ? 'hot' : emailF === 'has' ? 'email' : 'all'}
             search={debTerm}
             categories={selectedCats}
             ptypes={selTypes}
@@ -1321,8 +1338,7 @@ export default function Dashboard() {
 
         {view === 'report' && <OutreachReport />}
         {view === 'coverage' && <CoverageMatrix />}
-        {view === 'campaign' && <CampaignToday reloadKey={reloadKey} onEnroll={() => setEnrollOpen(true)} onEditSequences={() => setView('sequences')}
-          selection={{ query: enrollQuery, filterLabel: enrollLabel, checkedCount, group: activeGroup }} onScheduled={() => setReloadKey((k) => k + 1)} />}
+        {view === 'campaign' && <CampaignToday reloadKey={reloadKey} onEnroll={() => setEnrollOpen(true)} onEditSequences={() => setView('sequences')} />}
 
         {view === 'control' && <WarmupConsole />}
 
@@ -1346,13 +1362,84 @@ export default function Dashboard() {
             }}>🗑 Delete group</button>
           </div>
         )}
-        <div className="filters">
-          <div className="filterchips">
-            {([['all', 'All'], ['nowebsite', 'No website'], ['haswebsite', 'Has website'], ['hot', '🔥 Hot'], ['email', 'Email found'], ['hasreviews', '💬 Has reviews'], ['hasai', '✨ Has AI']] as const).map(([key, label]) => (
-              <button key={key} className={`chipbtn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
-            ))}
-            <CategoryFilter project={activeProject} folder={activeFolder} value={selectedCats} onChange={setSelectedCats} />
+        <div className="lf">
+          <div className="lf-head">
+            <b>Filters</b>
+            <div className="spacer" />
+            <span className="lf-count">{total === null ? 'Counting…' : <><b>{total.toLocaleString()}</b> leads</>}</span>
+            {(typeSel || regionSel || selCountry || emailF || phoneF || xfKey.replace(/\|/g, '') || selectedCats.length > 0) && (
+              <button className="chipbtn" onClick={() => { setSelTypes([]); setSelRegions([]); setSelCountry(''); setEmailF(''); setPhoneF(''); setXf(NO_XF); setSelectedCats([]); }}>✕ Clear filters</button>
+            )}
           </div>
+          <div className="lf-grid">
+            <div className="lf-field">
+              <span className="lf-label">Business type</span>
+              <ComboFilter value={typeSel} options={projFacets.types} placeholder="All" onChange={(v) => setSelTypes(v ? [v] : [])} />
+            </div>
+            <div className="lf-field">
+              <span className="lf-label">Category</span>
+              <CategoryFilter project={activeProject} folder={activeFolder} value={selectedCats} onChange={setSelectedCats} />
+            </div>
+            <div className="lf-field">
+              <span className="lf-label">Country</span>
+              <select className="select" aria-label="Country" value={selCountry} disabled={!hydrated} onChange={(e) => { setSelCountry(e.target.value); setSelRegions([]); }} title="Country the search was run in">
+                <option value="">All</option>
+                {countryOpts.map(([c, n]) => <option key={c} value={c}>{c} ({n.toLocaleString()})</option>)}
+              </select>
+            </div>
+            <div className="lf-field">
+              <span className="lf-label">{selCountry === 'USA' ? 'State' : 'State / city'}</span>
+              <ComboFilter value={regionSel} options={selCountry === 'USA' ? STATE_REGIONS : selCountry ? projFacets.regions.filter((r) => (parseProjectGeo('x ' + r)?.country || 'Other') === selCountry) : projFacets.regions} placeholder="All" onChange={(v) => setSelRegions(v ? [v] : [])} />
+            </div>
+            <div className="lf-field">
+              <span className="lf-label">Email</span>
+              <select className="select" aria-label="Email" value={emailF} onChange={(e) => setEmailF(e.target.value)} title="Email status of the lead">
+                <option value="">All</option>
+                <option value="has">Has email</option>
+                <option value="none">No email</option>
+                <option value="miss">Searched, not found (all)</option>
+                <option value="todo">No email — website not checked yet</option>
+                <option value="checked">No email — website checked, none on it</option>
+                <option value="failed">No email — website could not be read</option>
+              </select>
+            </div>
+            <div className="lf-field">
+              <span className="lf-label">Phone</span>
+              <select className="select" aria-label="Phone" value={phoneF} onChange={(e) => setPhoneF(e.target.value)}>
+                <option value="">All</option>
+                <option value="has">Has phone</option>
+                <option value="none">No phone</option>
+              </select>
+            </div>
+            {XF_FIELDS.map(([k, label, opts]) => (
+              <div className="lf-field" key={k}>
+                <span className="lf-label">{label}</span>
+                <select className="select" aria-label={label} value={xf[k]} onChange={(e) => setX(k, e.target.value)}>
+                  <option value="">All</option>
+                  {opts.map(([v, text]) => <option key={v} value={v}>{text}</option>)}
+                </select>
+              </div>
+            ))}
+            <div className="lf-field">
+              <span className="lf-label">Status</span>
+              <select className="select" aria-label="Status" value={xf.status} onChange={(e) => setX('status', e.target.value)}>
+                <option value="">All</option>
+                <option value="none">No status</option>
+                {SALES_STATUSES.map((st) => <option key={st} value={st}>{st}</option>)}
+              </select>
+            </div>
+            <div className="lf-field">
+              <span className="lf-label">Tag</span>
+              <select className="select" aria-label="Tag" value={xf.tag} onChange={(e) => setX('tag', e.target.value)}>
+                <option value="">All</option>
+                {Object.keys(tagReg).sort((a, b) => a.localeCompare(b)).map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+          </div>
+          <CampaignScheduler query={enrollQuery} filterLabel={enrollLabel} checkedCount={checkedCount} group={activeGroup} onDone={() => setReloadKey((k) => k + 1)} />
+        </div>
+
+        <div className="filters">
           {rowSel.size > 0 && (
             <span className="rowsel-bar">
               <b>{rowSel.size}</b>&nbsp;selected
@@ -1374,32 +1461,6 @@ export default function Dashboard() {
           )}
           <ColumnsMenu order={columnOrder} hidden={hiddenCols} onToggle={toggleColumn} onAll={setAllColumns} onReset={resetColumns} />
           <span className="title">{title}</span>
-        </div>
-
-        <div className="filters filters-sel">
-          <div className="fsel-combo"><ComboFilter value={typeSel} options={projFacets.types} placeholder="All business types" onChange={(v) => setSelTypes(v ? [v] : [])} /></div>
-          <select className="select fsel" value={selCountry} disabled={!hydrated} onChange={(e) => { setSelCountry(e.target.value); setSelRegions([]); }} title="Country the search was run in">
-            <option value="">All countries</option>
-            {countryOpts.map(([c, n]) => <option key={c} value={c}>{c} ({n.toLocaleString()})</option>)}
-          </select>
-          <div className="fsel-combo"><ComboFilter value={regionSel} options={selCountry === 'USA' ? STATE_REGIONS : selCountry ? projFacets.regions.filter((r) => (parseProjectGeo('x ' + r)?.country || 'Other') === selCountry) : projFacets.regions} placeholder={selCountry === 'USA' ? 'All states' : 'All states / cities'} onChange={(v) => setSelRegions(v ? [v] : [])} /></div>
-          <select className="select fsel" value={emailF} onChange={(e) => setEmailF(e.target.value)} title="Email status of the lead">
-            <option value="">Email: any</option>
-            <option value="has">Has email</option>
-            <option value="none">No email</option>
-            <option value="miss">Searched, not found (all)</option>
-            <option value="todo">No email — website not checked yet</option>
-            <option value="checked">No email — website checked, none on it</option>
-            <option value="failed">No email — website could not be read</option>
-          </select>
-          <select className="select fsel" value={phoneF} onChange={(e) => setPhoneF(e.target.value)}>
-            <option value="">Phone: any</option>
-            <option value="has">Has phone</option>
-            <option value="none">No phone</option>
-          </select>
-          {(typeSel || regionSel || selCountry || emailF || phoneF) && (
-            <button className="chipbtn" onClick={() => { setSelTypes([]); setSelRegions([]); setSelCountry(''); setEmailF(''); setPhoneF(''); }}>✕ Clear filters</button>
-          )}
         </div>
 
         {(activeFolder || activeProject) && (
@@ -1458,7 +1519,8 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {pageRows.map((r) => {
+              {/* rows of the previous filter are not shown while the next ones load: a slow query looked like nothing had happened */}
+              {!loading && pageRows.map((r) => {
                 const id = `${r._project}|${r._key}`;
                 return (
                   <tr key={id} title={r.topPitch || undefined} className={`rowclick ${r.call ? 'callrow' : ''}`}
@@ -1470,7 +1532,7 @@ export default function Dashboard() {
               })}
             </tbody>
           </table>
-          {loading && pageRows.length === 0 && Array.from({ length: 14 }).map((_, i) => <div key={i} className="skel-bar" style={{ height: 42, marginBottom: 6, opacity: Math.max(0.25, 1 - i * 0.06) }} />)}
+          {loading && Array.from({ length: 14 }).map((_, i) => <div key={i} className="skel-bar" style={{ height: 42, marginBottom: 6, opacity: Math.max(0.25, 1 - i * 0.06) }} />)}
           {!loading && loadError && (
             <div className="empty">Could not load leads. Use ⟳ Refresh to try again.</div>
           )}

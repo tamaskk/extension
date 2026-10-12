@@ -39,6 +39,14 @@ export interface LeadsQuery {
   country?: string;
   email?: string;  // '' | has | none | todo | checked | failed
   phone?: string;  // '' | has | none
+  website?: string;  // '' | has | none
+  temp?: string;     // '' | hot | warm | cold
+  reviews?: string;  // '' | has | none
+  ai?: string;       // '' | has | none
+  checked?: string;  // '' | yes | no
+  status?: string;   // '' | none | a sales status
+  tag?: string;
+  seq?: string;      // '' | none | any | a sequence state
   sort?: string;
   dir?: number;
   page?: number;
@@ -232,6 +240,7 @@ function leadsParams(q: LeadsQuery): URLSearchParams {
   if (q.country) p.set('country', q.country);
   if (q.email) p.set('email', q.email);
   if (q.phone) p.set('phone', q.phone);
+  for (const k of ['website', 'temp', 'reviews', 'ai', 'checked', 'status', 'tag', 'seq'] as const) { const v = q[k]; if (v) p.set(k, v); }
   return p;
 }
 

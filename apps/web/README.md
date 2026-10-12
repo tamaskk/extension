@@ -11,7 +11,7 @@ for the full picture; the feature and API lists below cover the original core on
 - Project sidebar with **folders** (collapse/expand, rename, delete)
 - **Checkbox selection** of projects + **shift+click** range select
 - **Bulk actions**: move to folder, rename, delete
-- Filter chips (All / No website / Has website / Hot / Email found)
+- Filter panel of labelled dropdowns: business type, category, country, state / city, email, phone, website, temperature, reviews, AI analysis, checked, sequence state, sales status, tag
 - Stat widgets (Total / No website / Hot / Emails / Avg opportunity)
 - Sortable table (click any column header; ▲/▼ indicators) + sort dropdown
 - **Checked** column, persisted per business
@@ -154,7 +154,7 @@ components/
   OutreachSenders.tsx # the Senders tab: accounts, password entry, connection test
   SequencesView.tsx   # the Sequences tab: list, step editor, preview, the check before a save
   EnrollModal.tsx     # put leads into a sequence or take them out: preview first, then the run
-  CampaignScheduler.tsx  # "Schedule ahead" on the Campaign tab: choose the leads, the sequences and the days
+  CampaignScheduler.tsx  # "Schedule ahead" on the Leads tab, under the filters: choose the leads, the sequences and the days
   SchedulePreviewModal.tsx  # the schedule plan day by day and sender by sender; accepting writes it
   UnknownSends.tsx    # emails that may or may not have gone out, for the operator to settle
   RepliesView.tsx     # the Replies tab: replies, bounces, and mail that matched no lead

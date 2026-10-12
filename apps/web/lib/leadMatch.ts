@@ -7,6 +7,10 @@
 import { Project, LeadGroup, NO_SITE, descendantFolderIds } from '@/lib/models';
 import { applyProjectScope } from '@/lib/projectScope';
 import { applySearch } from '@/lib/searchIndex';
+import { SALES_STATUSES } from '@/lib/types';
+
+const TEMPERATURES = ['HOT', 'WARM', 'COLD'];
+const SEQ_STATES = ['active', 'waiting', 'replied', 'bounced', 'finished', 'stopped', 'failed'];
 
 // "has an email": a non-empty string. Written as $gt '' (not $nin ['', null]) so
 // the query implies the filter of the partial index gl_email_opp and can use it.
@@ -43,7 +47,7 @@ export async function leadScopeMatch(u: URLSearchParams): Promise<Record<string,
   return match;
 }
 
-// The rest, added onto a scope match: the email and phone dropdowns and the search box.
+// The rest, added onto a scope match: the dropdowns of the filter panel and the search box.
 export async function applyLeadFilters(match: Record<string, unknown>, u: URLSearchParams): Promise<void> {
   // dropdown filters — combine with the chip above and with each other
   const and: Record<string, unknown>[] = [];
@@ -58,6 +62,30 @@ export async function applyLeadFilters(match: Record<string, unknown>, u: URLSea
   const phoneF = u.get('phone') || '';
   if (phoneF === 'has') and.push({ phone: SET });
   else if (phoneF === 'none') and.push({ phone: EMPTY });
+  const websiteF = u.get('website') || '';
+  if (websiteF === 'none') and.push({ websiteStatus: { $in: NO_SITE } });
+  else if (websiteF === 'has') and.push({ websiteStatus: 'HAS_WEBSITE' });
+  const tempF = (u.get('temp') || '').toUpperCase();
+  if (TEMPERATURES.includes(tempF)) and.push({ leadTemperature: tempF });
+  const reviewsF = u.get('reviews') || '';
+  if (reviewsF === 'has') and.push({ reviewsCount: { $gt: 0 } });
+  else if (reviewsF === 'none') and.push({ reviewsCount: { $not: { $gt: 0 } } });
+  const aiF = u.get('ai') || '';
+  if (aiF === 'has') and.push({ aiAt: { $gt: '' } });
+  else if (aiF === 'none') and.push({ aiAt: EMPTY });
+  const checkedF = u.get('checked') || '';
+  if (checkedF === 'yes') and.push({ checked: true });
+  else if (checkedF === 'no') and.push({ checked: { $ne: true } });
+  const statusF = u.get('status') || '';
+  if (statusF === 'none') and.push({ salesStatus: EMPTY });
+  else if (SALES_STATUSES.includes(statusF)) and.push({ salesStatus: statusF });
+  const tagF = (u.get('tag') || '').slice(0, 80);
+  if (tagF) and.push({ tags: tagF });
+  // a lead that was never put into a sequence has no `seq` at all
+  const seqF = u.get('seq') || '';
+  if (seqF === 'none') and.push({ 'seq.status': { $exists: false } });
+  else if (seqF === 'any') and.push({ 'seq.status': { $exists: true } });
+  else if (SEQ_STATES.includes(seqF)) and.push({ 'seq.status': seqF });
   if (and.length) match.$and = ((match.$and as Record<string, unknown>[]) || []).concat(and);
   await applySearch(match, (u.get('search') || '').trim());
 }

@@ -3,19 +3,20 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import type { LeadsQuery, SchedulePlan } from '@/lib/api';
+import type { OutreachSequenceRow } from '@/lib/types';
 import SchedulePreviewModal from './SchedulePreviewModal';
 
-// "Schedule ahead" on the Campaign tab: the leads of a selection are put into
-// their sequences on the coming days, every sender account filled up to its
-// limit of that day, so the queue does not have to be topped up by hand every
-// morning. Collapsible. It only makes the plan; the modal shows it and writes it.
+// "Schedule ahead" on the Leads tab, under the filters it takes its leads from:
+// the leads of a selection are put into their sequences on the coming days,
+// every sender account filled up to its limit of that day, so the queue does
+// not have to be topped up by hand every morning. Collapsible. It only makes
+// the plan; the modal shows it and writes it.
 
 const OPEN_KEY = 'gl.campaign.schedule.open';
 const LANGUAGES: [string, string][] = [['hu', 'Hungarian'], ['en', 'English']];
 type SourceKind = 'filter' | 'checked' | 'group';
 
 interface Props {
-  sequences: { sequenceId: string; name: string; language: string; enabled: boolean }[];
   query: LeadsQuery;                                   // the lead table's current filter
   filterLabel: string;                                 // what that filter shows, in words
   checkedCount: number;
@@ -23,7 +24,7 @@ interface Props {
   onDone: () => void;
 }
 
-export default function CampaignScheduler({ sequences, query, filterLabel, checkedCount, group, onDone }: Props) {
+export default function CampaignScheduler({ query, filterLabel, checkedCount, group, onDone }: Props) {
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<SourceKind>(group ? 'group' : checkedCount > 0 ? 'checked' : 'filter');
   const [mode, setMode] = useState<'all' | 'range'>('all');
@@ -34,6 +35,10 @@ export default function CampaignScheduler({ sequences, query, filterLabel, check
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [plan, setPlan] = useState<SchedulePlan | null>(null);
+  // loaded when the card is first opened, so a closed card costs the Leads tab no request
+  const [loaded, setLoaded] = useState<OutreachSequenceRow[] | null>(null);
+  const [loadError, setLoadError] = useState('');
+  const sequences = loaded || [];
 
   useEffect(() => {
     try {
@@ -42,6 +47,15 @@ export default function CampaignScheduler({ sequences, query, filterLabel, check
       // storage is blocked: the panel starts closed
     }
   }, []);
+  useEffect(() => {
+    if (!open || loaded) return;
+    let alive = true;
+    setLoadError('');
+    api.getSequences()
+      .then((r) => { if (!alive) return; if (r.ok) setLoaded(r.sequences || []); else setLoadError(r.error || 'The sequences could not be loaded.'); })
+      .catch(() => { if (alive) setLoadError('Network error. The sequences could not be loaded.'); });
+    return () => { alive = false; };
+  }, [open, loaded]);
   const toggle = () => {
     const next = !open;
     setOpen(next);
@@ -85,10 +99,14 @@ export default function CampaignScheduler({ sequences, query, filterLabel, check
       {open && (
         <>
           <div className="muted oseq-hint">Each lead goes to an account of its own language, on the earliest day that account still has room: its limit of that day, less what is already sent or due. Days that were filled before are kept, so a later plan goes on where the last one ended. Nothing is written until you accept the plan.</div>
+          {loadError && <div className="oseq-note bad">{loadError}</div>}
+          {!loaded && !loadError && <div className="muted oseq-hint">Loading the sequences…</div>}
+          {loaded && !loaded.length && <div className="muted oseq-hint">No sequence yet. Create one on the Sequences tab.</div>}
+          {loaded && loaded.length > 0 && <>
           <div className="oseq-fields">
             <label>Which leads
               <select className="select" value={kind} onChange={(e) => setKind(e.target.value as SourceKind)} disabled={busy}>
-                <option value="filter">The filter of the Leads tab: {filterLabel}</option>
+                <option value="filter">The current filter: {filterLabel}</option>
                 <option value="checked" disabled={!checkedCount}>The checked leads ({checkedCount.toLocaleString()})</option>
                 {group && <option value="group">The group &quot;{group.name}&quot;</option>}
               </select>
@@ -123,6 +141,7 @@ export default function CampaignScheduler({ sequences, query, filterLabel, check
             {!Object.keys(picked).length && <span className="muted">Choose a sequence for at least one language.</span>}
           </div>
           {error && <div className="oseq-note bad">{error}</div>}
+          </>}
         </>
       )}
       {plan && <SchedulePreviewModal plan={plan} onClose={() => setPlan(null)} onDone={onDone} />}

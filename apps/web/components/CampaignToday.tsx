@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
-import type { LeadsQuery, SuggestedLead, TodayPlanData, TodayQueueRow } from '@/lib/api';
+import type { SuggestedLead, TodayPlanData, TodayQueueRow } from '@/lib/api';
 import { COUNTRY_CITIES, COUNTRY_NAMES } from '@/lib/countries';
 import { STATE_REGIONS } from '@/lib/regionNames';
 import EmailPreviewModal from './EmailPreviewModal';
 import PlacePickerModal from './PlacePickerModal';
-import CampaignScheduler from './CampaignScheduler';
 
 // Campaign tab: the day on one screen. Is sending allowed, is the loop alive,
 // which sequences run, who is in line for today and what will become of each,
@@ -56,10 +55,8 @@ const OUTCOME: Record<string, string> = {
   failed: 'red', bounced: 'red', blocked: 'red', complained: 'red', stopped: 'gray',
 };
 
-// `selection` is what the Leads tab shows and holds right now: the scheduler takes its leads from there
-interface Selection { query: LeadsQuery; filterLabel: string; checkedCount: number; group: { groupId: string; name: string } | null }
 
-export default function CampaignToday({ reloadKey, selection, onEnroll, onEditSequences, onScheduled }: { reloadKey: number; selection: Selection; onEnroll: () => void; onEditSequences: () => void; onScheduled: () => void }) {
+export default function CampaignToday({ reloadKey, onEnroll, onEditSequences }: { reloadKey: number; onEnroll: () => void; onEditSequences: () => void }) {
   const [data, setData] = useState<TodayPlanData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -245,8 +242,6 @@ export default function CampaignToday({ reloadKey, selection, onEnroll, onEditSe
               {msg && <span className="muted">{msg}</span>}
             </div>
           </div>
-
-          <CampaignScheduler sequences={sequences} {...selection} onDone={onScheduled} />
 
           {seq && (
             <div className="oseq-card">
