@@ -33,7 +33,7 @@ const BUDGET_MS = 40_000;
 // Which of these addresses, and of their company domains, got a sequence email
 // before: one query for the chunk, on the `to` and `toDomain` indexes of
 // `outreachsends`. Seed emails and refused sends do not count.
-async function mailedAmong(leads: Candidate[]): Promise<(email: string, domain: string) => boolean> {
+export async function mailedAmong(leads: Candidate[]): Promise<(email: string, domain: string) => boolean> {
   const emails = new Set<string>(), domains = new Set<string>();
   for (const l of leads) {
     const e = pickEmail(l);
@@ -52,6 +52,20 @@ async function mailedAmong(leads: Candidate[]): Promise<(email: string, domain: 
 // `keys` is the fourth: leads named one by one, as the Campaign tab's suggestions are.
 export type EnrollSource = { kind: 'filter'; query: string } | { kind: 'checked' } | { kind: 'group'; groupId: string } | { kind: 'keys'; keys: string[] };
 export const MAX_KEYS = 200;
+
+// A selection as a request names it, coerced: one of the existing ways to pick
+// leads, or a list of lead keys. null when it is none of them.
+export function coerceSource(s: unknown): EnrollSource | null {
+  const v = s && typeof s === 'object' ? s as Record<string, unknown> : {};
+  if (v.kind === 'checked') return { kind: 'checked' };
+  if (v.kind === 'group' && typeof v.groupId === 'string' && v.groupId) return { kind: 'group', groupId: v.groupId };
+  if (v.kind === 'keys' && Array.isArray(v.keys)) {
+    const keys = [...new Set(v.keys.filter((k): k is string => typeof k === 'string' && k.length > 0 && k.length <= 200))];
+    return keys.length && keys.length <= MAX_KEYS ? { kind: 'keys', keys } : null;
+  }
+  if (v.kind === 'filter' && typeof v.query === 'string') return { kind: 'filter', query: v.query.slice(0, 20_000) };
+  return null;
+}
 
 export interface EnrollRequest {
   action: 'enroll' | 'unenroll' | 'continue';
@@ -84,7 +98,7 @@ export interface EnrollAnswer {
   runId?: string;
 }
 
-async function sourceMatch(source: EnrollSource): Promise<Record<string, unknown>> {
+export async function sourceMatch(source: EnrollSource): Promise<Record<string, unknown>> {
   if (source.kind === 'checked') return { checked: true };
   if (source.kind === 'keys') return { dedupKey: { $in: source.keys } };
   if (source.kind === 'group') {
@@ -97,14 +111,14 @@ async function sourceMatch(source: EnrollSource): Promise<Record<string, unknown
 const and = (...parts: Record<string, unknown>[]) => ({ $and: parts.filter((p) => Object.keys(p).length) });
 const after = (cursor: string) => (cursor ? { _id: { $gt: new mongoose.Types.ObjectId(cursor) } } : {});
 
-interface Candidate { _id: mongoose.Types.ObjectId; project: string; dedupKey: string; name?: string; email?: string; emails?: string[]; lat?: number | null; lng?: number | null; address?: string; seq?: { status?: string }; [field: string]: unknown }
+export interface Candidate { _id: mongoose.Types.ObjectId; project: string; dedupKey: string; name?: string; email?: string; emails?: string[]; lat?: number | null; lng?: number | null; address?: string; seq?: { status?: string }; [field: string]: unknown }
 // what the address ranking and the offer routing read, beside the fields above
-const RULE_FIELDS = ['website', 'websiteStatus', 'category', 'rating', 'reviewCount', 'phone', 'hasBookingHint', 'aiPainPoints', 'aiSummary', 'sig'];
+export const RULE_FIELDS = ['website', 'websiteStatus', 'category', 'rating', 'reviewCount', 'phone', 'hasBookingHint', 'aiPainPoints', 'aiSummary', 'sig'];
 
 // The next candidates of a selection, in _id order: stable, so a run can go on
 // where the previous call stopped. Leads without an email are left out by the
 // query itself; of a million leads only a few percent have one.
-async function nextCandidates(match: Record<string, unknown>, cursor: string): Promise<Candidate[]> {
+export async function nextCandidates(match: Record<string, unknown>, cursor: string): Promise<Candidate[]> {
   return Lead.find(and(match, { email: HAS_EMAIL }, after(cursor))).sort({ _id: 1 }).limit(CHUNK)
     .select(['project', 'dedupKey', 'name', 'email', 'emails', 'lat', 'lng', 'address', 'seq.status', ...RULE_FIELDS].join(' ')).lean() as unknown as Candidate[];
 }
@@ -112,7 +126,7 @@ async function nextCandidates(match: Record<string, unknown>, cursor: string): P
 // Which of these addresses, or their company domains, are on the suppression
 // list: one query for the chunk. A failure is thrown and stops the run: without
 // the answer nobody may be enrolled.
-async function suppressedAmong(leads: Candidate[]): Promise<(email: string, domain: string) => boolean> {
+export async function suppressedAmong(leads: Candidate[]): Promise<(email: string, domain: string) => boolean> {
   const emails = new Set<string>(), domains = new Set<string>();
   for (const l of leads) {
     const k = lookupKeys(pickEmail(l));
@@ -127,7 +141,7 @@ async function suppressedAmong(leads: Candidate[]): Promise<(email: string, doma
 }
 
 const countryCache = new Map<string, string>();
-function countryOf(project: string): string {
+export function countryOf(project: string): string {
   let c = countryCache.get(project);
   if (c === undefined) { c = parseProjectGeo(project)?.country || ''; countryCache.set(project, c); }
   return c;
@@ -136,7 +150,7 @@ function countryOf(project: string): string {
 // One event per run in the Changelog, growing with every chunk: `n` is the
 // number of leads enrolled and `keys` their ids, so the event also shows up in
 // each lead's own history. Never throws, like logActivity.
-async function logEnrollChunk(runId: string, sequence: { sequenceId: string; name?: string }, keys: string[], total: number) {
+export async function logEnrollChunk(runId: string, sequence: { sequenceId: string; name?: string }, keys: string[], total: number) {
   try {
     const title = `${total.toLocaleString()} ${total === 1 ? 'lead' : 'leads'} enrolled in "${sequence.name || sequence.sequenceId}"`;
     await (await activityColl()).updateOne(

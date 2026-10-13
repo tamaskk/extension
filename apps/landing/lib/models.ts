@@ -13,4 +13,4 @@ const LeadSchema = new Schema({
 export const Lead = models.Lead || model('Lead', LeadSchema);
 
 // websiteStatus values that count as "no usable website" (same list as apps/web)
-export const NO_SITE = ['NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'NOT_WORKING'];
+export const NO_SITE = ['NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY', 'BROKEN', 'DOMAIN_EXPIRED', 'NOT_WORKING', 'DOMAIN_PARKED', 'UNDER_CONSTRUCTION'];

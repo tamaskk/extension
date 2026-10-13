@@ -25,8 +25,11 @@ service worker, and an alarm watchdog recovers from any stuck step.
 
 1. `chrome://extensions` → enable **Developer mode**.
 2. **Load unpacked** → select this folder: `apps/extension-reviews`.
-3. Pin the **GridLeads — Review Scraper** icon, open it, press **Start**.
-4. Keep the Google Maps tab it opens in the foreground while it runs (Chrome
+3. Log in to the GridLeads web app in the same Chrome profile. Saving reviews
+   (`POST /api/reviews`) needs that login; without it the run stops with a
+   "not logged in" message.
+4. Pin the **GridLeads — Review Scraper** icon, open it, press **Start**.
+5. Keep the Google Maps tab it opens in the foreground while it runs (Chrome
    throttles background tabs, which stalls scrolling).
 
 It talks to the deployed app at `https://gridleads-wheat.vercel.app`. This is a

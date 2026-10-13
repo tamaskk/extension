@@ -1,5 +1,9 @@
 // GridLeads scoring — shared by the background service worker and pages.
 // Attaches to `self` so it works in a SW (importScripts) and in a window.
+//
+// apps/web/lib/scoring.mjs is the second copy of this engine (it rescores
+// stored leads). apps/web/lib/scoring.test.mjs runs both over the same inputs
+// and fails when they disagree: change both files in the same commit.
 (function (root) {
   const WEBSITELESS = new Set([
     'NO_WEBSITE', 'FACEBOOK_ONLY', 'INSTAGRAM_ONLY',

@@ -11,7 +11,7 @@ for the full picture; the feature and API lists below cover the original core on
 - Project sidebar with **folders** (collapse/expand, rename, delete)
 - **Checkbox selection** of projects + **shift+click** range select
 - **Bulk actions**: move to folder, rename, delete
-- Filter chips (All / No website / Has website / Hot / Email found)
+- Filter panel of labelled dropdowns: business type, category, country, state / city, email, phone, website, temperature, reviews, AI analysis, checked, sequence state, sales status, tag
 - Stat widgets (Total / No website / Hot / Emails / Avg opportunity)
 - Sortable table (click any column header; ▲/▼ indicators) + sort dropdown
 - **Checked** column, persisted per business
@@ -62,6 +62,9 @@ unique on `{project, dedupKey}`, so it scales past the 16MB-per-document limit).
 | POST | `/api/outreach/signals` | one chunk of reading leads' websites for booking, ordering and Instagram signals; call until `remaining` is 0 |
 | POST | `/api/outreach/offer` | the operator sets a lead's second-round offer by hand |
 | POST | `/api/outreach/enroll` | put leads into a sequence or take them out, from the table's filter, the checked leads or a group. `dryRun` first (writes nothing), then one chunk per call until `done` |
+| GET | `/api/outreach/queues` | the Queues tab: the next email of every lead in a sequence, by Budapest day and sender account (at most 5,000). Read-only |
+| POST | `/api/outreach/schedule` | put the leads of a selection into sequences on future days, every sender filled up to its limit of that day. `sequences` names the sequence of each sender account (`{ senderId: sequenceId }`). `action: 'plan'` writes nothing and answers the whole plan; `action: 'apply'` writes it back, 200 leads per call |
+| GET | `/api/widget/queues` | open, no login: the day's sending per sender account (sent, failed, still to go, limit) for the iOS home-screen widget in `widget/gridleads-queues.js`. `?date=YYYY-MM-DD` for another day |
 | GET/POST | `/api/outreach/sequences` | the email sequences with their steps, what keeps each from running, and its active lead count · a new one |
 | PATCH/DELETE | `/api/outreach/sequences/[id]` | edit, switch on or off (switched on, it must pass every check) · delete, after stopping the leads active in it |
 | POST | `/api/outreach/sequences/[id]/preview` | the steps of a sequence as one real lead would get them, values filled in; takes an unsaved edit; sends nothing |
@@ -152,6 +155,9 @@ components/
   OutreachSenders.tsx # the Senders tab: accounts, password entry, connection test
   SequencesView.tsx   # the Sequences tab: list, step editor, preview, the check before a save
   EnrollModal.tsx     # put leads into a sequence or take them out: preview first, then the run
+  QueuesView.tsx         # the Queues tab: which emails go out on which day, from which account, to whom
+  CampaignScheduler.tsx  # "Schedule ahead" on the Leads tab, under the filters: choose the leads, the sequences and the days
+  SchedulePreviewModal.tsx  # the schedule plan day by day and sender by sender; accepting writes it
   UnknownSends.tsx    # emails that may or may not have gone out, for the operator to settle
   RepliesView.tsx     # the Replies tab: replies, bounces, and mail that matched no lead
   OutreachReport.tsx  # the Report tab: accepted, bounced, blocked, replied, by step, sender and offer
@@ -185,6 +191,10 @@ lib/
   outreachFooter.mjs  # attaches the footer every email must end with
   enroll.ts           # enrolment and unenrolment: preview and chunked run
   enrollPlan.mjs      # who goes into a sequence and who is left out, and why
+  schedulePlan.mjs    # scheduling ahead: what each sender can take on each day, and which day and sender a lead gets
+  widgetQueues.mjs    # the day's sending per sender account, in the shape the home-screen widget reads
+  schedule.ts         # reads what the schedule rules need, makes the plan and writes it
+  skipReasons.ts      # why a lead is left out of a sequence, in words
   emailQuality.mjs    # which address of a lead is worth writing to, and which never
   mxCheck.ts          # does a domain take mail at all (cached MX lookup)
   routeOffer.mjs      # the second-round offer of a lead: AI automation or social media, with reasons

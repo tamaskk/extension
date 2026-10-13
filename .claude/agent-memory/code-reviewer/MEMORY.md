@@ -1,0 +1,2 @@
+- [Outreach dispatcher heuristics](outreach_dispatcher_heuristics.md) — nodemailer ECONNECTION trap, limit(8) starvation, non-atomic sender limits
+- [Schedule-ahead heuristics](schedule_ahead_heuristics.md) — day/window mismatch, weak write guard, dedupKey-only matching, follow-up load

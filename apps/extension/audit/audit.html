@@ -35,6 +35,36 @@
         <button id="rescan" class="btn">⟳ Rescan</button>
       </div>
 
+      <div class="pg-row filters-row">
+        <select id="fType" class="select" title="Business type — the first part of the project name (plumbers, restaurants, bars…)"><option value="">All business types</option></select>
+        <select id="fCountry" class="select" title="Country the project's search was run in"><option value="">All countries</option></select>
+        <select id="fRegion" class="select" title="State (USA) or city — the last part of the project name"><option value="">All states / cities</option></select>
+        <select id="fEmail" class="select" title="Does the project already have emails?">
+          <option value="">Email: any</option>
+          <option value="has">Has emails</option>
+          <option value="none">No email at all</option>
+        </select>
+        <select id="fWork" class="select" title="Is there anything left for the audit to check?">
+          <option value="">Status: any</option>
+          <option value="todo">Has websites to check</option>
+          <option value="done">Nothing left to check</option>
+        </select>
+        <select id="fMin" class="select" title="Hide small projects">
+          <option value="">Any size</option>
+          <option value="10">10+ leads</option>
+          <option value="50">50+ leads</option>
+          <option value="100">100+ leads</option>
+        </select>
+        <select id="fSort" class="select" title="Order of the list — this is also the order a run works through">
+          <option value="todo">Sort: most to check</option>
+          <option value="total">Sort: most leads</option>
+          <option value="email">Sort: most emails</option>
+          <option value="noWebsite">Sort: most without website</option>
+          <option value="name">Sort: name A–Z</option>
+        </select>
+        <button id="fReset" class="btn sm">✕ Clear filters</button>
+      </div>
+
       <div id="warn" class="pg-warn hidden"></div>
       <section class="tiles" id="tiles"></section>
 

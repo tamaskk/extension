@@ -39,6 +39,14 @@ export interface LeadsQuery {
   country?: string;
   email?: string;  // '' | has | none | todo | checked | failed
   phone?: string;  // '' | has | none
+  website?: string;  // '' | has | none
+  temp?: string;     // '' | hot | warm | cold
+  reviews?: string;  // '' | has | none
+  ai?: string;       // '' | has | none
+  checked?: string;  // '' | yes | no
+  status?: string;   // '' | none | a sales status
+  tag?: string;
+  seq?: string;      // '' | none | any | a sequence state
   sort?: string;
   dir?: number;
   page?: number;
@@ -86,6 +94,35 @@ export interface EnrollCall {
   source: { kind: 'filter'; query: LeadsQuery } | { kind: 'checked' } | { kind: 'group'; groupId: string } | { kind: 'keys'; keys: string[] };
   cursor?: string; runId?: string; taken?: number;
 }
+// POST /api/outreach/schedule: leads put into their sequences on future days,
+// every sender's days filled up to its limit. `plan` writes nothing; `apply`
+// writes the plan back, at most 200 leads per call.
+export interface SchedulePlanCall {
+  source: EnrollCall['source'];
+  sequences: Record<string, string>;   // senderId → sequenceId; a sender account without one is left out
+  mode: 'range' | 'all'; from?: string; to?: string;   // days as 'YYYY-MM-DD'
+}
+// GET /api/outreach/queues: the emails that are due, by Budapest day and sender account
+export interface QueueDay {
+  day: string; total: number;
+  senders: { senderId: string; label: string; rows: { project: string; key: string; name: string; to: string; at: string; sequence: string; step: string }[] }[];
+}
+export interface SchedulePlacement { project: string; key: string; name: string; to: string; senderId: string; day: string; at: string }
+export interface SchedulePlan {
+  ok: boolean; error?: string;
+  mode?: 'range' | 'all'; fromDay?: string; toDay?: string;
+  matched?: number; examined?: number; complete?: boolean;
+  stopped?: '' | 'full' | 'max' | 'budget';   // why reading stopped early: no room left · the plan's size · the time
+  left?: number;       // leads that pass every rule and found no day
+  lastDay?: string;
+  skipped?: Record<string, number>;
+  notes?: string[];
+  senders?: { senderId: string; label: string; fromEmail: string; language: string; sequenceId: string; sequence: string }[];
+  // booked: sent today, already due that day, or pushed over from a fuller day before
+  days?: { day: string; rows: { senderId: string; cap: number; booked: number; free: number; placed: number; open: boolean }[] }[];
+  placements?: SchedulePlacement[];
+}
+export interface ScheduleApplyResult { ok: boolean; error?: string; written?: number; dropped?: Record<string, number>; runId?: string }
 export interface SuggestedLead { project: string; key: string; name: string; to: string; sender: string; category: string; score: number | null }
 export interface EnrollResult {
   ok: boolean; error?: string; dryRun?: boolean;
@@ -208,6 +245,7 @@ function leadsParams(q: LeadsQuery): URLSearchParams {
   if (q.country) p.set('country', q.country);
   if (q.email) p.set('email', q.email);
   if (q.phone) p.set('phone', q.phone);
+  for (const k of ['website', 'temp', 'reviews', 'ai', 'checked', 'status', 'tag', 'seq'] as const) { const v = q[k]; if (v) p.set(k, v); }
   return p;
 }
 
@@ -495,6 +533,7 @@ export const api = {
   getOutreachReport: (days: number) => jget('/api/outreach/report?days=' + days) as Promise<OutreachReportData>,
   // may anything be sent today, and why not
   getTodayPlan: () => jget('/api/outreach/today') as Promise<TodayPlanData>,
+  getQueues: () => jget('/api/outreach/queues') as Promise<{ ok: boolean; error?: string; today?: string; capped?: boolean; days?: QueueDay[] }>,
   getMailLog: (sender = '') => jget('/api/outreach/mail' + (sender ? '?sender=' + encodeURIComponent(sender) : '')) as Promise<MailLogData>,
   getControl: () => jget('/api/outreach/control') as Promise<ControlState>,
   saveControl: (patch: ControlPatch) => jsend('/api/outreach/control', 'POST', patch) as Promise<{ ok: boolean; error?: string }>,
@@ -536,6 +575,11 @@ export const api = {
   enroll: (c: EnrollCall) => jsend('/api/outreach/enroll', 'POST', {
     ...c, source: c.source.kind === 'filter' ? { kind: 'filter', query: leadsParams(c.source.query).toString() } : c.source,
   }) as Promise<EnrollResult>,
+  schedulePlan: (c: SchedulePlanCall) => jsend('/api/outreach/schedule', 'POST', {
+    ...c, action: 'plan', source: c.source.kind === 'filter' ? { kind: 'filter', query: leadsParams(c.source.query).toString() } : c.source,
+  }) as Promise<SchedulePlan>,
+  scheduleApply: (sequences: Record<string, string>, items: Pick<SchedulePlacement, 'project' | 'key' | 'senderId' | 'at'>[], runId: string) =>
+    jsend('/api/outreach/schedule', 'POST', { action: 'apply', sequences, items, runId }) as Promise<ScheduleApplyResult>,
   // leads that would pass every enrolment rule right now, best score first; writes nothing
   suggestLeads: (sequenceId: string, country: string, n: number, exclude: string[], region = '', place = '') =>
     jsend('/api/outreach/suggest', 'POST', { sequenceId, country, region, place, n, exclude }) as Promise<{ ok: boolean; error?: string; picks?: SuggestedLead[]; examined?: number; skipped?: Record<string, number> }>,

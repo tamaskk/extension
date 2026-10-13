@@ -274,7 +274,9 @@ async function postSync(payload) {
       headers = { 'Content-Type': 'application/octet-stream', 'x-gl-gzip': '1' };
     }
   } catch { body = json; headers = { 'Content-Type': 'application/json' }; }
-  const r = await fetch(SYNC_BASE + '/api/sync', { method: 'POST', headers, body });
+  // /api/sync writes lead data, so it needs the web app's login cookie.
+  const r = await fetch(SYNC_BASE + '/api/sync', { method: 'POST', credentials: 'include', headers, body });
+  if (r.status === 401) { const e = new Error('Not logged in to the web app'); e.login = true; throw e; }
   if (!r.ok) throw new Error('HTTP ' + r.status + (r.status === 413 ? ' (chunk too large)' : ''));
   return r.json();
 }
@@ -336,7 +338,9 @@ async function syncBundle(opts) {
     self.GridLeadsLog.add({ type: 'sync.manual', n: leadCount, title: `Synced to database: ${projCount} project(s), ${fmt(leadCount)} lead(s)${skipped ? `, ${fmt(skipped)} duplicates skipped` : ''}`, data: { projects: projects.map((p) => p.query).slice(0, 500), leads: leadCount, skippedDuplicates: skipped } });
   } catch (e) {
     self.GridLeadsLog.add({ type: 'sync.error', title: `Manual sync failed at request ${doneReqs}/${totalReqs}: ${e.message}` });
-    showSync(`<b>❌ Sync failed</b><br>${e.message} (at request ${doneReqs}/${totalReqs})<br>Is ${SYNC_BASE} reachable & MongoDB allowing Vercel?`, 'err');
+    showSync(e.login
+      ? `<b>🔒 Sync needs your GridLeads web login</b><br><a href="${SYNC_BASE}/login" target="_blank" rel="noopener">Log in here</a> in this browser, then sync again. Nothing was removed from the browser.`
+      : `<b>❌ Sync failed</b><br>${e.message} (at request ${doneReqs}/${totalReqs})<br>Is ${SYNC_BASE} reachable & MongoDB allowing Vercel?`, 'err');
     hideSync(10000);
   }
 }

@@ -1,0 +1,1 @@
+- [Review heuristics](review_heuristics.md) — recurring defect patterns in outreach code: guard-before-effect, starvation, stale counters, skip-vs-hold
