@@ -286,6 +286,7 @@ Written on 2026-10-06.
 
 ## Not about outreach
 
+- **D211. Approved on 2026-10-12: in "Schedule ahead" the operator chooses the sequence of every sender account.** The account's own language does not decide there: a lead goes to the accounts whose chosen sequence is written in the lead's language, and a sequence's own sender list is not applied. Enrolment keeps D86 (a sender of the sequence's language) and D200 still holds as advice: the From name of an account should match the signature of the text it sends.
 - **D210. Approved on 2026-10-06: the outreach loop can be driven by cron-job.org** through `POST /api/outreach/cron`, guarded by the new env variable `CRON_SECRET`. The runner tab still works; the round lock keeps the two from sending side by side.
 - **D208. The Campaign tab's picked leads are the best `opportunityScore` first, among the leads with an email in the chosen country.** Hungarian sequences offer Hungary only, English ones every other country. Other option: another order (newest, a category, no website first).
 - **D209. Putting the picked leads in has no second preview.** The list itself is the preview: it is built by the same rules as the enrolment. The rules run again at the write.

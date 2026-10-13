@@ -16,8 +16,8 @@ import { lastSentBeforeToday } from '@/lib/outreachSends';
 import { activeCompanyDomains } from '@/lib/companyDomains';
 import { CHUNK, RULE_FIELDS, countryOf, logEnrollChunk, mailedAmong, nextCandidates, sourceMatch, suppressedAmong } from '@/lib/enroll';
 import type { Candidate, EnrollSource } from '@/lib/enroll';
-import { SKIP_REASONS, addSkipped, eligibleSenders, enrolmentBlock, pickEmail, screenCandidates, seqFor } from '@/lib/enrollPlan.mjs';
-import { nextEnabledStep } from '@/lib/outreachSequence.mjs';
+import { SKIP_REASONS, addSkipped, pickEmail, screenCandidates, seqFor } from '@/lib/enrollPlan.mjs';
+import { nextEnabledStep, validateSequence } from '@/lib/outreachSequence.mjs';
 import { companyDomainOf } from '@/lib/dispatchPlan.mjs';
 import { mxLookup } from '@/lib/mxCheck';
 import { dayKey } from '@/lib/warmup.mjs';
@@ -41,7 +41,7 @@ type PlanSender = OutreachSenderRow & { lastSentBeforeToday: string };
 
 export interface ScheduleRequest {
   source: EnrollSource;
-  sequences: Record<string, string>;  // language → the sequence its leads go into
+  sequences: Record<string, string>;  // senderId → the sequence that account sends; an account without one is left out
   mode: 'range' | 'all';              // range: only the days from `from` to `to` · all: as many days as the selection needs
   from: string; to: string;           // 'YYYY-MM-DD', for `range`
 }
@@ -56,7 +56,7 @@ export interface SchedulePlanAnswer {
   left?: number;        // leads that pass every rule and found no day
   lastDay?: string;     // the last day that gets a lead
   skipped?: Skipped;
-  notes?: string[];     // a language that cannot be scheduled, and why
+  notes?: string[];     // a sender account that cannot be scheduled, and why
   senders?: { senderId: string; label: string; fromEmail: string; language: string; sequenceId: string; sequence: string }[];
   days?: { day: string; rows: { senderId: string; cap: number; booked: number; free: number; placed: number; open: boolean }[] }[];
   placements?: Placement[];
@@ -70,31 +70,38 @@ export interface ScheduleApplyAnswer {
   runId?: string;
 }
 
-// What both steps start from: the sequence and the senders of each language
-// that can be scheduled, and what every sender can still take on every day.
+// What both steps start from: the sequence each chosen sender sends, and what
+// every sender can still take on every day. The operator names the sequence per
+// sender, so the account's own language does not decide here as it does in
+// enrolment (D86): in a plan a sender carries the language of its sequence, and
+// a lead goes to the senders whose sequence is written in the lead's language.
 async function setup(sequences: Record<string, string>, now: Date) {
-  const ids = Object.values(sequences).filter(Boolean);
+  const ids = [...new Set(Object.values(sequences).filter(Boolean))];
   const [docs, all, lastBefore] = await Promise.all([
     OutreachSequence.find({ sequenceId: { $in: ids } }).select('-_id').lean() as unknown as Promise<SequenceDoc[]>,
     listSenders(now),
     lastSentBeforeToday(now),
   ]);
   const notes: string[] = [];
-  const byLanguage = new Map<string, { sequence: SequenceDoc; stepId: string }>();
+  const bySender = new Map<string, { sequence: SequenceDoc; stepId: string }>();
   const senders: PlanSender[] = [];
-  for (const [language, sequenceId] of Object.entries(sequences)) {
-    if (!sequenceId) continue;
+  for (const [senderId, sequenceId] of Object.entries(sequences)) {
+    const sender = all.find((x) => x.senderId === senderId);
+    if (!sequenceId || !sender) continue;
     const sequence = docs.find((d) => d.sequenceId === sequenceId);
-    const name = language === 'hu' ? 'Hungarian' : language === 'en' ? 'English' : language;
-    const block = sequence && sequence.language !== language ? 'The chosen sequence is in another language.' : enrolmentBlock(sequence, all) as string;
+    const errors = sequence ? validateSequence(sequence) as string[] : [];
     const first = sequence ? nextEnabledStep(sequence, '') as { step: { id: string } } | null : null;
-    if (block || !sequence || !first) { notes.push(`${name} leads are left out. ${block || 'The sequence has no step to send.'}`); continue; }
-    byLanguage.set(language, { sequence, stepId: first.step.id });
-    for (const s of eligibleSenders(sequence, all) as OutreachSenderRow[]) senders.push({ ...s, lastSentBeforeToday: lastBefore.get(s.senderId) || '' });
+    const block = !sequence ? 'The sequence was not found.'
+      : !sender.active || sender.hasPassword === false ? 'The account is switched off or has no password.'
+      : errors.length ? 'The sequence is not complete: ' + errors.join(' ')
+      : !first ? 'The sequence has no step to send.' : '';
+    if (block || !sequence || !first) { notes.push(`${sender.label || sender.fromEmail} is left out. ${block}`); continue; }
+    bySender.set(senderId, { sequence, stepId: first.step.id });
+    senders.push({ ...sender, language: sequence.language === 'hu' ? 'hu' : 'en', lastSentBeforeToday: lastBefore.get(senderId) || '' });
   }
   const days = daysAhead(now, HORIZON_DAYS) as { day: string; start: number; end: number }[];
   const capacity = capacityPlan(senders, days, { booked: await bookedDays(senders.map((s) => s.senderId), now), sentToday: new Map(senders.map((s) => [s.senderId, s.sentToday])) }) as Map<string, DayRow[]>;
-  return { byLanguage, senders, days, capacity, notes };
+  return { bySender, languages: [...new Set(senders.map((x) => x.language as string))], senders, days, capacity, notes };
 }
 
 // The leads already due, per sender and day: Map(senderId → Map(day → count)).
@@ -136,16 +143,15 @@ export async function planSchedule(req: ScheduleRequest): Promise<SchedulePlanAn
   await dbConnect();
   const started = Date.now();
   const now = new Date();
-  const { byLanguage, senders, days, capacity, notes } = await setup(req.sequences, now);
-  if (!byLanguage.size) return { ok: false, error: notes.join(' ') || 'Choose a sequence for at least one language.' };
+  const { bySender, languages, senders, days, capacity, notes } = await setup(req.sequences, now);
+  if (!senders.length) return { ok: false, error: notes.join(' ') || 'Choose a sequence for at least one sender account.' };
   const today = days[0].day, horizon = days[days.length - 1].day;
   const fromDay = req.mode === 'range' && req.from > today ? req.from : today;
   const toDay = req.mode === 'range' && req.to < horizon ? req.to : horizon;
   if (req.mode === 'range' && (!req.from || !req.to)) return { ok: false, error: 'Choose the first and the last day.' };
   if (fromDay > toDay) return { ok: false, error: req.to < today ? 'The last day is in the past.' : `The first day is after the last one, or more than ${HORIZON_DAYS} days away.` };
 
-  const languages = [...byLanguage.keys()];
-  const anySequence = (byLanguage.get(languages[0]) as { sequence: SequenceDoc }).sequence;
+  const anySequence = (bySender.get(senders[0].senderId) as { sequence: SequenceDoc }).sequence;
   const room = new Map(languages.map((l) => [l, roomFor(l, senders, capacity, fromDay, toDay) as number]));
   const match = await sourceMatch(req.source);
   const busy = await activeCompanyDomains();
@@ -191,7 +197,7 @@ export async function planSchedule(req: ScheduleRequest): Promise<SchedulePlanAn
     matched: await Lead.countDocuments(match), examined, complete, stopped,
     left: fill.left.length + overflow, lastDay, skipped, notes,
     senders: senders.map((s) => {
-      const sequence = (byLanguage.get(s.language) as { sequence: SequenceDoc }).sequence;
+      const sequence = (bySender.get(s.senderId) as { sequence: SequenceDoc }).sequence;
       return { senderId: s.senderId, label: s.label || s.fromEmail, fromEmail: s.fromEmail, language: s.language, sequenceId: sequence.sequenceId, sequence: sequence.name || sequence.sequenceId };
     }),
     days: days.filter((d) => d.day >= fromDay && d.day <= shownTo).map((d) => ({
@@ -208,10 +214,9 @@ export async function planSchedule(req: ScheduleRequest): Promise<SchedulePlanAn
 export async function applySchedule(req: ScheduleApplyRequest): Promise<ScheduleApplyAnswer> {
   await dbConnect();
   const now = new Date();
-  const { byLanguage, senders, days, capacity } = await setup(req.sequences, now);
-  if (!byLanguage.size) return { ok: false, error: 'The sequences of this plan can no longer take leads. Make a new plan.' };
-  const languages = [...byLanguage.keys()];
-  const anySequence = (byLanguage.get(languages[0]) as { sequence: SequenceDoc }).sequence;
+  const { bySender, languages, senders, days, capacity } = await setup(req.sequences, now);
+  if (!senders.length) return { ok: false, error: 'The sequences of this plan can no longer take leads. Make a new plan.' };
+  const anySequence = (bySender.get(senders[0].senderId) as { sequence: SequenceDoc }).sequence;
   const runId = req.runId || randomBytes(6).toString('hex');
   const dropped: Skipped = { full: 0, gone: 0 };
 
@@ -228,7 +233,7 @@ export async function applySchedule(req: ScheduleApplyRequest): Promise<Schedule
 
   const free = new Map(senders.map((s) => [s.senderId, new Map((capacity.get(s.senderId) as DayRow[]).map((row) => [row.day, row.free]))]));
   const horizonEnd = days[days.length - 1].end;
-  const take: { project: string; key: string; language: string; seq: { nextStepAt: string } }[] = [];
+  const take: { project: string; key: string; sequenceId: string; seq: { nextStepAt: string } }[] = [];
   for (const p of r.passed) {
     const item = itemOf.get(`${p.c.project}\n${p.c.key}`) as ScheduleApplyRequest['items'][number];
     const sender = senders.find((s) => s.senderId === item.senderId && s.language === p.language);
@@ -238,8 +243,8 @@ export async function applySchedule(req: ScheduleApplyRequest): Promise<Schedule
     const room = sender && at < horizonEnd ? free.get(sender.senderId)?.get(day) || 0 : 0;
     if (!sender || room <= 0) { dropped.full++; continue; }
     (free.get(sender.senderId) as Map<string, number>).set(day, room - 1);
-    const to = byLanguage.get(p.language) as { sequence: SequenceDoc; stepId: string };
-    take.push({ project: p.c.project, key: p.c.key, language: p.language, seq: seqFor(p, to.sequence, to.stepId, sender.senderId, new Date(at).toISOString()) as { nextStepAt: string } });
+    const to = bySender.get(sender.senderId) as { sequence: SequenceDoc; stepId: string };
+    take.push({ project: p.c.project, key: p.c.key, sequenceId: to.sequence.sequenceId, seq: seqFor(p, to.sequence, to.stepId, sender.senderId, new Date(at).toISOString()) as { nextStepAt: string } });
   }
 
   let written = take;
@@ -257,13 +262,14 @@ export async function applySchedule(req: ScheduleApplyRequest): Promise<Schedule
       written = take.filter((t) => keys.has(t.key));
       dropped.active = (dropped.active || 0) + take.length - written.length;
     }
-    // one Changelog event per run and language, growing with every chunk
-    for (const language of languages) {
-      const keys = written.filter((t) => t.language === language).map((t) => t.key);
+    // one Changelog event per run and sequence, growing with every chunk
+    const sequenceOf = new Map([...bySender.values()].map((v) => [v.sequence.sequenceId, v.sequence]));
+    for (const [sequenceId, sequence] of sequenceOf) {
+      const keys = written.filter((t) => t.sequenceId === sequenceId).map((t) => t.key);
       if (!keys.length) continue;
-      const id = `${runId}-${language}`;
+      const id = `${runId}-${sequenceId}`;
       const before = await (await activityColl()).findOne({ type: 'outreach.enroll', 'data.runId': id }, { projection: { n: 1 } }).catch(() => null) as { n?: number } | null;
-      await logEnrollChunk(id, (byLanguage.get(language) as { sequence: SequenceDoc }).sequence, keys, (before?.n || 0) + keys.length);
+      await logEnrollChunk(id, sequence, keys, (before?.n || 0) + keys.length);
     }
   }
   return { ok: true, written: written.length, dropped, runId };

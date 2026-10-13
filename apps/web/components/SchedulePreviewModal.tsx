@@ -19,11 +19,13 @@ const minute = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-
 const leadsWord = (n: number) => `${n.toLocaleString()} ${n === 1 ? 'lead' : 'leads'}`;
 
 // why this sender gets this many leads on this day, and not more
-function reason(r: DayRow): string {
+// `noneOf`: the language of the account's sequence, when the plan holds no lead of that language at all
+function reason(r: DayRow, noneOf: string): string {
   if (!r.open) return 'Not a sending day for this account';
   if (r.cap === 0) return 'The limit of this day is 0';
   if (r.free === 0) return `Full already: ${r.booked.toLocaleString()} sent or due against the limit of ${r.cap.toLocaleString()}`;
-  if (r.placed < r.free) return r.placed ? 'No more leads to place' : 'No lead left for this day';
+  if (!r.placed && noneOf) return `No ${noneOf} lead in the selection: this account's sequence is ${noneOf}`;
+  if (r.placed < r.free) return r.placed ? 'The selection ran out: no more leads to place' : 'The selection ran out before this day';
   if (r.booked > 0) return `${r.booked.toLocaleString()} of the limit of ${r.cap.toLocaleString()} already sent or due, so ${r.free.toLocaleString()} fit`;
   return 'Filled to the limit';
 }
@@ -42,11 +44,14 @@ export default function SchedulePreviewModal({ plan, onClose, onDone }: { plan: 
 
   const placements = plan.placements || [];
   const senders = plan.senders || [];
-  // the sequences this plan was made with, not what the panel's selects say by now
-  const sequences = Object.fromEntries(senders.map((s) => [s.language, s.sequenceId]));
+  // the sequence each account had when this plan was made, not what the panel's selects say by now
+  const sequences = Object.fromEntries(senders.map((s) => [s.senderId, s.sequenceId]));
   const days = plan.days || [];
   const skipped = plan.skipped || {};
   const perSender = senders.map((s) => ({ ...s, n: placements.filter((p) => p.senderId === s.senderId).length }));
+  // languages that get at least one lead in this plan
+  const placedLanguages = new Set(perSender.filter((s) => s.n > 0).map((s) => s.language));
+  const languageName = (l: string) => (l === 'hu' ? 'Hungarian' : l === 'en' ? 'English' : l);
   const firstDay = placements.reduce((d, p) => (!d || p.day < d ? p.day : d), '');
 
   // The server writes one chunk per call; this loop is what makes a long plan finish.
@@ -119,7 +124,7 @@ export default function SchedulePreviewModal({ plan, onClose, onDone }: { plan: 
                       <span><b>{r.placed.toLocaleString()}</b></span>
                       <span className="muted">{r.cap.toLocaleString()}</span>
                       <span className="muted">{r.booked.toLocaleString()}</span>
-                      <span className="muted">{reason(r)}</span>
+                      <span className="muted">{reason(r, sender && !placedLanguages.has(sender.language) ? languageName(sender.language) : '')}</span>
                       <span>{r.placed > 0 && <button className="mini" onClick={() => setOpen(open === id ? '' : id)}>{open === id ? 'Hide' : 'Leads'}</button>}</span>
                     </div>
                     {open === id && placements.filter((p) => p.day === d.day && p.senderId === r.senderId).map((p) => (

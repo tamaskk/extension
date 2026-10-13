@@ -104,6 +104,7 @@ There is no shared primitive library and no `components/ui` folder. Components a
 - Modals close on overlay click and on Escape.
 - `PlacePickerModal` (web): a map to pick a country, a US state or a city, each label with the local time, green during sending hours. Leaflet comes through `lib/leafletLoader.ts`; do not load it another way.
 - Leads filter panel (web, `.lf-*` in `Dashboard.tsx`): one bordered `--panel2` box holding a head row with the lead count and "Clear filters", a grid of dropdown fields with an uppercase label above each (`.lf-field`, `.lf-label`), and the "Schedule ahead" card. A new lead filter goes into the grid as a labelled dropdown, not as a chip or a loose row.
+- `QueuesView` (web): the Queues tab, one `.oseq-card` per day with the `.oque-*` rows (time, lead, address, sequence and step) under each sender account.
 - `CampaignScheduler` and `SchedulePreviewModal` (web): the "Schedule ahead" card at the bottom of the Leads filter panel and the plan it opens, with the `.osch-*` classes for the day table. A card that can be closed keeps its state in `localStorage` and stays a `.oseq-card`.
 - `EmailPreviewModal` (web): the emails of a sequence as one lead gets them, footer included. Use it wherever "what will go out" is shown; do not render sequence text another way.
 - Inline `style={{}}` is tolerated for one-off layout values. `apps/web/app/login/page.tsx` is fully inline-styled.

@@ -1041,6 +1041,9 @@ html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
 @media (max-width: 1300px) { .widgets { grid-template-columns: repeat(3, 1fr); } }
 /* Leads filter panel: quick chips, a grid of labelled fields, "Schedule ahead" */
 .lf { margin: 12px 18px 0; padding: 12px 14px; background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; gap: 12px; }
+/* The Leads view scrolls as a whole: with the filter panel and "Schedule ahead" open, the table had no height left on a laptop screen */
+.main.main-leads { overflow-y: auto; overflow-x: hidden; }
+.main-leads .tablewrap { min-height: 360px; }
 .lf-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .lf-count { font-size: 12px; color: var(--muted); }
 .lf-count b { font-size: 13px; color: var(--text); }
@@ -1183,6 +1186,11 @@ button.widget.w-split:hover .w-split-ic { opacity: .8; }
 .osch-tr > .osch-wide { grid-column: 2 / -1; }
 .osch-lead { display: grid; grid-template-columns: 96px minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding: 4px 9px 4px 24px; font-size: 12px; }
 .osch-lead > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Queues tab: the emails of a day, per sender account */
+.oque-tr { display: grid; grid-template-columns: 62px minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1.2fr); gap: 10px; align-items: center; padding: 6px 9px; border-top: 1px solid var(--line); font-size: 12px; }
+.oque-tr > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oque-head { grid-template-columns: minmax(0, 1fr) auto; background: var(--panel2); }
+@media (max-width: 760px) { .oque-tr { grid-template-columns: 62px minmax(0, 1fr); } .oque-tr > span:nth-child(n+3) { grid-column: 2; } .oque-head { grid-template-columns: minmax(0, 1fr) auto; } .oque-head > span:nth-child(n) { grid-column: auto; } }
 .cov-cell { border: 1px solid transparent; cursor: pointer; font-family: inherit; }
 .cov-cell:hover { border-color: var(--accent); }
 .cov-cell.picked { border-color: var(--accent); background: rgba(99,102,241,.18); color: var(--accent); }

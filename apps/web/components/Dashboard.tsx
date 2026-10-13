@@ -34,6 +34,7 @@ import OutreachReport from './OutreachReport';
 import CoverageMatrix from './CoverageMatrix';
 import CampaignToday from './CampaignToday';
 import CampaignScheduler from './CampaignScheduler';
+import QueuesView from './QueuesView';
 import WarmupConsole from './WarmupConsole';
 import { parseProjectGeo } from '@/lib/projectGeo';
 import { rowOffsets, visibleRange } from '@/lib/windowing.mjs';
@@ -314,7 +315,7 @@ export default function Dashboard() {
   const [dupesOpen, setDupesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [view, setView] = useState<'leads' | 'map' | 'stats' | 'reviews' | 'groups' | 'cats' | 'notes' | 'log' | 'senders' | 'sequences' | 'replies' | 'report' | 'control' | 'coverage' | 'campaign'>('leads');
+  const [view, setView] = useState<'leads' | 'map' | 'stats' | 'reviews' | 'groups' | 'cats' | 'notes' | 'log' | 'senders' | 'sequences' | 'replies' | 'report' | 'control' | 'coverage' | 'campaign' | 'queues'>('leads');
   const [infoFolder, setInfoFolder] = useState<{ name: string; cities: string[]; names: string[]; regions: string[]; folderCount: number; projectCount: number } | null>(null);
   const [detailRow, setDetailRow] = useState<LeadRow | null>(null);
   const [reviewRow, setReviewRow] = useState<LeadRow | null>(null);
@@ -1120,6 +1121,7 @@ export default function Dashboard() {
             <button className={`crail-i ${view === 'log' ? 'active' : ''}`} title="Changelog" onClick={() => setView('log')}>🕘</button>
             <button className={`crail-i ${view === 'coverage' ? 'active' : ''}`} title="Coverage" onClick={() => setView('coverage')}>🧩</button>
             <button className={`crail-i ${view === 'campaign' ? 'active' : ''}`} title="Campaign" onClick={() => setView('campaign')}>🚀</button>
+            <button className={`crail-i ${view === 'queues' ? 'active' : ''}`} title="Queues" onClick={() => setView('queues')}>📬</button>
             <button className={`crail-i ${view === 'sequences' ? 'active' : ''}`} title="Sequences" onClick={() => setView('sequences')}>📨</button>
             <button className={`crail-i ${view === 'replies' ? 'active' : ''}`} title="Replies" onClick={() => setView('replies')}>💌</button>
             <button className={`crail-i ${view === 'senders' ? 'active' : ''}`} title="Senders" onClick={() => setView('senders')}>✉️</button>
@@ -1157,6 +1159,7 @@ export default function Dashboard() {
           <button className={`navrail-item ${view === 'log' ? 'active' : ''}`} onClick={() => { setView('log'); setSidebarOpen(false); }}><span className="ic">🕘</span> Changelog</button>
           <button className={`navrail-item ${view === 'coverage' ? 'active' : ''}`} onClick={() => { setView('coverage'); setSidebarOpen(false); }}><span className="ic">🧩</span> Coverage</button>
           <button className={`navrail-item ${view === 'campaign' ? 'active' : ''}`} onClick={() => { setView('campaign'); setSidebarOpen(false); }}><span className="ic">🚀</span> Campaign</button>
+          <button className={`navrail-item ${view === 'queues' ? 'active' : ''}`} onClick={() => { setView('queues'); setSidebarOpen(false); }}><span className="ic">📬</span> Queues</button>
           <button className={`navrail-item ${view === 'sequences' ? 'active' : ''}`} onClick={() => { setView('sequences'); setSidebarOpen(false); }}><span className="ic">📨</span> Sequences</button>
           <button className={`navrail-item ${view === 'replies' ? 'active' : ''}`} onClick={() => { setView('replies'); setSidebarOpen(false); }}><span className="ic">💌</span> Replies</button>
           <button className={`navrail-item ${view === 'senders' ? 'active' : ''}`} onClick={() => { setView('senders'); setSidebarOpen(false); }}><span className="ic">✉️</span> Senders</button>
@@ -1269,7 +1272,7 @@ export default function Dashboard() {
       )}
 
       {/* MAIN */}
-      <main className="main">
+      <main className={`main ${view === 'leads' ? 'main-leads' : ''}`}>
         <header className="topbar">
           <button className="hamburger" title="Projects" onClick={() => setSidebarOpen((o) => !o)}>☰</button>
           <input className="search" type="search" placeholder="Search businesses, category, city, phone…" value={term} onChange={(e) => setTerm(e.target.value)} />
@@ -1338,6 +1341,7 @@ export default function Dashboard() {
 
         {view === 'report' && <OutreachReport />}
         {view === 'coverage' && <CoverageMatrix />}
+        {view === 'queues' && <QueuesView reloadKey={reloadKey} />}
         {view === 'campaign' && <CampaignToday reloadKey={reloadKey} onEnroll={() => setEnrollOpen(true)} onEditSequences={() => setView('sequences')} />}
 
         {view === 'control' && <WarmupConsole />}
@@ -1389,7 +1393,10 @@ export default function Dashboard() {
             </div>
             <div className="lf-field">
               <span className="lf-label">{selCountry === 'USA' ? 'State' : 'State / city'}</span>
-              <ComboFilter value={regionSel} options={selCountry === 'USA' ? STATE_REGIONS : selCountry ? projFacets.regions.filter((r) => (parseProjectGeo('x ' + r)?.country || 'Other') === selCountry) : projFacets.regions} placeholder="All" onChange={(v) => setSelRegions(v ? [v] : [])} />
+              <select className="select" aria-label={selCountry === 'USA' ? 'State' : 'State / city'} value={regionSel} disabled={!hydrated} onChange={(e) => setSelRegions(e.target.value ? [e.target.value] : [])}>
+                <option value="">All</option>
+                {(selCountry === 'USA' ? STATE_REGIONS : selCountry ? projFacets.regions.filter((r) => (parseProjectGeo('x ' + r)?.country || 'Other') === selCountry) : projFacets.regions).map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
             </div>
             <div className="lf-field">
               <span className="lf-label">Email</span>

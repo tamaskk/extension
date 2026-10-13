@@ -99,8 +99,13 @@ export interface EnrollCall {
 // writes the plan back, at most 200 leads per call.
 export interface SchedulePlanCall {
   source: EnrollCall['source'];
-  sequences: Record<string, string>;   // language → sequenceId; a language without one is left out
+  sequences: Record<string, string>;   // senderId → sequenceId; a sender account without one is left out
   mode: 'range' | 'all'; from?: string; to?: string;   // days as 'YYYY-MM-DD'
+}
+// GET /api/outreach/queues: the emails that are due, by Budapest day and sender account
+export interface QueueDay {
+  day: string; total: number;
+  senders: { senderId: string; label: string; rows: { project: string; key: string; name: string; to: string; at: string; sequence: string; step: string }[] }[];
 }
 export interface SchedulePlacement { project: string; key: string; name: string; to: string; senderId: string; day: string; at: string }
 export interface SchedulePlan {
@@ -528,6 +533,7 @@ export const api = {
   getOutreachReport: (days: number) => jget('/api/outreach/report?days=' + days) as Promise<OutreachReportData>,
   // may anything be sent today, and why not
   getTodayPlan: () => jget('/api/outreach/today') as Promise<TodayPlanData>,
+  getQueues: () => jget('/api/outreach/queues') as Promise<{ ok: boolean; error?: string; today?: string; capped?: boolean; days?: QueueDay[] }>,
   getMailLog: (sender = '') => jget('/api/outreach/mail' + (sender ? '?sender=' + encodeURIComponent(sender) : '')) as Promise<MailLogData>,
   getControl: () => jget('/api/outreach/control') as Promise<ControlState>,
   saveControl: (patch: ControlPatch) => jsend('/api/outreach/control', 'POST', patch) as Promise<{ ok: boolean; error?: string }>,

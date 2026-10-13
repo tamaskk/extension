@@ -62,7 +62,8 @@ unique on `{project, dedupKey}`, so it scales past the 16MB-per-document limit).
 | POST | `/api/outreach/signals` | one chunk of reading leads' websites for booking, ordering and Instagram signals; call until `remaining` is 0 |
 | POST | `/api/outreach/offer` | the operator sets a lead's second-round offer by hand |
 | POST | `/api/outreach/enroll` | put leads into a sequence or take them out, from the table's filter, the checked leads or a group. `dryRun` first (writes nothing), then one chunk per call until `done` |
-| POST | `/api/outreach/schedule` | put the leads of a selection into their sequences on future days, every sender filled up to its limit of that day. `action: 'plan'` writes nothing and answers the whole plan; `action: 'apply'` writes it back, 200 leads per call |
+| GET | `/api/outreach/queues` | the Queues tab: the next email of every lead in a sequence, by Budapest day and sender account (at most 5,000). Read-only |
+| POST | `/api/outreach/schedule` | put the leads of a selection into sequences on future days, every sender filled up to its limit of that day. `sequences` names the sequence of each sender account (`{ senderId: sequenceId }`). `action: 'plan'` writes nothing and answers the whole plan; `action: 'apply'` writes it back, 200 leads per call |
 | GET | `/api/widget/queues` | open, no login: the day's sending per sender account (sent, failed, still to go, limit) for the iOS home-screen widget in `widget/gridleads-queues.js`. `?date=YYYY-MM-DD` for another day |
 | GET/POST | `/api/outreach/sequences` | the email sequences with their steps, what keeps each from running, and its active lead count · a new one |
 | PATCH/DELETE | `/api/outreach/sequences/[id]` | edit, switch on or off (switched on, it must pass every check) · delete, after stopping the leads active in it |
@@ -154,6 +155,7 @@ components/
   OutreachSenders.tsx # the Senders tab: accounts, password entry, connection test
   SequencesView.tsx   # the Sequences tab: list, step editor, preview, the check before a save
   EnrollModal.tsx     # put leads into a sequence or take them out: preview first, then the run
+  QueuesView.tsx         # the Queues tab: which emails go out on which day, from which account, to whom
   CampaignScheduler.tsx  # "Schedule ahead" on the Leads tab, under the filters: choose the leads, the sequences and the days
   SchedulePreviewModal.tsx  # the schedule plan day by day and sender by sender; accepting writes it
   UnknownSends.tsx    # emails that may or may not have gone out, for the operator to settle

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import type { LeadsQuery, SchedulePlan } from '@/lib/api';
-import type { OutreachSequenceRow } from '@/lib/types';
+import type { OutreachSenderRow, OutreachSequenceRow } from '@/lib/types';
 import SchedulePreviewModal from './SchedulePreviewModal';
 
 // "Schedule ahead" on the Leads tab, under the filters it takes its leads from:
@@ -13,7 +13,7 @@ import SchedulePreviewModal from './SchedulePreviewModal';
 // the plan; the modal shows it and writes it.
 
 const OPEN_KEY = 'gl.campaign.schedule.open';
-const LANGUAGES: [string, string][] = [['hu', 'Hungarian'], ['en', 'English']];
+const LANGUAGE: Record<string, string> = { hu: 'Hungarian', en: 'English' };
 type SourceKind = 'filter' | 'checked' | 'group';
 
 interface Props {
@@ -30,15 +30,18 @@ export default function CampaignScheduler({ query, filterLabel, checkedCount, gr
   const [mode, setMode] = useState<'all' | 'range'>('all');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-  // language → sequence; undefined until the operator chooses, '' to leave the language out
-  const [chosen, setChosen] = useState<Record<string, string>>({});
+  const [who, setWho] = useState('');   // a sender account, or '' for all of them
+  // undefined until the operator chooses: the plan then takes the first switched-on sequence
+  const [chosen, setChosen] = useState<string | undefined>(undefined);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [plan, setPlan] = useState<SchedulePlan | null>(null);
   // loaded when the card is first opened, so a closed card costs the Leads tab no request
-  const [loaded, setLoaded] = useState<OutreachSequenceRow[] | null>(null);
+  const [loaded, setLoaded] = useState<{ sequences: OutreachSequenceRow[]; senders: OutreachSenderRow[] } | null>(null);
   const [loadError, setLoadError] = useState('');
-  const sequences = loaded || [];
+  const sequences = loaded?.sequences || [];
+  // an account that is switched off or has no password cannot send
+  const senders = (loaded?.senders || []).filter((x) => x.active && x.hasPassword);
 
   useEffect(() => {
     try {
@@ -51,9 +54,13 @@ export default function CampaignScheduler({ query, filterLabel, checkedCount, gr
     if (!open || loaded) return;
     let alive = true;
     setLoadError('');
-    api.getSequences()
-      .then((r) => { if (!alive) return; if (r.ok) setLoaded(r.sequences || []); else setLoadError(r.error || 'The sequences could not be loaded.'); })
-      .catch(() => { if (alive) setLoadError('Network error. The sequences could not be loaded.'); });
+    Promise.all([api.getSequences(), api.getSenders()])
+      .then(([q, n]) => {
+        if (!alive) return;
+        if (q.ok && n.ok) setLoaded({ sequences: q.sequences || [], senders: n.senders || [] });
+        else setLoadError(q.error || n.error || 'The sequences and sender accounts could not be loaded.');
+      })
+      .catch(() => { if (alive) setLoadError('Network error. The sequences and sender accounts could not be loaded.'); });
     return () => { alive = false; };
   }, [open, loaded]);
   const toggle = () => {
@@ -66,13 +73,10 @@ export default function CampaignScheduler({ query, filterLabel, checkedCount, gr
     }
   };
 
-  // a language starts on its switched-on sequence, or else its first one
-  const sequenceOf = (language: string) => {
-    if (chosen[language] !== undefined) return chosen[language];
-    const mine = sequences.filter((s) => s.language === language);
-    return (mine.find((s) => s.enabled) || mine[0])?.sequenceId || '';
-  };
-  const picked = Object.fromEntries(LANGUAGES.map(([l]) => [l, sequenceOf(l)]).filter(([, id]) => id));
+  const sequenceId = chosen !== undefined ? chosen : (sequences.find((q) => q.enabled) || sequences[0])?.sequenceId || '';
+  const sending = senders.filter((x) => !who || x.senderId === who);
+  // the server takes a sequence per sender account: here every chosen account sends the same one
+  const picked = sequenceId ? Object.fromEntries(sending.map((x) => [x.senderId, sequenceId])) : {};
   const source = kind === 'group' && group ? { kind: 'group' as const, groupId: group.groupId } : kind === 'checked' ? { kind: 'checked' as const } : { kind: 'filter' as const, query };
   const ready = Object.keys(picked).length > 0 && (mode === 'all' || (!!from && !!to && from <= to));
 
@@ -98,11 +102,11 @@ export default function CampaignScheduler({ query, filterLabel, checkedCount, gr
       </div>
       {open && (
         <>
-          <div className="muted oseq-hint">Each lead goes to an account of its own language, on the earliest day that account still has room: its limit of that day, less what is already sent or due. Days that were filled before are kept, so a later plan goes on where the last one ended. Nothing is written until you accept the plan.</div>
+          <div className="muted oseq-hint">The leads go into the chosen sequence, from the chosen accounts. Only leads of the sequence's language are taken (Hungarian for Hungary, English elsewhere). Each goes on the earliest day an account still has room: its limit of that day, less what is already sent or due. Days that were filled before are kept, so a later plan goes on where the last one ended. Nothing is written until you accept the plan.</div>
           {loadError && <div className="oseq-note bad">{loadError}</div>}
           {!loaded && !loadError && <div className="muted oseq-hint">Loading the sequences…</div>}
-          {loaded && !loaded.length && <div className="muted oseq-hint">No sequence yet. Create one on the Sequences tab.</div>}
-          {loaded && loaded.length > 0 && <>
+          {loaded && !sequences.length && <div className="muted oseq-hint">No sequence yet. Create one on the Sequences tab.</div>}
+          {loaded && sequences.length > 0 && <>
           <div className="oseq-fields">
             <label>Which leads
               <select className="select" value={kind} onChange={(e) => setKind(e.target.value as SourceKind)} disabled={busy}>
@@ -117,17 +121,17 @@ export default function CampaignScheduler({ query, filterLabel, checkedCount, gr
                 <option value="range">Only between two days</option>
               </select>
             </label>
-            {LANGUAGES.map(([language, name]) => {
-              const mine = sequences.filter((s) => s.language === language);
-              return (
-                <label key={language}>{name} leads go into
-                  <select className="select" value={sequenceOf(language)} onChange={(e) => setChosen((c) => ({ ...c, [language]: e.target.value }))} disabled={busy || !mine.length}>
-                    <option value="">{mine.length ? 'Leave them out' : `No ${name} sequence`}</option>
-                    {mine.map((s) => <option key={s.sequenceId} value={s.sequenceId}>{s.name}{s.enabled ? '' : ' (off)'}</option>)}
-                  </select>
-                </label>
-              );
-            })}
+            <label>Who sends
+              <select className="select" value={who} onChange={(e) => setWho(e.target.value)} disabled={busy || !senders.length}>
+                <option value="">{senders.length ? `All accounts (${senders.map((x) => x.label || x.fromEmail).join(', ')})` : 'No account is switched on'}</option>
+                {senders.map((x) => <option key={x.senderId} value={x.senderId}>{x.label || x.fromEmail}</option>)}
+              </select>
+            </label>
+            <label>Which sequence
+              <select className="select" value={sequenceId} onChange={(e) => setChosen(e.target.value)} disabled={busy}>
+                {sequences.map((q) => <option key={q.sequenceId} value={q.sequenceId}>{q.name} · {LANGUAGE[q.language] || q.language}{q.enabled ? '' : ' (off)'}</option>)}
+              </select>
+            </label>
             {mode === 'range' && (
               <>
                 <label>First day <input className="search" type="date" value={from} onChange={(e) => setFrom(e.target.value)} disabled={busy} /></label>
@@ -138,7 +142,7 @@ export default function CampaignScheduler({ query, filterLabel, checkedCount, gr
           <div className="oseq-row">
             <button className="btn primary" onClick={makePlan} disabled={!ready || busy}>{busy ? 'Planning…' : 'Show the plan'}</button>
             {mode === 'range' && !!from && !!to && from > to && <span className="muted">The first day is after the last one.</span>}
-            {!Object.keys(picked).length && <span className="muted">Choose a sequence for at least one language.</span>}
+            {!senders.length && <span className="muted">No sender account is switched on.</span>}
           </div>
           {error && <div className="oseq-note bad">{error}</div>}
           </>}

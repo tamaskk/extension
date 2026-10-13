@@ -8,13 +8,12 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 export function OPTIONS() { return new Response(null, { headers: CORS }); }
 
-// language → sequenceId, for the two languages leads are written in
+// senderId → sequenceId: the sequence each chosen sender account sends
 function sequencesOf(v: unknown): Record<string, string> {
-  const o = v && typeof v === 'object' ? v as Record<string, unknown> : {};
+  const o = v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
   const out: Record<string, string> = {};
-  for (const language of ['hu', 'en']) {
-    const id = typeof o[language] === 'string' ? (o[language] as string).slice(0, 80) : '';
-    if (id) out[language] = id;
+  for (const [senderId, id] of Object.entries(o).slice(0, 50)) {
+    if (typeof id === 'string' && id && senderId.length <= 80) out[senderId] = id.slice(0, 80);
   }
   return out;
 }
@@ -22,7 +21,7 @@ function sequencesOf(v: unknown): Record<string, string> {
 // POST /api/outreach/schedule
 // Puts the leads of a selection into their sequences on future days, every
 // sender's days filled up to its limit of that day. Always two steps.
-//   { action: 'plan', source, sequences: { hu?, en? }, mode: 'range' | 'all', from?, to? }
+//   { action: 'plan', source, sequences: { [senderId]: sequenceId }, mode: 'range' | 'all', from?, to? }
 //     writes nothing. → the plan: `days` (per day and sender: cap, booked, free, placed),
 //     `placements` (each lead with its sender, day and due time), `skipped`, `left`, `lastDay`
 //   { action: 'apply', sequences, items: [{ project, key, senderId, at }], runId? }
@@ -34,7 +33,7 @@ export async function POST(req: Request) {
     if (refused) return refused;
     const b = await req.json().catch(() => ({}));
     const sequences = sequencesOf(b?.sequences);
-    if (!Object.keys(sequences).length) return json({ ok: false, error: 'Choose a sequence for at least one language.' }, { status: 400 });
+    if (!Object.keys(sequences).length) return json({ ok: false, error: 'Choose a sequence for at least one sender account.' }, { status: 400 });
 
     // anything but an explicit 'apply' is a plan: a malformed request must never write
     if (b?.action !== 'apply') {
