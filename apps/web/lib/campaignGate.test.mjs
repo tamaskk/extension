@@ -33,9 +33,9 @@ test('a bounce rate of 2.5 % lets the email go, with a warning', () => {
   assert.match(g.warnings[0], /2\.5 %/);
 });
 
-test('blocked emails over 1 % shut the gate, over 0.3 % they warn', () => {
-  assert.equal(campaignGate(input({ rates: { bounce: 0, block: 0.012 } })).allowed, false);
-  const warned = campaignGate(input({ rates: { bounce: 0, block: 0.005 } }));
+test('blocked emails over 10 % shut the gate, over 0.3 % they warn', () => {
+  assert.equal(campaignGate(input({ rates: { bounce: 0, block: 0.12 } })).allowed, false);
+  const warned = campaignGate(input({ rates: { bounce: 0, block: 0.013 } }));
   assert.equal(warned.allowed, true);
   assert.equal(warned.warnings.length, 1);
 });
@@ -83,11 +83,11 @@ test('a send loop silent for 12 minutes shuts the gate', () => {
 });
 
 test('several blockers are all listed, not only the first', () => {
-  const g = campaignGate(input({ rates: { bounce: 0.06, block: 0.02 }, seed: { date: daysAgo(20) }, postmaster: { spamRate: 0.02, date: daysAgo(15) }, lastTickAt: minutesAgo(12), authConfirmedAt: '' }));
+  const g = campaignGate(input({ rates: { bounce: 0.06, block: 0.12 }, seed: { date: daysAgo(20) }, postmaster: { spamRate: 0.02, date: daysAgo(15) }, lastTickAt: minutesAgo(12), authConfirmedAt: '' }));
 
   assert.equal(g.allowed, false);
   assert.equal(g.blockers.length, 6);
-  assert.equal(campaignGate(input({ rates: { bounce: 0.06, block: 0.02 }, inboxReadAt: minutesAgo(45) })).blockers.length, 3);
+  assert.equal(campaignGate(input({ rates: { bounce: 0.06, block: 0.12 }, inboxReadAt: minutesAgo(45) })).blockers.length, 3);
 });
 
 test('senders without authentication confirmed, a missing key or footer, and no sender each shut the gate', () => {
@@ -127,7 +127,7 @@ test('the limit of the day is the sum of the senders\' limits', () => {
 });
 
 test('every threshold lives in one constant', () => {
-  assert.deepEqual([GATE.bounceBlock, GATE.bounceWarn, GATE.blockBlock, GATE.blockWarn, GATE.spamBlock, GATE.spamWarn], [0.05, 0.02, 0.01, 0.003, 0.3, 0.1]);
+  assert.deepEqual([GATE.bounceBlock, GATE.bounceWarn, GATE.blockBlock, GATE.blockWarn, GATE.spamBlock, GATE.spamWarn], [0.05, 0.02, 0.1, 0.003, 0.3, 0.1]);
   assert.deepEqual([GATE.postmasterMaxAgeDays, GATE.seedMaxAgeDays, GATE.seedWarnAgeDays, GATE.repliesWarnHours, GATE.runnerDeadMinutes, GATE.inboxDeadMinutes], [14, 14, 7, 24, 10, 30]);
 });
 
