@@ -27,7 +27,14 @@
 
   // Domains that only ever show up as noise in page source.
   const JUNK_DOMAIN = /(^|\.)(sentry\.io|sentry-next\.wixpress\.com|wixpress\.com|example\.(com|org|net)|domain\.com|yourdomain\.com|email\.com|mysite\.com|yoursite\.com|website\.com|company\.com|mail\.com\.invalid|schema\.org|w3\.org|googleapis\.com|gstatic\.com|google\.com|cloudflare\.com|jsdelivr\.net|unpkg\.com|github\.com|wordpress\.(org|com)|wix\.com|squarespace\.com|shopify\.com|weebly\.com|godaddy\.com|mailchimp\.com|sentry\.wixpress\.com|ingest\.sentry\.io|latofonts\.com|fontawesome\.com|typekit\.com|apple\.com|microsoft\.com|adobe\.com)$/i;
-  const JUNK_LOCAL = /^(your|you|name|email|e-mail|mail|user|username|someone|somebody|example|test|firstname|lastname|first\.last|john\.doe|jane\.doe|johndoe|janedoe|youremail|your-email|your\.email|yourname|noreply|no-reply|donotreply|do-not-reply|mailer-daemon|postmaster|abuse|null|none|xxx+|aaa+|u003e.*|x22.*)$/i;
+  const JUNK_LOCAL = /^(your|you|name|email|e-mail|mail|user|username|someone|somebody|example|test|firstname|lastname|first\.last|john\.doe|jane\.doe|johndoe|janedoe|john\.smith|johnsmith|jane\.smith|janesmith|youremail|your-email|your\.email|yourname|noreply|no-reply|donotreply|do-not-reply|mailer-daemon|postmaster|abuse|null|none|xxx+|aaa+|u003e.*|x22.*)$/i;
+  // Booking and listing platforms a business's "website" is often a page on: the
+  // address on that page is the platform's own (support@vagaro.com went to 112
+  // salons), never the business's. Mirrored in apps/web/lib/emailQuality.mjs.
+  const PLATFORM_DOMAIN = /(^|\.)(vagaro\.com|booksy\.com|glossgenius\.com|square\.site|squareup\.com|styleseat\.com|fresha\.com|setmore\.com|schedulicity\.com|mindbodyonline\.com|zoca\.com|as\.me|acuityscheduling\.com|linktr\.ee|lomyu\.me|bizsite\.link|jany\.io|edan\.io|locmaps\.com|findaloco\.com)$/i;
+  // Real addresses that sit in the source of many unrelated sites: the designer
+  // of a Google Font, credited in its CSS.
+  const JUNK_EMAIL = new Set(['impallari@gmail.com']);
   const ASSET_TLD = /\.(png|jpe?g|gif|webp|svg|avif|bmp|ico|css|js|mjs|json|map|woff2?|ttf|otf|eot|mp4|webm|mov|pdf|zip|php|html?|aspx?)$/i;
   const GENERIC_LOCAL = /^(info|contact|hello|hi|office|sales|admin|mail|booking|bookings|reservations?|enquir(y|ies)|inquir(y|ies)|support|service|team|help|kontakt|iroda|ertekesites|recepcio|foglalas)$/i;
 
@@ -99,6 +106,7 @@
     if (!/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/.test(domain)) return '';
     if (!/^[a-z0-9][a-z0-9._%+-]*$/.test(local) || local.includes('..')) return '';
     if (ASSET_TLD.test(domain) || JUNK_DOMAIN.test(domain) || JUNK_LOCAL.test(local)) return '';
+    if (PLATFORM_DOMAIN.test(domain) || JUNK_EMAIL.has(local + '@' + domain)) return '';
     if (/^[a-f0-9]{16,}$/.test(local)) return ''; // tracking / DSN hashes
     if (/\d{2,}x\d{2,}/.test(local)) return '';   // image-size fragments
     return local + '@' + domain;
