@@ -5,11 +5,12 @@ import { api } from '@/lib/api';
 import type { QueueDay } from '@/lib/api';
 
 // The Queues tab: which emails go out on which day, from which sender account
-// and to whom. It shows what is already scheduled; it changes nothing. A day
-// is a Budapest day, like the daily limit.
+// and to whom. It shows what is already scheduled; the one thing it changes is
+// deleting a queue, which takes its leads out of their sequence. A day is a
+// Budapest day, like the daily limit.
 
 const dayLabel = (day: string) => new Date(day + 'T12:00:00.000Z').toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'short' });
-const minute = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const minute = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 const emails = (n: number) => `${n.toLocaleString()} ${n === 1 ? 'email' : 'emails'}`;
 
 export default function QueuesView({ reloadKey }: { reloadKey: number }) {
@@ -33,6 +34,22 @@ export default function QueuesView({ reloadKey }: { reloadKey: number }) {
   useEffect(() => { load(); }, [load, reloadKey]);
 
   const toggle = (id: string) => setClosed((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const [deleting, setDeleting] = useState('');
+  // asked in the row, not with confirm(): a browser told to stop showing dialogs answers "no" without a word
+  const [confirmDel, setConfirmDel] = useState(''); // 'day|senderId'
+  const [delError, setDelError] = useState('');
+  const remove = async (day: string, senderId: string, rows: QueueDay['senders'][number]['rows']) => {
+    const id = `${day}|${senderId}`;
+    setDeleting(id); setDelError('');
+    try {
+      // the rows go along so the server stops only what was shown here
+      const r = await api.deleteQueue(day, senderId, rows.map((x) => ({ project: x.project, key: x.key, at: x.at })));
+      if (r.ok) { setConfirmDel(''); load(); } else setDelError(r.error || 'The queue could not be deleted.');
+    } catch {
+      setDelError('Network error. The queue could not be deleted.');
+    }
+    setDeleting('');
+  };
   const total = (days || []).reduce((n, d) => n + d.total, 0);
 
   return (
@@ -67,8 +84,19 @@ export default function QueuesView({ reloadKey }: { reloadKey: number }) {
                   <div key={id}>
                     <div className="oque-tr oque-head">
                       <span><b>{s.label}</b> sends {emails(s.rows.length)}</span>
-                      <span><button className="mini" onClick={() => toggle(id)} aria-expanded={open}>{open ? 'Hide' : 'Show'}</button></span>
+                      <span>
+                        <button className="mini" onClick={() => toggle(id)} aria-expanded={open}>{open ? 'Hide' : 'Show'}</button>{' '}
+                        <button className="mini danger" onClick={() => { setDelError(''); setConfirmDel(id); }} disabled={!!deleting} aria-label={`Delete the queue of ${s.label} on ${dayLabel(d.day)}`}>Delete</button>
+                      </span>
                     </div>
+                    {confirmDel === id && (
+                      <div className="oseq-row">
+                        <span>Delete this queue? {emails(s.rows.length)} will not be sent: the {s.rows.length === 1 ? 'lead leaves its' : 'leads leave their'} sequence, follow-ups included. No lead is deleted.</span>
+                        <button className="mini danger" disabled={!!deleting} onClick={() => remove(d.day, s.senderId, s.rows)}>{deleting === id ? 'Deleting…' : 'Yes, delete'}</button>
+                        <button className="mini" disabled={!!deleting} onClick={() => setConfirmDel('')}>Keep it</button>
+                        {delError && <span className="chip red">{delError}</span>}
+                      </div>
+                    )}
                     {open && s.rows.map((r) => (
                       <div key={`${r.project}|${r.key}`} className="oque-tr">
                         <span className="muted">{minute(r.at)}</span>

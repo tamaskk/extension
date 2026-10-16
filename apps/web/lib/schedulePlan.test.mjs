@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { capacityPlan, daysAhead, fillSchedule, parseDay, roomFor } from './schedulePlan.mjs';
+import { GAP_MAX_MS, GAP_MIN_MS, capacityPlan, daysAhead, fillSchedule, parseDay, roomFor } from './schedulePlan.mjs';
 
 // a Wednesday, 10:00 in Budapest
 const NOW = new Date('2026-10-21T08:00:00.000Z');
@@ -99,10 +99,38 @@ test('parseDay takes a real calendar day only', () => {
   assert.equal(parseDay(undefined), '');
 });
 
-test('a scatter that would land after the window closes is dropped', () => {
-  // 18:30 in Budapest: the window closes at 19:00
+// a repeatable stand-in for Math.random
+const seeded = (seed) => () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+
+test('the emails of a sender on one day are 10 to 20 minutes apart, never evenly', () => {
+  const senders = [sender('a', 'hu', { dailyLimit: 15 }), sender('b', 'hu', { dailyLimit: 15 })];
+  const r = fillSchedule(leads(30), senders, capacityPlan(senders, daysAhead(NOW, 3)), opts({ random: seeded(7) }));
+  assert.equal(r.placed.filter((p) => p.day === '2026-10-21').length, 30);
+  for (const id of ['a', 'b']) {
+    const times = r.placed.filter((p) => p.senderId === id).map((p) => Date.parse(p.at));
+    const gaps = times.slice(1).map((t, i) => t - times[i]);
+    assert.equal(gaps.length, 14);
+    assert.ok(gaps.every((g) => g >= GAP_MIN_MS && g <= GAP_MAX_MS), gaps.join(' '));
+    assert.ok(new Set(gaps).size > 10);
+    // not on the minute
+    assert.ok(times.some((t) => t % 60_000 !== 0));
+  }
+});
+
+test('new leads follow the ones already booked on the day', () => {
+  const senders = [sender('a', 'hu', { dailyLimit: 10 })];
+  const booked = Date.parse('2026-10-22T07:30:00.000Z');
+  const cap = capacityPlan(senders, daysAhead(NOW, 3), { booked: new Map([['a', new Map([['2026-10-22', 3]])]]), lastDue: new Map([['a', new Map([['2026-10-22', booked]])]]) });
+  const r = fillSchedule(leads(2), senders, cap, opts({ fromDay: '2026-10-22' }));
+  assert.deepEqual(r.placed.map((p) => Date.parse(p.at) - booked), [GAP_MIN_MS, 2 * GAP_MIN_MS]);
+});
+
+test('a day whose sending hours are used up takes no more, whatever its limit', () => {
+  // 18:30 in Budapest: the window closes at 19:00, so three emails fit at 10 minutes
   const late = new Date('2026-10-21T16:30:00.000Z');
-  const senders = [sender('a', 'hu', { dailyLimit: 5 })];
-  const r = fillSchedule(leads(1), senders, capacityPlan(senders, daysAhead(late, 3)), opts({ now: late, random: () => 0.9 }));
-  assert.equal(r.placed[0].at, late.toISOString());
+  const senders = [sender('a', 'hu', { dailyLimit: 50 })];
+  const r = fillSchedule(leads(5), senders, capacityPlan(senders, daysAhead(late, 3)), opts({ now: late }));
+  assert.deepEqual(r.placed.map((p) => p.day), ['2026-10-21', '2026-10-21', '2026-10-21', '2026-10-22', '2026-10-22']);
+  assert.equal(r.placed[2].at, '2026-10-21T16:50:00.000Z');
+  assert.equal(r.placed[3].at, '2026-10-22T05:00:00.000Z');
 });

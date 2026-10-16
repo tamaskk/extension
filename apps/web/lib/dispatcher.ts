@@ -29,9 +29,9 @@ import { VARIABLE_FIELDS, isKnownVariable, render, renderContext, variablesIn } 
 import { preflight } from '@/lib/outreachPreflight.mjs';
 import { buildMessage } from '@/lib/outreachMessage.mjs';
 import { footerFor, withFooter } from '@/lib/outreachFooter.mjs';
-import { domainHeldByAnother, gapState, minGapMs } from '@/lib/dispatchPlan.mjs';
+import { domainHeldByAnother, gapState, pauseAfter } from '@/lib/dispatchPlan.mjs';
 import { dailyCapFor } from '@/lib/warmup.mjs';
-import { ALL_ZONES, isInsideWindow, runLimits, windowOf, zonesOpenNow } from '@/lib/sendWindow.mjs';
+import { ALL_ZONES, isInsideWindow, runLimits, zonesOpenNow } from '@/lib/sendWindow.mjs';
 import { mailEndpointAllowed } from '@/lib/outreachSenderRules.mjs';
 import { BLOCKING_OUTCOMES, sendFailureKind, staleBefore } from '@/lib/sendGuard.mjs';
 import { DEFAULT_DELAY_MS } from '@/lib/outreachRunner.mjs';
@@ -337,10 +337,9 @@ export async function runRound(opts: RoundOptions, now = new Date()): Promise<Ro
     const cap = dailyCapFor(sender, now);
     const left = cap - (sentBefore.get(sender.senderId) || 0);
     if (left <= 0) { notes.push(`${label} has used up today's ${cap}.`); return; }
-    const window = windowOf(sender) as { days: number[]; from: number; to: number };
     if (!opts.testMode) {
       const last = await OutreachSend.findOne({ senderId: sender.senderId, outcome: { $ne: 'failed' } }).sort({ sentAt: -1 }).select('sentAt -_id').lean() as { sentAt?: string } | null;
-      const gap = gapState(last?.sentAt || '', minGapMs(cap, window.to - window.from), now) as { open: boolean; inMs: number };
+      const gap = gapState(last?.sentAt || '', pauseAfter(sender.senderId, last?.sentAt || ''), now) as { open: boolean; inMs: number };
       if (!gap.open) {
         soonest = Math.min(soonest, gap.inMs);
         notes.push(`${label} pauses ${Math.ceil(gap.inMs / 60_000)} more min between two emails.`);

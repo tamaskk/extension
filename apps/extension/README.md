@@ -57,7 +57,9 @@ business's **own website**: the homepage first, then — only if that has none �
 up to three contact / about / imprint pages. It understands `mailto:` links,
 plain text, Cloudflare-protected addresses and `name [at] domain [dot] com`,
 and drops asset names, tracking IDs, template placeholders, role addresses that
-never buy (press@, careers@, privacy@…) and the web designer's address. Each
+never buy (press@, careers@, privacy@…), the web designer's address and the
+own address of a booking or listing platform the "website" is a page on
+(support@vagaro.com, help.us@booksy.com, contact@bizsite.link). Each
 lead keeps the address, the page it came from (`emailSource`) and when it was
 checked (`emailCheckedAt` / `emailStatus`), so nothing is looked up twice. See
 [`lib/emailFinder.js`](lib/emailFinder.js).

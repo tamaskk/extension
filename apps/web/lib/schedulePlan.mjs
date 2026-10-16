@@ -9,10 +9,14 @@
 // finds a full day's work on each day, and not three days' work on the first.
 import { dayKey, dayStart, warmupStatus } from './warmup.mjs';
 import { isInsideWindow, nextOpening, windowOf } from './sendWindow.mjs';
-import { SPREAD_MINUTES } from './enrollPlan.mjs';
+import { GAP_MAX_MS, GAP_MIN_MS } from './dispatchPlan.mjs';
 
 // A plan never reaches further than this many days from today.
 export const HORIZON_DAYS = 120;
+// Two emails a sender is given on one day are as far apart as the pause the
+// send round keeps (lib/dispatchPlan.mjs), drawn anew for every pair and to the
+// millisecond: several emails due in the same minute would only wait in line.
+export { GAP_MAX_MS, GAP_MIN_MS };
 
 // 1 = Monday ... 7 = Sunday, of a 'YYYY-MM-DD' day
 const weekdayOf = (key) => ((new Date(key + 'T12:00:00.000Z').getUTCDay() + 6) % 7) + 1;
@@ -37,15 +41,18 @@ export function daysAhead(now, count) {
 //   booked  emails that already count against it: sent today, due on that day, and what the days before could not hold
 //   free    cap - booked, never below 0
 //   open    whether it is one of the sender's sending days
+//   last    the latest due time already booked on that day, as a timestamp; 0 when there is none
 // `booked` is Map(senderId → Map(day → count)) of the leads already due; a lead
 // due before today counts on today. `sentToday` is Map(senderId → count).
+// `lastDue` is Map(senderId → Map(day → timestamp)) of the latest of those leads.
 // A sender is a row as lib/warmup.mjs and lib/sendWindow.mjs read it, plus
 // `lastSentBeforeToday` for today's limit.
-export function capacityPlan(senders, days, { booked, sentToday } = {}) {
+export function capacityPlan(senders, days, { booked, sentToday, lastDue } = {}) {
   const out = new Map();
   for (const s of senders || []) {
     const w = windowOf(s);
     const mine = (booked && booked.get(s.senderId)) || new Map();
+    const latest = (lastDue && lastDue.get(s.senderId)) || new Map();
     const firstOpen = days.find((d) => w.days.includes(weekdayOf(d.day)));
     const rows = [];
     let carry = 0; // due leads a day could not hold go out on the next sending day
@@ -58,17 +65,18 @@ export function capacityPlan(senders, days, { booked, sentToday } = {}) {
       const cap = open ? warmupStatus(then, new Date(d.start + 12 * 3_600_000)).cap : 0;
       const due = (mine.get(d.day) || 0) + (i === 0 ? Math.max(0, Number(sentToday && sentToday.get(s.senderId)) || 0) : 0) + carry;
       carry = Math.max(0, due - cap);
-      rows.push({ day: d.day, start: d.start, end: d.end, cap, booked: due, free: Math.max(0, cap - due), open });
+      rows.push({ day: d.day, start: d.start, end: d.end, cap, booked: due, free: Math.max(0, cap - due), open, last: latest.get(d.day) || 0 });
     });
     out.set(s.senderId, rows);
   }
   return out;
 }
 
-// The moment a lead's first email falls due on a day: the first sending hour
-// where the lead is, inside that day, plus a scatter so a day's leads do not
-// all fall due in the same minute. null when the day has no sending hour for it.
-function dueTimeOn(row, sender, tz, now, random, cache) {
+// The moment a lead's first email falls due on a day: one pause of GAP_MIN_MS to
+// GAP_MAX_MS after `after`, the sender's email before it on that day (0 when it
+// is the first), and not before the first sending hour where the lead is. null
+// when the day has no sending hour for it, or none is left at that rhythm.
+function dueTimeOn(row, sender, tz, now, random, cache, after) {
   const id = `${tz}|${sender.senderId}|${row.day}`;
   const lead = { seq: { tz } };
   let opening = cache.get(id);
@@ -86,9 +94,11 @@ function dueTimeOn(row, sender, tz, now, random, cache) {
     cache.set(id, opening);
   }
   if (opening === null) return null;
-  const scattered = Math.min(opening + Math.floor(random() * SPREAD_MINUTES * 60_000), row.end - 60_000);
-  // a scatter that lands after the window has closed would move the email to the next day, against that day's limit
-  return isInsideWindow(lead, sender, new Date(scattered)) ? scattered : opening;
+  // the opening is a round quarter hour: the first email of a morning does not go out on the dot either
+  const earliest = opening + Math.floor(random() * GAP_MIN_MS);
+  const at = after ? Math.max(earliest, after + GAP_MIN_MS + Math.floor(random() * (GAP_MAX_MS - GAP_MIN_MS))) : earliest;
+  // a time after the window has closed would move the email to the next day, against that day's limit
+  return at < row.end && isInsideWindow(lead, sender, new Date(at)) ? at : null;
 }
 
 // Places leads on days and senders, as early as possible.
@@ -99,7 +109,10 @@ function dueTimeOn(row, sender, tz, now, random, cache) {
 // → { placed: [{ key, senderId, day, at }], left: [key], filled: Map(senderId → Map(day → count)) }
 // A lead goes to the earliest day on which a sender of its language has room
 // and it is a sending hour where the lead is; of several such senders, to the
-// one with the most room left that day. `left` are the leads no day could take.
+// one with the most room left that day. The emails of a sender on one day
+// follow each other 10 to 20 minutes apart, after the ones already booked
+// there; a day whose sending hours are used up at that rhythm takes no more,
+// whatever its limit. `left` are the leads no day could take.
 export function fillSchedule(leads, senders, capacity, { fromDay, toDay, now = new Date(), random = Math.random }) {
   const free = new Map();
   for (const s of senders || []) free.set(s.senderId, (capacity.get(s.senderId) || []).map((r) => r.free));
@@ -107,6 +120,8 @@ export function fillSchedule(leads, senders, capacity, { fromDay, toDay, now = n
   const at0 = days.findIndex((d) => d.day >= fromDay);
   const first = at0 < 0 ? days.length : at0;
   const cache = new Map();
+  const lastAt = new Map(); // per sender: the latest due time on each day, booked or placed here
+  for (const s of senders || []) lastAt.set(s.senderId, (capacity.get(s.senderId) || []).map((r) => r.last || 0));
   const startOf = new Map(); // per language: the first day that may still have room
   const placed = [], left = [];
   const filled = new Map();
@@ -121,13 +136,14 @@ export function fillSchedule(leads, senders, capacity, { fromDay, toDay, now = n
       if (!withRoom.length) { if (fullSoFar) startOf.set(lead.language, i + 1); continue; }
       fullSoFar = false;
       for (const s of withRoom) {
-        const at = dueTimeOn(capacity.get(s.senderId)[i], s, lead.tz, now, random, cache);
+        const at = dueTimeOn(capacity.get(s.senderId)[i], s, lead.tz, now, random, cache, lastAt.get(s.senderId)[i]);
         if (at !== null) { hit = { s, at }; break; }
       }
       if (hit) break;
     }
     if (!hit) { left.push(lead.key); continue; }
     free.get(hit.s.senderId)[i]--;
+    lastAt.get(hit.s.senderId)[i] = hit.at;
     placed.push({ key: lead.key, senderId: hit.s.senderId, day: days[i].day, at: new Date(hit.at).toISOString() });
     if (!filled.has(hit.s.senderId)) filled.set(hit.s.senderId, new Map());
     const f = filled.get(hit.s.senderId);

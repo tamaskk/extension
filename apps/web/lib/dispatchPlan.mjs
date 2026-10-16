@@ -83,17 +83,20 @@ export function domainHeldByAnother(activeByDomain, email, key) {
   return ((activeByDomain && activeByDomain.get(domain)) || []).some((k) => k !== key);
 }
 
-// The pause a sender keeps between two of its emails. Sending the day's emails
-// one after another is the machine-gun rhythm spam filters look for, so the
-// day's limit is spread over the sending hours: the pause is a little over half
-// of an even spacing, which leaves room for the hours when few recipients are
-// inside their window. Never under 2 minutes, never over an hour.
-//   cap          emails the sender may send today
-//   windowHours  how long its sending window is
-export function minGapMs(cap, windowHours = 12) {
-  const n = Math.max(1, Number(cap) || 1);
-  const even = (Math.max(1, Number(windowHours) || 12) * 3_600_000) / n;
-  return Math.round(Math.min(60 * 60_000, Math.max(2 * 60_000, even * 0.6)));
+// Between two emails of a sender: at least this long, at most that long.
+export const GAP_MIN_MS = 10 * 60_000;
+export const GAP_MAX_MS = 20 * 60_000;
+
+// The pause a sender keeps after an email, before its next one: somewhere from
+// GAP_MIN_MS to GAP_MAX_MS, different after every email and to the millisecond.
+// Sending the day's emails one after another, or at an even spacing, is the
+// rhythm of a machine; a person's pauses are uneven. It is worked out from the
+// time of that email and not drawn: every call of a serverless function can be
+// a new instance, and each round must find the same pause still running.
+// 0 when the sender has sent nothing.
+export function pauseAfter(senderId, lastSentAt) {
+  if (!lastSentAt) return 0;
+  return GAP_MIN_MS + Math.floor(hashToUnit(`${senderId}|${lastSentAt}|pause`) * (GAP_MAX_MS - GAP_MIN_MS));
 }
 
 // May the sender send again? `lastSentAt` is the time of its last email (ISO),

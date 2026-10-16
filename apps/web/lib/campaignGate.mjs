@@ -17,7 +17,7 @@
 export const GATE = {
   bounceBlock: 0.05,          // final bounces over the last 7 days
   bounceWarn: 0.02,
-  blockBlock: 0.01,           // refusals of US (5.7.1, reputation) over the last 7 days
+  blockBlock: 0.1,            // refusals of US (5.7.1, reputation) over the last 7 days; raised from 1 % on 2026-10-14 (D213)
   blockWarn: 0.003,
   spamBlock: 0.3,             // Postmaster Tools spam rate, in percent
   spamWarn: 0.1,

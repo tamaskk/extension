@@ -42,7 +42,7 @@ unique on `{project, dedupKey}`, so it scales past the 16MB-per-document limit).
 | Method | Route | Purpose |
 |--------|-------|---------|
 | GET | `/api/folders` `/api/projects` `/api/leads?project=` | the dashboard reads from here. `/api/projects` answers compact rows (`lib/projectsPayload.mjs`); both list routes send an ETag |
-| POST | `/api/sync` | **the extension pushes a bundle** (a project, a folder's projects, or everything) — upsert. Needs the login cookie |
+| POST | `/api/sync` | **the extension pushes a bundle** (a project, a folder's projects, or everything) — upsert. Needs the login cookie. After it answers, the IT companies of the bundle whose email lookup just finished go on to Melodia (`lib/melodiaPlan.mjs`, `lib/melodia.ts`, needs `MELODIA_API_KEY`) |
 | POST | `/api/leads` | add a single lead (`{project, lead}`) one-by-one |
 | PATCH/DELETE | `/api/projects` `/api/folders` `/api/leads` | the dashboard's edits persist to the DB |
 | GET | `/api/leads?only=total` · `?total=0` · `?key=` | the count alone · rows without a count · one lead by `dedupKey` |
@@ -63,6 +63,7 @@ unique on `{project, dedupKey}`, so it scales past the 16MB-per-document limit).
 | POST | `/api/outreach/offer` | the operator sets a lead's second-round offer by hand |
 | POST | `/api/outreach/enroll` | put leads into a sequence or take them out, from the table's filter, the checked leads or a group. `dryRun` first (writes nothing), then one chunk per call until `done` |
 | GET | `/api/outreach/queues` | the Queues tab: the next email of every lead in a sequence, by Budapest day and sender account (at most 5,000). Read-only |
+| DELETE | `/api/outreach/queues` | `{ day, senderId, leads: [{ project, key, at }] }`: deletes one queue of the Queues tab. Only the leads shown, and only while their due time is unchanged, are taken out of their sequence (`seq.status: 'stopped'`); no lead is deleted |
 | POST | `/api/outreach/schedule` | put the leads of a selection into sequences on future days, every sender filled up to its limit of that day. `sequences` names the sequence of each sender account (`{ senderId: sequenceId }`). `action: 'plan'` writes nothing and answers the whole plan; `action: 'apply'` writes it back, 200 leads per call |
 | GET | `/api/widget/queues` | open, no login: the day's sending per sender account (sent, failed, still to go, limit) for the iOS home-screen widget in `widget/gridleads-queues.js`. `?date=YYYY-MM-DD` for another day |
 | GET/POST | `/api/outreach/sequences` | the email sequences with their steps, what keeps each from running, and its active lead count · a new one |

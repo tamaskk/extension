@@ -81,3 +81,17 @@ test('a lead with only unusable addresses has none, and says why', () => {
   assert.match(none.reason, /agency/);
   assert.deepEqual(bestEmail({}), { email: '', rank: 99, reason: 'no address' });
 });
+
+test('a booking or listing platform\'s own address is never the business\'s, even on its page', () => {
+  assert.equal(emailQuality('support@vagaro.com', { website: 'https://www.vagaro.com/salonbella' }).ok, false);
+  assert.equal(emailQuality('help.us@booksy.com', { website: 'https://booksy.com/en-us/123_barber' }).ok, false);
+  assert.equal(emailQuality('contact@bizsite.link', { website: 'https://lomyu.me/one-stop-automotive-595582-us' }).ok, false);
+  assert.equal(emailQuality('hello@findaloco.com', {}).ok, false);
+  // the business's own address on such a page is still usable
+  assert.equal(bestEmail({ website: 'https://www.vagaro.com/salonbella', email: 'support@vagaro.com', emails: ['salonbella@gmail.com'] }).email, 'salonbella@gmail.com');
+});
+
+test('placeholders and addresses copied into many sites are not written to', () => {
+  for (const e of ['john.smith@gmail.com', 'johnsmith@gmail.com', 'jane.smith@gmail.com', 'impallari@gmail.com']) assert.equal(emailQuality(e, {}).ok, false, e);
+  assert.equal(emailQuality('smith@gmail.com', {}).ok, true);
+});

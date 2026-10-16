@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { remainingToday, assignSenders, companyDomainOf, pickOnePerDomain, domainHeldByAnother, minGapMs, gapState } from './dispatchPlan.mjs';
+import { remainingToday, assignSenders, companyDomainOf, pickOnePerDomain, domainHeldByAnother, GAP_MAX_MS, GAP_MIN_MS, pauseAfter, gapState } from './dispatchPlan.mjs';
 
 const NOW = new Date('2026-10-20T10:00:00.000Z');
 // a sender whose limit is simply its ceiling
@@ -112,15 +112,20 @@ test('before a send, mailbox providers never hold a lead back', () => {
   assert.equal(domainHeldByAnother(active, 'bela@gmail.com', 'k2'), false);
 });
 
-test('the pause between two emails spreads the day over the sending hours', () => {
-  assert.equal(minGapMs(10, 12), 43.2 * 60_000);  // 10 a day over 12 hours: 72 minutes apart, 60 % of it
-  assert.equal(minGapMs(35, 12), Math.round((12 * 3_600_000 / 35) * 0.6));
+test('the pause after an email is 10 to 20 minutes, different after every email', () => {
+  const pauses = Array.from({ length: 200 }, (_, i) => pauseAfter('a', new Date(NOW.getTime() + i * 937_123).toISOString()));
+  assert.ok(pauses.every((p) => p >= GAP_MIN_MS && p <= GAP_MAX_MS));
+  assert.ok(new Set(pauses).size > 190);
+  // spread over the whole range, and not on the minute
+  assert.ok(Math.min(...pauses) < 11 * 60_000 && Math.max(...pauses) > 19 * 60_000);
+  assert.ok(pauses.some((p) => p % 60_000 !== 0));
 });
 
-test('the pause is never under 2 minutes and never over an hour', () => {
-  assert.equal(minGapMs(2000, 12), 2 * 60_000);
-  assert.equal(minGapMs(1, 12), 60 * 60_000);
-  assert.equal(minGapMs(0, 12), 60 * 60_000);
+test('the pause after one email is the same at every call, and a sender that sent nothing has none', () => {
+  const at = '2026-10-20T09:41:17.512Z';
+  assert.equal(pauseAfter('a', at), pauseAfter('a', at));
+  assert.notEqual(pauseAfter('a', at), pauseAfter('b', at));
+  assert.equal(pauseAfter('a', ''), 0);
 });
 
 test('a sender that sent nothing yet may send at once', () => {

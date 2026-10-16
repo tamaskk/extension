@@ -14,8 +14,19 @@ const VALID = /^[a-z0-9._%+-]+@[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 // Boxes nobody reads, or that answer for a machine.
 const NEVER = new Set(['noreply', 'no-reply', 'no_reply', 'donotreply', 'do-not-reply', 'postmaster', 'mailer-daemon', 'abuse', 'webmaster', 'hostmaster', 'privacy', 'gdpr', 'dpo', 'bounce', 'bounces', 'unsubscribe', 'newsletter']);
 // What a site template or an example leaves behind.
-const JUNK_LOCAL = new Set(['test', 'example', 'email', 'name', 'yourname', 'your.name', 'user', 'username', 'someone', 'john.doe', 'jane.doe', 'firstname.lastname', 'mail', 'you']);
+const JUNK_LOCAL = new Set(['test', 'example', 'email', 'name', 'yourname', 'your.name', 'user', 'username', 'someone', 'john.doe', 'jane.doe', 'john.smith', 'johnsmith', 'jane.smith', 'janesmith', 'firstname.lastname', 'mail', 'you']);
 const JUNK_DOMAIN = /^(example\.(com|org|net)|domain\.com|yourdomain\.com|email\.com|test\.com|sentry\.io|sentry-next\.wixpress\.com|wixpress\.com|godaddy\.com|squarespace\.com|mysite\.com|company\.com|website\.com)$/;
+// Booking and listing platforms a business's "website" is often a page on: the
+// address there is the platform's own (support@vagaro.com was collected for 112
+// salons), never the business's. Its own domain matches the website, so the
+// agency rule below would let it through. Mirrored in the extension's emailFinder.js.
+const PLATFORM_DOMAIN = /(^|\.)(vagaro\.com|booksy\.com|glossgenius\.com|square\.site|squareup\.com|styleseat\.com|fresha\.com|setmore\.com|schedulicity\.com|mindbodyonline\.com|zoca\.com|as\.me|acuityscheduling\.com|linktr\.ee|lomyu\.me|bizsite\.link|jany\.io|edan\.io|locmaps\.com|findaloco\.com)$/;
+// Real addresses that sit in the source of many unrelated sites: the designer
+// of a Google Font, credited in its CSS.
+const JUNK_EMAIL = new Set(['impallari@gmail.com']);
+
+// Is this host a booking or listing platform, not a website of the business's own?
+export const isPlatformHost = (host) => PLATFORM_DOMAIN.test(String(host || '').toLowerCase().replace(/^www\./, ''));
 // A file name that looked like an address to the collector: logo@2x.png
 const FILE_TLD = /\.(png|jpe?g|gif|webp|svg|css|js)$/;
 // Shared boxes: fine to write to, but a named person is better.
@@ -45,6 +56,8 @@ export function emailQuality(email, lead) {
   if (FILE_TLD.test(domain)) return { ok: false, reason: 'a file name, not an address', rank: 99 };
   if (NEVER.has(local)) return { ok: false, reason: `${local}@ is not read by a person`, rank: 99 };
   if (JUNK_LOCAL.has(local) || JUNK_DOMAIN.test(domain)) return { ok: false, reason: 'a placeholder left in the website', rank: 99 };
+  if (JUNK_EMAIL.has(e)) return { ok: false, reason: 'an address found in the code of many unrelated websites', rank: 99 };
+  if (PLATFORM_DOMAIN.test(domain)) return { ok: false, reason: `the address of a booking or listing platform (${domain}), not of the business`, rank: 99 };
 
   const role = ROLE.has(local);
   if (isCommonProvider(domain)) return { ok: true, reason: 'an address at a mailbox provider', rank: 5 };

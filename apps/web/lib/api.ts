@@ -534,6 +534,7 @@ export const api = {
   // may anything be sent today, and why not
   getTodayPlan: () => jget('/api/outreach/today') as Promise<TodayPlanData>,
   getQueues: () => jget('/api/outreach/queues') as Promise<{ ok: boolean; error?: string; today?: string; capped?: boolean; days?: QueueDay[] }>,
+  deleteQueue: (day: string, senderId: string, leads: { project: string; key: string; at: string }[]) => jsend('/api/outreach/queues', 'DELETE', { day, senderId, leads }) as Promise<{ ok: boolean; error?: string; removed?: number }>,
   getMailLog: (sender = '') => jget('/api/outreach/mail' + (sender ? '?sender=' + encodeURIComponent(sender) : '')) as Promise<MailLogData>,
   getControl: () => jget('/api/outreach/control') as Promise<ControlState>,
   saveControl: (patch: ControlPatch) => jsend('/api/outreach/control', 'POST', patch) as Promise<{ ok: boolean; error?: string }>,

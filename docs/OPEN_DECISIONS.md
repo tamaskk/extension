@@ -164,7 +164,7 @@ Written on 2026-10-06.
 
 - **D113. Settled by task 29: the gate is `lib/campaignGate.mjs`**, asked by the send round on every call.
 - **D114. One email per sender per round, three per round in all.** The plan says one to three per round.
-- **D115. The pause between two emails of a sender is 60 % of an even spacing of its daily limit over its sending hours**, never under 2 minutes, never over an hour. At 10 a day over 12 hours that is 43 minutes. The plan asks for a pause and gives no length.
+- **D115. Replaced by D212 on 2026-10-13.** Before: the pause between two emails of a sender is 60 % of an even spacing of its daily limit over its sending hours, never under 2 minutes, never over an hour. At 10 a day over 12 hours that is 43 minutes. The plan asks for a pause and gives no length.
 - **D116. A lead whose company domain is held by another lead's sequence at send time is taken out** (`stopped`), not left waiting.
 - **D117. A lead whose sequence is switched off waits; a lead whose sequence or step was deleted is taken out.**
 - **D118. `testMode` and `ignoreWindow` can only be sent in the request body.** There is no button for them; the runner tab never sends them.
@@ -286,6 +286,8 @@ Written on 2026-10-06.
 
 ## Not about outreach
 
+- **D213. Asked for on 2026-10-14: blocked emails shut the gate over 10 % of the last 7 days, not over 1 %** (`GATE.blockBlock`). The gate had stopped every sender at 1.3 %. Over 0.3 % still warns, and the report keeps marking 1 % red, so red in the report does not mean sending is blocked (as D167). Other option: measure the rate per sender account, so one account's blocks do not stop the others.
+- **D212. Asked for on 2026-10-13: the due times "Schedule ahead" gives one sender on one day are 10 to 20 minutes apart**, random for every pair and to the millisecond, instead of a scatter over the first two hours, which put several emails in the same minute. A day takes only as many leads as fit its sending hours at that rhythm (about 48 in 12 hours). The send round keeps the same pause after every email (`pauseAfter` in `lib/dispatchPlan.mjs`, in place of D115), follow-ups included, so a sender sends about 48 emails in 12 sending hours at most, whatever its limit. Ordinary enrolment keeps its two-hour scatter; the pause spaces those emails when they go out.
 - **D211. Approved on 2026-10-12: in "Schedule ahead" the operator chooses the sequence of every sender account.** The account's own language does not decide there: a lead goes to the accounts whose chosen sequence is written in the lead's language, and a sequence's own sender list is not applied. Enrolment keeps D86 (a sender of the sequence's language) and D200 still holds as advice: the From name of an account should match the signature of the text it sends.
 - **D210. Approved on 2026-10-06: the outreach loop can be driven by cron-job.org** through `POST /api/outreach/cron`, guarded by the new env variable `CRON_SECRET`. The runner tab still works; the round lock keeps the two from sending side by side.
 - **D208. The Campaign tab's picked leads are the best `opportunityScore` first, among the leads with an email in the chosen country.** Hungarian sequences offer Hungary only, English ones every other country. Other option: another order (newest, a category, no website first).

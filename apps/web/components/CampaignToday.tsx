@@ -167,6 +167,8 @@ export default function CampaignToday({ reloadKey, onEnroll, onEditSequences }: 
   };
 
   const gate = data?.gate;
+  // a shut gate stops every send round, so no row is on its way and an estimate would only slide with the clock
+  const held = !!gate && !gate.allowed;
   const hb = data?.heartbeat;
   const senders = data?.senders || [];
   const queue = data?.queue || [];
@@ -311,18 +313,19 @@ export default function CampaignToday({ reloadKey, onEnroll, onEditSequences }: 
 
           <div className="oseq-card">
             <div className="oseq-row"><b>In line for today</b><span className="muted">In the order they are sent. A sender pauses between two emails, so each time is an estimate. Times are yours; the daily limit turns over at midnight in Budapest, so a lead in a later time zone can go out after midnight, on tomorrow&apos;s limit.</span></div>
+            {held && queue.length > 0 && <div className="oseq-note bad">Sending is blocked, so nothing below goes out until the block at the top clears. The times are left out: they would only slide with the clock.</div>}
             {!queue.length && <div className="muted oseq-hint">Nobody is due today.</div>}
             {queue.length > 0 && (
               <div className="orep-table">
                 <div className="ocmp-tr orep-th"><span title="When the send round is likely to reach it: your time, and in brackets the time where the lead is">Goes about</span><span>Lead</span><span>To</span><span>Sequence</span><span>From</span><span>What happens</span></div>
                 {queue.map((q) => (
                   <div key={`${q.project}:${q.dedupKey}`} className="ocmp-tr">
-                    <span className="muted" title={q.expectedAt || !waitsFor(q) ? `Due since ${clock(q.dueAt)}` : `Due since ${clock(q.dueAt)}. Its next sending hour starts then; the exact time depends on the limit and the leads before it.`}>{q.expectedAt ? `≈ ${minute(q.expectedAt)}` : dayMinute(waitsFor(q)) || '—'}{localMinute(q.expectedAt || waitsFor(q), q.tz) && <span title={`The time where the lead is (${q.tz})`}> ({localMinute(q.expectedAt || waitsFor(q), q.tz)})</span>}</span>
+                    <span className="muted" title={q.expectedAt || !waitsFor(q) ? `Due since ${clock(q.dueAt)}` : `Due since ${clock(q.dueAt)}. Its next sending hour starts then; the exact time depends on the limit and the leads before it.`}>{held ? '—' : q.expectedAt ? `≈ ${minute(q.expectedAt)}` : dayMinute(waitsFor(q)) || '—'}{!held && localMinute(q.expectedAt || waitsFor(q), q.tz) && <span title={`The time where the lead is (${q.tz})`}> ({localMinute(q.expectedAt || waitsFor(q), q.tz)})</span>}</span>
                     <span><button className="mini" title="See the emails this lead gets" onClick={() => setPreviewOf({ sequenceId: q.sequenceId, lead: { project: q.project, dedupKey: q.dedupKey } })}>👁</button> {q.name}</span>
                     <span className="muted">{q.to}</span>
                     <span>{q.sequence}{q.step > 0 && <span className="muted"> · step {q.step} of {q.steps}</span>}</span>
                     <span className="muted">{senderName(q.senderId)}</span>
-                    <span><span className={`chip ${q.fate === 'next' && q.overLimit ? 'amber' : FATE[q.fate].cls}`} title={q.tz ? `Time zone: ${q.tz}` : undefined}>{q.fate === 'next' && q.overLimit ? 'Today\'s limit is used up, goes after midnight' : FATE[q.fate].text}</span></span>
+                    <span>{held && q.fate !== 'off' ? <span className="chip red" title="The send round refuses to send while the gate is shut">Held: sending blocked</span> : <span className={`chip ${q.fate === 'next' && q.overLimit ? 'amber' : FATE[q.fate].cls}`} title={q.tz ? `Time zone: ${q.tz}` : undefined}>{q.fate === 'next' && q.overLimit ? 'Today\'s limit is used up, goes after midnight' : FATE[q.fate].text}</span>}</span>
                   </div>
                 ))}
               </div>

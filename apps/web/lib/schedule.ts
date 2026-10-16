@@ -35,7 +35,7 @@ const BUDGET_MS = 40_000;
 
 type Skipped = Record<string, number>;
 interface SequenceDoc { sequenceId: string; name?: string; language: string; senderIds?: string[]; steps?: unknown[] }
-interface DayRow { day: string; start: number; end: number; cap: number; booked: number; free: number; open: boolean }
+interface DayRow { day: string; start: number; end: number; cap: number; booked: number; free: number; open: boolean; last: number }
 interface Passed { c: { project: string; key: string; name?: string }; to: string; language: string; tz: string }
 type PlanSender = OutreachSenderRow & { lastSentBeforeToday: string };
 
@@ -100,16 +100,19 @@ async function setup(sequences: Record<string, string>, now: Date) {
     senders.push({ ...sender, language: sequence.language === 'hu' ? 'hu' : 'en', lastSentBeforeToday: lastBefore.get(senderId) || '' });
   }
   const days = daysAhead(now, HORIZON_DAYS) as { day: string; start: number; end: number }[];
-  const capacity = capacityPlan(senders, days, { booked: await bookedDays(senders.map((s) => s.senderId), now), sentToday: new Map(senders.map((s) => [s.senderId, s.sentToday])) }) as Map<string, DayRow[]>;
+  const due = await bookedDays(senders.map((s) => s.senderId), now);
+  const capacity = capacityPlan(senders, days, { booked: due.counts, lastDue: due.last, sentToday: new Map(senders.map((s) => [s.senderId, s.sentToday])) }) as Map<string, DayRow[]>;
   return { bySender, languages: [...new Set(senders.map((x) => x.language as string))], senders, days, capacity, notes };
 }
 
-// The leads already due, per sender and day: Map(senderId → Map(day → count)).
+// The leads already due, per sender and day: how many (`counts`) and the latest
+// due time among them (`last`), both Map(senderId → Map(day → number)).
 // A lead that is overdue counts on today. Read through `gl_seq_due`, which
 // holds all three fields, so no lead document is fetched.
-async function bookedDays(senderIds: string[], now: Date): Promise<Map<string, Map<string, number>>> {
+async function bookedDays(senderIds: string[], now: Date): Promise<{ counts: Map<string, Map<string, number>>; last: Map<string, Map<string, number>> }> {
   const out = new Map<string, Map<string, number>>();
-  if (!senderIds.length) return out;
+  const last = new Map<string, Map<string, number>>();
+  if (!senderIds.length) return { counts: out, last };
   const rows = await Lead.find({ 'seq.senderId': { $in: senderIds }, 'seq.status': 'active' }).hint('gl_seq_due')
     .select('seq.senderId seq.nextStepAt -_id').lean() as unknown as { seq?: { senderId?: string; nextStepAt?: string } }[];
   const today = dayKey(now) as string;
@@ -121,8 +124,11 @@ async function bookedDays(senderIds: string[], now: Date): Promise<Map<string, M
     if (!out.has(id)) out.set(id, new Map());
     const mine = out.get(id) as Map<string, number>;
     mine.set(day, (mine.get(day) || 0) + 1);
+    if (!last.has(id)) last.set(id, new Map());
+    const latest = last.get(id) as Map<string, number>;
+    latest.set(day, Math.max(latest.get(day) || 0, at));
   }
-  return out;
+  return { counts: out, last };
 }
 
 const candidateOf = (l: Candidate) => ({
