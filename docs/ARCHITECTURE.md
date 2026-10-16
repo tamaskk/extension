@@ -107,6 +107,8 @@ Long jobs: Vercel functions are limited to 60 seconds (120 or 300 on sync-like r
 
 Extension data: `chrome.storage.local` keys `gridleads_projects`, `gridleads_folders`, `gridleads_batch*`; IndexedDB `gridleads_log` for the event log. Sync sends bundles of 500 leads, gzipped, with header `x-gl-gzip: 1`.
 
+Melodia (asked for by the operator on 2026-10-16): after `POST /api/sync` has answered (`after()`), the leads of an IT search (`IT_TYPES` in `lib/melodiaPlan.mjs`) that have a website of their own and whose email lookup arrived in that sync are posted to Melodia's company intake (`lib/melodia.ts`, `x-api-key: MELODIA_API_KEY`), 200 per request, one request after the other. A lead goes once, in the sync that first brings its `emailCheckedAt`; Melodia skips the companies it already has and does not update them. Without the key nothing is sent, and a failure never fails the sync; the outcome is one `melodia.push` event in the Changelog.
+
 Errors: every handler that touches the database wraps its body in `try/catch` and answers `{ ok: false, error: e.message }` with 500. `GET /api/folders` and `POST /api/export` answer a bare payload on success, so their wrappers in `lib/api.ts` must not treat an error body as data.
 
 ## 05 Boundaries
@@ -222,7 +224,7 @@ Environment variables (names only; values live in Vercel and in untracked `.env`
 
 | App | Names |
 | --- | --- |
-| web | `MONGODB_URI`, `EMAIL`, `PASSWORD`, `AUTH_SECRET`, `OPENAI`, `LEAD_SEARCH_MODEL`, `RESEND_API_KEY`, `OUTREACH_FROM`, `OUTREACH_SECRET_KEY`, `VAPI_API_KEY`, `VAPI_ASSISTANT_ID`, `VAPI_PHONE_NUMBER_ID`, `CLAUDE_BIN`, `CLAUDE_MODEL`, `ENRICH_ALLOW` |
+| web | `MONGODB_URI`, `EMAIL`, `PASSWORD`, `AUTH_SECRET`, `OPENAI`, `LEAD_SEARCH_MODEL`, `RESEND_API_KEY`, `OUTREACH_FROM`, `OUTREACH_SECRET_KEY`, `VAPI_API_KEY`, `VAPI_ASSISTANT_ID`, `VAPI_PHONE_NUMBER_ID`, `CLAUDE_BIN`, `CLAUDE_MODEL`, `ENRICH_ALLOW`, `MELODIA_API_KEY` |
 | tokenleads | `MONGODB_URI`, `AUTH_SECRET`, `APP_URL`, `ADMIN_EMAIL`, `CRON_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SENTRY_DSN`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` |
 | landing | `MONGODB_URI`, `NEXT_PUBLIC_CRM_URL` |
 
