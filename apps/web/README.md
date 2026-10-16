@@ -63,6 +63,7 @@ unique on `{project, dedupKey}`, so it scales past the 16MB-per-document limit).
 | POST | `/api/outreach/offer` | the operator sets a lead's second-round offer by hand |
 | POST | `/api/outreach/enroll` | put leads into a sequence or take them out, from the table's filter, the checked leads or a group. `dryRun` first (writes nothing), then one chunk per call until `done` |
 | GET | `/api/outreach/queues` | the Queues tab: the next email of every lead in a sequence, by Budapest day and sender account (at most 5,000). Read-only |
+| DELETE | `/api/outreach/queues` | `{ day, senderId, leads: [{ project, key, at }] }`: deletes one queue of the Queues tab. Only the leads shown, and only while their due time is unchanged, are taken out of their sequence (`seq.status: 'stopped'`); no lead is deleted |
 | POST | `/api/outreach/schedule` | put the leads of a selection into sequences on future days, every sender filled up to its limit of that day. `sequences` names the sequence of each sender account (`{ senderId: sequenceId }`). `action: 'plan'` writes nothing and answers the whole plan; `action: 'apply'` writes it back, 200 leads per call |
 | GET | `/api/widget/queues` | open, no login: the day's sending per sender account (sent, failed, still to go, limit) for the iOS home-screen widget in `widget/gridleads-queues.js`. `?date=YYYY-MM-DD` for another day |
 | GET/POST | `/api/outreach/sequences` | the email sequences with their steps, what keeps each from running, and its active lead count · a new one |
