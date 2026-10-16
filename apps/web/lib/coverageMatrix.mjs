@@ -39,6 +39,7 @@ export const DEFAULT_COVERAGE_TYPES = [
   'churches', 'funeral homes', 'cemeteries', 'nonprofits', 'opticians', 'hearing aid providers', 'medical supply stores',
   'home health care', 'assisted living', 'nursing homes', 'solar installers', 'security companies', 'it services', 'computer repair',
   'phone repair', 'appliance repair', 'auto detailing', 'car rental', 'limo services', 'taxi services',
+  'software companies', 'it companies', 'app developers', 'it consultants',
 ];
 
 // Batch prefixes are typed by hand: "hair salons", "hairsalon" and "Hair Salon"

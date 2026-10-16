@@ -845,6 +845,7 @@ const BIZ_TYPES = [
   'opticians near', 'hearing aid providers near', 'medical supply stores near', 'home health care near', 'assisted living near', 'nursing homes near',
   'solar installers near', 'security companies near', 'it services near', 'computer repair near', 'phone repair near', 'appliance repair near',
   'auto detailing near', 'car rental near', 'limo services near', 'taxi services near',
+  'software companies near', 'it companies near', 'app developers near', 'it consultants near',
 ];
 
 // Packaged data files (apps/extension/countries + state_json).
