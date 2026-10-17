@@ -270,6 +270,10 @@ function ColumnsMenu({ order, hidden, onToggle, onAll, onReset }:
   );
 }
 
+// "Select all filtered" in the table ticks at most this many leads, read this many per request
+const MAX_ROW_SELECT = 5000;
+const SELECT_PAGE = 1000;
+
 export default function Dashboard() {
   const folders = useGrid((s) => s.folders);
   const summaries = useGrid((s) => s.summaries); // only the projects of the folders opened so far
@@ -917,6 +921,30 @@ export default function Dashboard() {
     setReloadKey((k) => k + 1);        // refresh table total / page
   };
 
+  // "Select all filtered" for the table: the header checkbox ticks the page; this
+  // ticks every lead the filters match, read page by page from the server.
+  const [selectingAll, setSelectingAll] = useState(false);
+  const selectAllFilteredRows = async () => {
+    if (selectingAll || !total) return;
+    const cap = Math.min(total, MAX_ROW_SELECT);
+    setSelectingAll(true);
+    try {
+      const ids: string[] = [];
+      for (let p = 1; ids.length < cap; p++) {
+        const res = await api.getLeads({ project: activeProject, folder: activeFolder, group: activeGroup?.groupId, ...xf, search: debTerm, categories: selectedCats, ptypes: selTypes, pregions: selRegions, country: selCountry, email: emailF, phone: phoneF, sort: sortKey, dir: sortDir, page: p, pageSize: SELECT_PAGE }, { total: false });
+        // the route answers raw lead documents; LeadRow is the shape after the table maps them
+        const rows = (res.rows || []) as unknown as { project: string; dedupKey: string }[];
+        for (const r of rows) ids.push(`${r.project}|${r.dedupKey}`);
+        if (rows.length < SELECT_PAGE) break;
+      }
+      setRowSel(new Set(ids.slice(0, cap)));
+    } catch {
+      alert('Could not select the filtered leads.');
+    } finally {
+      setSelectingAll(false);
+    }
+  };
+
   // send the rows ticked with the selection checkbox to Melodia (POST /api/melodia)
   const [melodia, setMelodia] = useState<{ busy: boolean; text: string } | null>(null);
   const sendSelectedToMelodia = async () => {
@@ -1469,6 +1497,11 @@ export default function Dashboard() {
           {rowSel.size > 0 && (
             <span className="rowsel-bar">
               <b>{rowSel.size}</b>&nbsp;selected
+              {total !== null && total > rowSel.size && rowSel.size < MAX_ROW_SELECT && (
+                <button className="chipbtn" onClick={selectAllFilteredRows} disabled={selectingAll}>
+                  {selectingAll ? 'Selecting…' : `Select all ${Math.min(total, MAX_ROW_SELECT).toLocaleString()} filtered`}
+                </button>
+              )}
               <GroupPickBtn label="🗂 Group" keys={() => [...rowSel].map((id) => id.slice(id.indexOf('|') + 1))} onDone={() => setRowSel(new Set())} />
               {activeGroup && <button className="chipbtn" onClick={async () => {
                 const keys = [...rowSel].map((id) => id.slice(id.indexOf('|') + 1));
