@@ -445,6 +445,8 @@ export const api = {
   updateLeadField: (project: string, dedupKey: string, field: string, value: unknown) => jsend('/api/leads', 'PATCH', { project, dedupKey, field, value }),
   setTags: (project: string, dedupKey: string, tags: string[]) => jsend('/api/leads', 'PATCH', { project, dedupKey, tags }),
   deleteRecords: (items: { query: string; key: string }[]) => jsend('/api/leads', 'DELETE', { items }),
+  // POST /api/melodia: the ticked businesses go to Melodia's company intake
+  sendToMelodia: (leads: { project: string; key: string }[]) => jsend('/api/melodia', 'POST', { leads }) as Promise<{ ok: boolean; error?: string; picked?: number; sent?: number; noWebsite?: number; inserted?: number; skipped?: number; failed?: number; problems?: string[] }>,
   deleteAllChecked: (): Promise<{ ok: boolean; deleted?: number }> => jsend('/api/leads', 'DELETE', { allChecked: true }),
 
   getReviews: (dedupKey: string): Promise<{ ok: boolean; total: number; rows: import('./types').ReviewRow[] }> =>

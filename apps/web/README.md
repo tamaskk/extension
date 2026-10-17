@@ -42,7 +42,8 @@ unique on `{project, dedupKey}`, so it scales past the 16MB-per-document limit).
 | Method | Route | Purpose |
 |--------|-------|---------|
 | GET | `/api/folders` `/api/projects` `/api/leads?project=` | the dashboard reads from here. `/api/projects` answers compact rows (`lib/projectsPayload.mjs`); both list routes send an ETag |
-| POST | `/api/sync` | **the extension pushes a bundle** (a project, a folder's projects, or everything) — upsert. Needs the login cookie. After it answers, the IT companies of the bundle whose email lookup just finished go on to Melodia (`lib/melodiaPlan.mjs`, `lib/melodia.ts`, needs `MELODIA_API_KEY`) |
+| POST | `/api/sync` | **the extension pushes a bundle** (a project, a folder's projects, or everything) — upsert. Needs the login cookie |
+| POST | `/api/melodia` | `{ leads: [{ project, key }] }`: the businesses ticked on the dashboard ("↗ Melodia") go to Melodia's company intake, at most 1,000 at a time; only the ones with a website of their own (`lib/melodiaPlan.mjs`, `lib/melodia.ts`, needs `MELODIA_API_KEY`) |
 | POST | `/api/leads` | add a single lead (`{project, lead}`) one-by-one |
 | PATCH/DELETE | `/api/projects` `/api/folders` `/api/leads` | the dashboard's edits persist to the DB |
 | GET | `/api/leads?only=total` · `?total=0` · `?key=` | the count alone · rows without a count · one lead by `dedupKey` |

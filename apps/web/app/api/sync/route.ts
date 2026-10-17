@@ -1,13 +1,9 @@
 import { gunzipSync } from 'zlib';
-import { after } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import { Folder, Project, Lead, CORS, json } from '@/lib/models';
 import { recomputeProjectStats } from '@/lib/projectStats';
 import { refreshSearchTokens } from '@/lib/searchIndex';
 import { logActivity, diffFields, type ActivityInput, type Diff } from '@/lib/activity';
-import { parseProjectGeo } from '@/lib/projectGeo';
-import { companyFor } from '@/lib/melodiaPlan.mjs';
-import { pushToMelodia, type MelodiaCompany } from '@/lib/melodia';
 
 export const runtime = 'nodejs';
 
@@ -78,7 +74,7 @@ export async function POST(req: Request) {
     const owner = new Map<string, string>(); // dedupKey -> project that owns it
     const before = new Map<string, Record<string, unknown>>(); // dedupKey -> stored lead (for the old → new diff)
     for (let i = 0; i < keys.length; i += 50000) {
-      const found = await Lead.find({ dedupKey: { $in: keys.slice(i, i + 50000) } }).select('dedupKey project emailCheckedAt ' + TRACKED.join(' ')).lean();
+      const found = await Lead.find({ dedupKey: { $in: keys.slice(i, i + 50000) } }).select('dedupKey project ' + TRACKED.join(' ')).lean();
       for (const e of found as any[]) if (!owner.has(e.dedupKey)) { owner.set(e.dedupKey, e.project); before.set(e.dedupKey, e); }
     }
 
@@ -88,17 +84,6 @@ export async function POST(req: Request) {
     // per-project Changelog detail
     const log = new Map<string, { fresh: Record<string, unknown>[]; changes: { key: string; name: unknown; diff: Diff }[]; skipped: { key: string; name: unknown; in: string }[] }>();
     const logFor = (p: string) => { let l = log.get(p); if (!l) { l = { fresh: [], changes: [], skipped: [] }; log.set(p, l); } return l; };
-    // IT companies for Melodia (lib/melodiaPlan.mjs): a lead goes in the sync
-    // that first brings its finished email lookup, not again on every re-sync
-    const melodia: MelodiaCompany[] = [];
-    const melodiaKeys = new Set<string>();
-    const geoOf = new Map<string, ReturnType<typeof parseProjectGeo>>();
-    const forMelodia = (project: string, key: string, fields: Record<string, unknown>) => {
-      if (melodiaKeys.has(key) || (before.get(key) as { emailCheckedAt?: string } | undefined)?.emailCheckedAt) return;
-      if (!geoOf.has(project)) geoOf.set(project, parseProjectGeo(project));
-      const c = companyFor(fields, geoOf.get(project)) as MelodiaCompany | null;
-      if (c) { melodia.push(c); melodiaKeys.add(key); }
-    };
     for (const it of incoming) {
       const ownerProject = owner.get(it.dedupKey);
       const f = it.fields;
@@ -110,12 +95,10 @@ export async function POST(req: Request) {
         owner.set(it.dedupKey, it.project); // now owned (also dedupes within this batch)
         touched.add(it.project);
         added++;
-        forMelodia(it.project, it.dedupKey, it.fields);
       } else if (ownerProject === it.project) {
         ops.push({ updateOne: { filter: { project: it.project, dedupKey: it.dedupKey }, update: { $set: { ...it.fields, project: it.project } }, upsert: true } });
         touched.add(it.project);
         updated++;
-        forMelodia(it.project, it.dedupKey, it.fields);
       } else {
         skipped++; // already in a different project → don't duplicate
         // …but an email the extension found for it is still worth keeping: put it
@@ -131,9 +114,6 @@ export async function POST(req: Request) {
 
     for (let i = 0; i < ops.length; i += 1000) await Lead.bulkWrite(ops.slice(i, i + 1000), { ordered: false });
     if (ops.length) await refreshSearchTokens(keys); // from the stored values: an empty incoming contact field did not overwrite them
-
-    // after the answer: the extension does not wait for Melodia, and Melodia being down never fails a sync
-    if (melodia.length) after(() => pushToMelodia(melodia));
 
     if (touched.size) await recomputeProjectStats([...touched]); // payload cache TTL picks the new counts up
 
