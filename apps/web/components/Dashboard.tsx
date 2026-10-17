@@ -273,6 +273,8 @@ function ColumnsMenu({ order, hidden, onToggle, onAll, onReset }:
 // "Select all filtered" in the table ticks at most this many leads, read this many per request
 const MAX_ROW_SELECT = 5000;
 const SELECT_PAGE = 1000;
+// ↗ Melodia sends a large selection in parts of this many (POST /api/melodia takes 1,000, and each part must finish inside the function's time limit)
+const MELODIA_CHUNK = 400;
 
 export default function Dashboard() {
   const folders = useGrid((s) => s.folders);
@@ -949,19 +951,28 @@ export default function Dashboard() {
   const [melodia, setMelodia] = useState<{ busy: boolean; text: string } | null>(null);
   const sendSelectedToMelodia = async () => {
     if (!rowSel.size || melodia?.busy) return;
-    if (!confirm(`Send ${rowSel.size} selected business(es) to Melodia? Melodia skips the ones it already has.`)) return;
+    if (!confirm(`Send ${rowSel.size.toLocaleString()} selected business(es) to Melodia? Melodia skips the ones it already has.`)) return;
     const leads = [...rowSel].map((id) => { const i = id.indexOf('|'); return { project: id.slice(0, i), key: id.slice(i + 1) }; });
-    setMelodia({ busy: true, text: `Sending ${leads.length.toLocaleString()} to Melodia…` });
-    try {
-      const r = await api.sendToMelodia(leads);
-      if (r.error) { setMelodia({ busy: false, text: r.error }); return; }
-      const parts = [`${r.inserted || 0} added`, `${r.skipped || 0} already in Melodia`];
-      if (r.failed) parts.push(`${r.failed} not taken${r.problems?.length ? ` (${r.problems[0]})` : ''}`);
-      setMelodia({ busy: false, text: `Melodia: ${parts.join(', ')}${r.noWebsite ? ` (${r.noWebsite} sent without a website)` : ''}` });
-      if (!r.failed) setRowSel(new Set());
-    } catch {
-      setMelodia({ busy: false, text: 'Network error. Nothing was confirmed by Melodia.' });
+    const sum = { inserted: 0, skipped: 0, failed: 0, noWebsite: 0 };
+    let problem = '', stopped = '';
+    // POST /api/melodia takes at most 1,000 per call; a larger selection goes in parts, one after the other
+    for (let i = 0; i < leads.length; i += MELODIA_CHUNK) {
+      setMelodia({ busy: true, text: `Sending to Melodia… ${i.toLocaleString()} / ${leads.length.toLocaleString()}` });
+      try {
+        const r = await api.sendToMelodia(leads.slice(i, i + MELODIA_CHUNK));
+        if (r.error && r.sent === undefined) { stopped = r.error; break; }
+        sum.inserted += r.inserted || 0; sum.skipped += r.skipped || 0; sum.failed += r.failed || 0; sum.noWebsite += r.noWebsite || 0;
+        if (!problem && r.problems?.length) problem = r.problems[0];
+      } catch {
+        stopped = 'Network error.';
+        break;
+      }
     }
+    const parts = [`${sum.inserted} added`, `${sum.skipped} already in Melodia`];
+    if (sum.failed) parts.push(`${sum.failed} not taken${problem ? ` (${problem})` : ''}`);
+    const done = `Melodia: ${parts.join(', ')}${sum.noWebsite ? ` (${sum.noWebsite} sent without a website)` : ''}`;
+    setMelodia({ busy: false, text: stopped ? `${stopped} Stopped. ${done}` : done });
+    if (!stopped && !sum.failed) setRowSel(new Set());
   };
 
   // Recompute every lead's opportunity score with the new engine, chunk by chunk.
