@@ -7,7 +7,7 @@ import { MELODIA_BATCH } from '@/lib/melodiaPlan.mjs';
 const ENDPOINT = 'https://melodia-kt.vercel.app/api/bot/companies';
 const TIMEOUT_MS = 20_000;
 
-export interface MelodiaCompany { company: string; website: string; country: string; source: string; industry?: string; email?: string; otherEmails?: string[] }
+export interface MelodiaCompany { company: string; website?: string; country: string; source: string; industry?: string; email?: string; otherEmails?: string[] }
 
 export interface MelodiaOutcome { inserted: number; skipped: number; failed: number; problems: string[] }
 

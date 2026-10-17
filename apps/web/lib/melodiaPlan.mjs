@@ -2,8 +2,9 @@
 // hands in the leads the operator ticked on the dashboard, lib/melodia.ts sends
 // the answer. Nothing is sent on its own: the operator decides, lead by lead.
 //
-// Only a lead with a website of its own goes: Melodia's rules ask for real
-// companies with their official site, and it tells repeats apart by the site.
+// A lead without a website of its own goes too, without the field: the
+// operator wants those as well. Melodia tells repeats apart by the website
+// first, so a lead without one that is sent twice may land twice.
 import { bestEmail, emailQuality, isPlatformHost } from './emailQuality.mjs';
 
 // Melodia takes at most this many companies per request.
@@ -27,11 +28,12 @@ const SOCIAL = /(^|\.)(facebook\.com|fb\.com|fb\.me|instagram\.com|linkedin\.com
 export function companyFor(lead, project) {
   const l = lead || {};
   if (!project || !project.type || !l.name) return null;
+  const code = countryCode(project.country);
+  const out = { company: String(l.name).slice(0, 200), country: code, source: sourceOf(project.type, code) };
+  // a Facebook page or a booking platform's page is not the company's website
   const website = String(l.website || '').trim();
   const host = hostOf(website);
-  if (l.websiteStatus !== 'HAS_WEBSITE' || !host || SOCIAL.test(host) || isPlatformHost(host)) return null;
-  const code = countryCode(project.country);
-  const out = { company: String(l.name).slice(0, 200), website, country: code, source: sourceOf(project.type, code) };
+  if (l.websiteStatus === 'HAS_WEBSITE' && host && !SOCIAL.test(host) && !isPlatformHost(host)) out.website = website;
   if (l.category) out.industry = String(l.category).slice(0, 100);
   // only addresses read off its website that are fit to write to, the best first
   const email = bestEmail(l).email;

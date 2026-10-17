@@ -16,10 +16,12 @@ test('a lead the operator picked goes whatever its search, named by it', () => {
   assert.equal(companyFor(lead(), { type: 'restaurants', country: 'Hungary' }).source, 'gridleads_restaurants_hu');
 });
 
-test('without a website of its own a lead does not go', () => {
-  assert.equal(companyFor(lead({ website: '', websiteStatus: 'NO_WEBSITE' }), HU_IT), null);
-  assert.equal(companyFor(lead({ website: 'https://www.facebook.com/acme', websiteStatus: 'FACEBOOK_ONLY' }), HU_IT), null);
-  assert.equal(companyFor(lead({ website: 'https://lomyu.me/acme-123-us' }), HU_IT), null);
+test('a lead without a website of its own goes too, without the field', () => {
+  const none = companyFor(lead({ website: '', websiteStatus: 'NO_WEBSITE' }), HU_IT);
+  assert.equal(none.company, 'Acme Kft');
+  assert.equal('website' in none, false);
+  assert.equal('website' in companyFor(lead({ website: 'https://www.facebook.com/acme', websiteStatus: 'FACEBOOK_ONLY' }), HU_IT), false);
+  assert.equal('website' in companyFor(lead({ website: 'https://lomyu.me/acme-123-us' }), HU_IT), false);
   assert.equal(companyFor(lead({ name: '' }), HU_IT), null);
 });
 

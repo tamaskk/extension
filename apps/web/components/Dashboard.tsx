@@ -921,16 +921,15 @@ export default function Dashboard() {
   const [melodia, setMelodia] = useState<{ busy: boolean; text: string } | null>(null);
   const sendSelectedToMelodia = async () => {
     if (!rowSel.size || melodia?.busy) return;
-    if (!confirm(`Send ${rowSel.size} selected business(es) to Melodia? Only the ones with a website of their own go; Melodia skips the ones it already has.`)) return;
+    if (!confirm(`Send ${rowSel.size} selected business(es) to Melodia? Melodia skips the ones it already has.`)) return;
     const leads = [...rowSel].map((id) => { const i = id.indexOf('|'); return { project: id.slice(0, i), key: id.slice(i + 1) }; });
     setMelodia({ busy: true, text: `Sending ${leads.length.toLocaleString()} to Melodia…` });
     try {
       const r = await api.sendToMelodia(leads);
       if (r.error) { setMelodia({ busy: false, text: r.error }); return; }
       const parts = [`${r.inserted || 0} added`, `${r.skipped || 0} already in Melodia`];
-      if (r.noWebsite) parts.push(`${r.noWebsite} without a website, not sent`);
       if (r.failed) parts.push(`${r.failed} not taken${r.problems?.length ? ` (${r.problems[0]})` : ''}`);
-      setMelodia({ busy: false, text: `Melodia: ${parts.join(', ')}` });
+      setMelodia({ busy: false, text: `Melodia: ${parts.join(', ')}${r.noWebsite ? ` (${r.noWebsite} sent without a website)` : ''}` });
       if (!r.failed) setRowSel(new Set());
     } catch {
       setMelodia({ busy: false, text: 'Network error. Nothing was confirmed by Melodia.' });
