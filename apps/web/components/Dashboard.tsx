@@ -917,6 +917,26 @@ export default function Dashboard() {
     setReloadKey((k) => k + 1);        // refresh table total / page
   };
 
+  // send the rows ticked with the selection checkbox to Melodia (POST /api/melodia)
+  const [melodia, setMelodia] = useState<{ busy: boolean; text: string } | null>(null);
+  const sendSelectedToMelodia = async () => {
+    if (!rowSel.size || melodia?.busy) return;
+    if (!confirm(`Send ${rowSel.size} selected business(es) to Melodia? Only the ones with a website of their own go; Melodia skips the ones it already has.`)) return;
+    const leads = [...rowSel].map((id) => { const i = id.indexOf('|'); return { project: id.slice(0, i), key: id.slice(i + 1) }; });
+    setMelodia({ busy: true, text: `Sending ${leads.length.toLocaleString()} to Melodia…` });
+    try {
+      const r = await api.sendToMelodia(leads);
+      if (r.error) { setMelodia({ busy: false, text: r.error }); return; }
+      const parts = [`${r.inserted || 0} added`, `${r.skipped || 0} already in Melodia`];
+      if (r.noWebsite) parts.push(`${r.noWebsite} without a website, not sent`);
+      if (r.failed) parts.push(`${r.failed} not taken${r.problems?.length ? ` (${r.problems[0]})` : ''}`);
+      setMelodia({ busy: false, text: `Melodia: ${parts.join(', ')}` });
+      if (!r.failed) setRowSel(new Set());
+    } catch {
+      setMelodia({ busy: false, text: 'Network error. Nothing was confirmed by Melodia.' });
+    }
+  };
+
   // Recompute every lead's opportunity score with the new engine, chunk by chunk.
   const runRecalc = async () => {
     if (recalc?.running) return;
@@ -1456,11 +1476,13 @@ export default function Dashboard() {
                 await api.removeFromGroup(activeGroup.groupId, keys).catch(() => {});
                 setRowSel(new Set()); setReloadKey((k) => k + 1);
               }}>✕ Remove from group</button>}
+              <button className="chipbtn" onClick={sendSelectedToMelodia} disabled={!!melodia?.busy}>{melodia?.busy ? 'Sending…' : '↗ Melodia'}</button>
               <button className="chipbtn danger" onClick={deleteSelectedRows}>🗑 Delete</button>
               <span className="rowsel-clear" onClick={() => setRowSel(new Set())}>clear</span>
             </span>
           )}
           <div className="spacer" />
+          {melodia && !melodia.busy && <span className="recalc-status">{melodia.text} <span className="rowsel-clear" onClick={() => setMelodia(null)}>✕</span></span>}
           {recalc && (
             <span className="recalc-status">
               {recalc.running ? `Recalculating… ${recalc.done.toLocaleString()}${recalc.total ? ` / ${recalc.total.toLocaleString()}` : ''}` : `✓ Recalculated ${recalc.done.toLocaleString()} leads`}
